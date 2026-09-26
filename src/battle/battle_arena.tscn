@@ -1,0 +1,486 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/battle/battle_arena.gd" id="1_arena"]
+[ext_resource type="Script" path="res://src/battle/arena_viewport.gd" id="2_view"]
+[ext_resource type="Texture2D" path="res://assets/art/battle/meadow_bg.jpg" id="3_bg"]
+[ext_resource type="Texture2D" path="res://assets/art/portraits/hero_alaric.jpg" id="4_hero"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/parchment_panel.png" id="5_parch"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/parchment_scroll.png" id="6_scroll"]
+[ext_resource type="Texture2D" path="res://assets/art/spells/spell_fireball.png" id="7_sp_btn"]
+
+[node name="BattleArena" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_arena")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="ArenaViewport" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("2_view")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TopBar" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -460.0
+offset_top = 16.0
+offset_right = 460.0
+offset_bottom = 100.0
+grow_horizontal = 2
+
+[node name="Background" type="NinePatchRect" parent="CanvasLayer/TopBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("6_scroll")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="RoundLabel" type="Label" parent="CanvasLayer/TopBar"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 24.0
+offset_right = 160.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(0.2, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 26
+text = "Раунд 1"
+vertical_alignment = 1
+
+[node name="InitiativeScroll" type="ScrollContainer" parent="CanvasLayer/TopBar"]
+layout_mode = 0
+offset_left = 180.0
+offset_top = 12.0
+offset_right = 890.0
+offset_bottom = 76.0
+vertical_scroll_mode = 0
+
+[node name="InitiativeTokens" type="HBoxContainer" parent="CanvasLayer/TopBar/InitiativeScroll"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeroHUD" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -240.0
+offset_right = 420.0
+offset_bottom = -32.0
+grow_vertical = 0
+
+[node name="Parchment" type="NinePatchRect" parent="CanvasLayer/HeroHUD"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_parch")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Portrait" type="TextureRect" parent="CanvasLayer/HeroHUD/Parchment"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 24.0
+offset_right = 116.0
+offset_bottom = 120.0
+texture = ExtResource("4_hero")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeroStats" type="VBoxContainer" parent="CanvasLayer/HeroHUD/Parchment"]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 24.0
+offset_right = 360.0
+offset_bottom = 120.0
+theme_override_constants/separation = 6
+
+[node name="NameLabel" type="Label" parent="CanvasLayer/HeroHUD/Parchment/HeroStats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.14, 0.06, 1)
+theme_override_font_sizes/font_size = 22
+text = "Рыцарь Аларик"
+
+[node name="ManaLabel" type="Label" parent="CanvasLayer/HeroHUD/Parchment/HeroStats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.15, 0.25, 0.65, 1)
+theme_override_font_sizes/font_size = 18
+text = "Мана: 40 / 40"
+
+[node name="ManaBar" type="ProgressBar" parent="CanvasLayer/HeroHUD/Parchment/HeroStats"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+max_value = 40.0
+value = 40.0
+show_percentage = false
+
+[node name="DefendBtn" type="Button" parent="CanvasLayer/HeroHUD/Parchment"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 140.0
+offset_right = 185.0
+offset_bottom = 188.0
+theme_override_font_sizes/font_size = 18
+text = "Оборона"
+
+[node name="WaitBtn" type="Button" parent="CanvasLayer/HeroHUD/Parchment"]
+layout_mode = 0
+offset_left = 202.0
+offset_top = 140.0
+offset_right = 363.0
+offset_bottom = 188.0
+theme_override_font_sizes/font_size = 18
+text = "Ждать"
+
+[node name="SpellbookBtn" type="TextureButton" parent="CanvasLayer"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -140.0
+offset_right = -36.0
+offset_bottom = -36.0
+grow_horizontal = 0
+grow_vertical = 0
+texture_normal = ExtResource("7_sp_btn")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="BottomBar" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -480.0
+offset_top = -76.0
+offset_right = 380.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Background" type="NinePatchRect" parent="CanvasLayer/BottomBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("6_scroll")
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="CombatLogLabel" type="Label" parent="CanvasLayer/BottomBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 12.0
+offset_right = -24.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.2, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 20
+text = "Готовьтесь к бою!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SpellbookDialog" type="Control" parent="CanvasLayer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DarkOverlay" type="ColorRect" parent="CanvasLayer/SpellbookDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.45)
+
+[node name="Parchment" type="NinePatchRect" parent="CanvasLayer/SpellbookDialog"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -210.0
+offset_right = 350.0
+offset_bottom = 210.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_parch")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Title" type="Label" parent="CanvasLayer/SpellbookDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -250.0
+offset_top = 22.0
+offset_right = 250.0
+offset_bottom = 62.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.28, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 28
+text = "Книга Заклинаний"
+horizontal_alignment = 1
+
+[node name="SpellGrid" type="HBoxContainer" parent="CanvasLayer/SpellbookDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -310.0
+offset_top = -55.0
+offset_right = 310.0
+offset_bottom = 55.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="CloseBtn" type="Button" parent="CanvasLayer/SpellbookDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -70.0
+offset_right = 100.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 20
+text = "Закрыть (Esc)"
+
+[node name="UnitInfoDialog" type="Control" parent="CanvasLayer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DarkOverlay" type="ColorRect" parent="CanvasLayer/UnitInfoDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.45)
+
+[node name="Parchment" type="NinePatchRect" parent="CanvasLayer/UnitInfoDialog"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -240.0
+offset_right = 300.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_parch")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Title" type="Label" parent="CanvasLayer/UnitInfoDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -260.0
+offset_top = 20.0
+offset_right = 260.0
+offset_bottom = 56.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.28, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 24
+text = "Свойства отряда"
+horizontal_alignment = 1
+
+[node name="UnitPortrait" type="TextureRect" parent="CanvasLayer/UnitInfoDialog/Parchment"]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 68.0
+offset_right = 120.0
+offset_bottom = 156.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatsLabel" type="Label" parent="CanvasLayer/UnitInfoDialog/Parchment"]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 64.0
+offset_right = 560.0
+offset_bottom = 370.0
+theme_override_colors/font_color = Color(0.2, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 18
+text = "Статистика отряда..."
+autowrap_mode = 2
+
+[node name="CloseBtn" type="Button" parent="CanvasLayer/UnitInfoDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -90.0
+offset_top = -60.0
+offset_right = 90.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 18
+text = "Закрыть (Esc)"
+
+[node name="VictoryDialog" type="Control" parent="CanvasLayer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DarkOverlay" type="ColorRect" parent="CanvasLayer/VictoryDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="Parchment" type="NinePatchRect" parent="CanvasLayer/VictoryDialog"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -230.0
+offset_right = 320.0
+offset_bottom = 230.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_parch")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Title" type="Label" parent="CanvasLayer/VictoryDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -280.0
+offset_top = 30.0
+offset_right = 280.0
+offset_bottom = 76.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.2, 0.45, 0.15, 1)
+theme_override_font_sizes/font_size = 32
+text = "СЛАВНАЯ ПОБЕДА!"
+horizontal_alignment = 1
+
+[node name="Description" type="Label" parent="CanvasLayer/VictoryDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -270.0
+offset_top = -70.0
+offset_right = 270.0
+offset_bottom = 75.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.25, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 20
+text = "Враг разбит и рассеян!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ContinueBtn" type="Button" parent="CanvasLayer/VictoryDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -75.0
+offset_right = 120.0
+offset_bottom = -25.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 22
+text = "Продолжить"

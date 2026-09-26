@@ -1,0 +1,1287 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://src/world/world_map.gd" id="1_wmap"]
+[ext_resource type="Script" path="res://src/world/world_view.gd" id="2_view"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/parchment_scroll.png" id="3_scroll"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/parchment_panel.png" id="4_parch"]
+[ext_resource type="Texture2D" path="res://assets/art/portraits/hero_alaric.jpg" id="5_hero"]
+[ext_resource type="Texture2D" path="res://assets/art/spells/spell_fireball.png" id="6_sp_btn"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/hero_body_silhouette.jpg" id="7_body"]
+
+[node name="WorldMapScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_wmap")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WorldView" type="Control" parent="ScrollContainer"]
+layout_mode = 2
+mouse_filter = 1
+script = ExtResource("2_view")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TopHUD" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -560.0
+offset_top = 10.0
+offset_right = 560.0
+offset_bottom = 86.0
+grow_horizontal = 2
+
+[node name="Background" type="NinePatchRect" parent="CanvasLayer/TopHUD"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_scroll")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Portrait" type="TextureRect" parent="CanvasLayer/TopHUD"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = 76.0
+offset_bottom = 68.0
+mouse_filter = 0
+texture = ExtResource("5_hero")
+expand_mode = 1
+stretch_mode = 5
+tooltip_text = "Экран Героя (H)"
+
+[node name="NameLabel" type="Label" parent="CanvasLayer/TopHUD"]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 22.0
+offset_right = 320.0
+offset_bottom = 52.0
+theme_override_colors/font_color = Color(0.22, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 18
+text = "Аларик (ур. 1)"
+vertical_alignment = 1
+text_overrun_behavior = 3
+clip_text = true
+
+[node name="GoldLabel" type="Label" parent="CanvasLayer/TopHUD"]
+layout_mode = 0
+offset_left = 330.0
+offset_top = 22.0
+offset_right = 430.0
+offset_bottom = 52.0
+theme_override_colors/font_color = Color(0.72, 0.45, 0.05, 1)
+theme_override_font_sizes/font_size = 18
+text = "Золото: 1500"
+
+[node name="ManaLabel" type="Label" parent="CanvasLayer/TopHUD"]
+layout_mode = 0
+offset_left = 440.0
+offset_top = 22.0
+offset_right = 540.0
+offset_bottom = 52.0
+theme_override_colors/font_color = Color(0.15, 0.38, 0.78, 1)
+theme_override_font_sizes/font_size = 18
+text = "Мана: 40/40"
+
+[node name="MoveLabel" type="Label" parent="CanvasLayer/TopHUD"]
+layout_mode = 0
+offset_left = 550.0
+offset_top = 14.0
+offset_right = 665.0
+offset_bottom = 38.0
+theme_override_colors/font_color = Color(0.15, 0.55, 0.2, 1)
+theme_override_font_sizes/font_size = 16
+text = "Ход: 24/24"
+
+[node name="MoveBar" type="ProgressBar" parent="CanvasLayer/TopHUD"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 0
+offset_left = 550.0
+offset_top = 40.0
+offset_right = 665.0
+offset_bottom = 54.0
+max_value = 24.0
+value = 24.0
+show_percentage = false
+
+[node name="DayLabel" type="Label" parent="CanvasLayer/TopHUD"]
+layout_mode = 0
+offset_left = 680.0
+offset_top = 14.0
+offset_right = 860.0
+offset_bottom = 62.0
+theme_override_colors/font_color = Color(0.25, 0.15, 0.08, 1)
+theme_override_font_sizes/font_size = 18
+text = "Гл. 1: День 1"
+vertical_alignment = 1
+
+[node name="EndDayBtn" type="Button" parent="CanvasLayer/TopHUD"]
+layout_mode = 0
+offset_left = 875.0
+offset_top = 13.0
+offset_right = 1100.0
+offset_bottom = 63.0
+theme_override_font_sizes/font_size = 16
+text = "⏳ Завершить день"
+
+[node name="LeftArmyPanel" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -420.0
+offset_right = 336.0
+offset_bottom = -16.0
+grow_vertical = 0
+
+[node name="Parchment" type="NinePatchRect" parent="CanvasLayer/LeftArmyPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_parch")
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+
+[node name="Title" type="Label" parent="CanvasLayer/LeftArmyPanel/Parchment"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 310.0
+offset_bottom = 36.0
+theme_override_colors/font_color = Color(0.25, 0.15, 0.05, 1)
+theme_override_font_sizes/font_size = 18
+text = "Войско Героя"
+horizontal_alignment = 1
+
+[node name="ArmyVBox" type="VBoxContainer" parent="CanvasLayer/LeftArmyPanel/Parchment"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 42.0
+offset_right = 310.0
+offset_bottom = 390.0
+theme_override_constants/separation = 8
+
+[node name="SpellbookBtn" type="TextureButton" parent="CanvasLayer"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -110.0
+offset_top = -110.0
+offset_right = -25.0
+offset_bottom = -25.0
+grow_horizontal = 0
+grow_vertical = 0
+texture_normal = ExtResource("6_sp_btn")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="EventDialog" type="Control" parent="CanvasLayer"]
+visible = false
+z_index = 50
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DarkOverlay" type="ColorRect" parent="CanvasLayer/EventDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Parchment" type="NinePatchRect" parent="CanvasLayer/EventDialog"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -250.0
+offset_right = 360.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_parch")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="CloseBtn" type="Button" parent="CanvasLayer/EventDialog/Parchment"]
+z_index = 2
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -52.0
+offset_top = 16.0
+offset_right = -18.0
+offset_bottom = 50.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 18
+text = "✕"
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/EventDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 34
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 34
+theme_override_constants/margin_bottom = 20
+
+[node name="MainVBox" type="VBoxContainer" parent="CanvasLayer/EventDialog/Parchment/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="CanvasLayer/EventDialog/Parchment/Margin/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 22
+text = "Событие"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="CanvasLayer/EventDialog/Parchment/Margin/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ScrollMargin" type="MarginContainer" parent="CanvasLayer/EventDialog/Parchment/Margin/MainVBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 2
+
+[node name="Text" type="Label" parent="CanvasLayer/EventDialog/Parchment/Margin/MainVBox/Scroll/ScrollMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(0.2, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 17
+text = "Описание встречи..."
+autowrap_mode = 2
+
+[node name="BtnVBox" type="VBoxContainer" parent="CanvasLayer/EventDialog/Parchment/Margin/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Btn1" type="Button" parent="CanvasLayer/EventDialog/Parchment/Margin/MainVBox/BtnVBox"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "Действие 1"
+
+[node name="Btn2" type="Button" parent="CanvasLayer/EventDialog/Parchment/Margin/MainVBox/BtnVBox"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "Действие 2"
+
+[node name="SplitStackDialog" type="Control" parent="CanvasLayer"]
+visible = false
+z_index = 50
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DarkOverlay" type="ColorRect" parent="CanvasLayer/SplitStackDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Parchment" type="NinePatchRect" parent="CanvasLayer/SplitStackDialog"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -180.0
+offset_right = 280.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_parch")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Title" type="Label" parent="CanvasLayer/SplitStackDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -240.0
+offset_top = 20.0
+offset_right = 240.0
+offset_bottom = 52.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.28, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 22
+text = "Разделение отряда"
+horizontal_alignment = 1
+
+[node name="StackInfoLabel" type="Label" parent="CanvasLayer/SplitStackDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -80.0
+offset_right = 240.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.2, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 18
+text = "Отряд: Грифоны (всего: 6)"
+horizontal_alignment = 1
+
+[node name="SplitSlider" type="HSlider" parent="CanvasLayer/SplitStackDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -20.0
+offset_right = 200.0
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2
+min_value = 1.0
+max_value = 5.0
+value = 1.0
+
+[node name="SplitValueLabel" type="Label" parent="CanvasLayer/SplitStackDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = 20.0
+offset_right = 240.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.15, 0.45, 0.15, 1)
+theme_override_font_sizes/font_size = 20
+text = "Выделить в новый отряд: 1"
+horizontal_alignment = 1
+
+[node name="HBox" type="HBoxContainer" parent="CanvasLayer/SplitStackDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -65.0
+offset_right = 220.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 16
+
+[node name="ConfirmSplitBtn" type="Button" parent="CanvasLayer/SplitStackDialog/Parchment/HBox"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Разделить"
+
+[node name="CancelSplitBtn" type="Button" parent="CanvasLayer/SplitStackDialog/Parchment/HBox"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Отмена"
+
+[node name="SpellbookDialog" type="Control" parent="CanvasLayer"]
+visible = false
+z_index = 50
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DarkOverlay" type="ColorRect" parent="CanvasLayer/SpellbookDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Parchment" type="NinePatchRect" parent="CanvasLayer/SpellbookDialog"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -390.0
+offset_top = -280.0
+offset_right = 390.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_parch")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/SpellbookDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 20.0
+offset_right = -24.0
+offset_bottom = -64.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainVBox" type="VBoxContainer" parent="CanvasLayer/SpellbookDialog/Parchment/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 24
+text = "✦ КНИГА ЗАКЛИНАНИЙ ✦"
+horizontal_alignment = 1
+
+[node name="ManaSubtitle" type="Label" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.25, 0.1, 1)
+theme_override_font_sizes/font_size = 15
+text = "Запас маны: 40/40 🔮  •  Сила Магии: 3"
+horizontal_alignment = 1
+
+[node name="HSeparator1" type="HSeparator" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox"]
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ContentVBox" type="VBoxContainer" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="AdvSectionTitle" type="Label" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.25, 0.05, 1)
+theme_override_font_sizes/font_size = 16
+text = "★ ПОХОДНЫЕ ЗАКЛИНАНИЯ (карта мира):"
+
+[node name="AdvCardsHBox" type="HBoxContainer" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="ScryCard" type="PanelContainer" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CardVBox" type="VBoxContainer" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox/ScryCard"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CardTitle" type="Label" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox/ScryCard/CardVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.35, 0.7, 1)
+theme_override_font_sizes/font_size = 15
+text = "🔮 Око Орла (10 маны)"
+
+[node name="CardDesc" type="Label" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox/ScryCard/CardVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.18, 0.1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Рассеивает пелену тумана войны в радиусе 9 клеток вокруг отряда героя."
+autowrap_mode = 2
+
+[node name="ScryBtn" type="Button" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox/ScryCard/CardVBox"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🔮 Сотворить: Око Орла"
+
+[node name="RestCard" type="PanelContainer" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CardVBox" type="VBoxContainer" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox/RestCard"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CardTitle" type="Label" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox/RestCard/CardVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.15, 0.5, 0.2, 1)
+theme_override_font_sizes/font_size = 15
+text = "🌿 Благодать Похода (15 маны)"
+
+[node name="CardDesc" type="Label" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox/RestCard/CardVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.18, 0.1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Восстанавливает +20% воинов во всех отрядах вашей армии прямо в походе."
+autowrap_mode = 2
+
+[node name="RestBtn" type="Button" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox/RestCard/CardVBox"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🌿 Сотворить: Благодать"
+
+[node name="HSeparator2" type="HSeparator" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox"]
+layout_mode = 2
+
+[node name="CombatSectionTitle" type="Label" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.25, 0.05, 1)
+theme_override_font_sizes/font_size = 16
+text = "⚔ ИЗУЧЕННЫЕ БОЕВЫЕ ЗАКЛИНАНИЯ (для тактического боя):"
+
+[node name="CombatGrid" type="GridContainer" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="CloseBtn" type="Button" parent="CanvasLayer/SpellbookDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -110.0
+offset_top = -54.0
+offset_right = 110.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 16
+text = "Закрыть (Esc)"
+
+[node name="QuestHUD" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -345.0
+offset_top = 228.0
+offset_right = -16.0
+offset_bottom = 393.0
+grow_horizontal = 0
+
+[node name="Background" type="NinePatchRect" parent="CanvasLayer/QuestHUD"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_parch")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Title" type="Label" parent="CanvasLayer/QuestHUD"]
+layout_mode = 0
+offset_left = 26.0
+offset_top = 20.0
+offset_right = 304.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(0.45, 0.25, 0.08, 1)
+theme_override_font_sizes/font_size = 13
+text = "✦ ТЕКУЩЕЕ ЗАДАНИЕ"
+
+[node name="QuestLabel" type="Label" parent="CanvasLayer/QuestHUD"]
+layout_mode = 0
+offset_left = 26.0
+offset_top = 44.0
+offset_right = 304.0
+offset_bottom = 142.0
+theme_override_colors/font_color = Color(0.2, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 13
+text = "Посетите Хижину Лесника (7, 18) на юге."
+autowrap_mode = 2
+
+[node name="VictoryDialog" type="Control" parent="CanvasLayer"]
+visible = false
+z_index = 50
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DarkOverlay" type="ColorRect" parent="CanvasLayer/VictoryDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="Parchment" type="NinePatchRect" parent="CanvasLayer/VictoryDialog"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -280.0
+offset_right = 360.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_parch")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Title" type="Label" parent="CanvasLayer/VictoryDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -320.0
+offset_top = 20.0
+offset_right = 320.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.35, 0.2, 0.05, 1)
+theme_override_font_sizes/font_size = 26
+text = "👑 ВЕЛИКИЙ ТРИУМФ! 👑"
+horizontal_alignment = 1
+
+[node name="Text" type="Label" parent="CanvasLayer/VictoryDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -310.0
+offset_top = -150.0
+offset_right = 310.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.2, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 17
+text = "Королева Фей благодарит паладина..."
+autowrap_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="CanvasLayer/VictoryDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -70.0
+offset_right = 300.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 20
+
+[node name="ContinueBtn" type="Button" parent="CanvasLayer/VictoryDialog/Parchment/HBox"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Продолжить поход"
+
+[node name="MenuBtn" type="Button" parent="CanvasLayer/VictoryDialog/Parchment/HBox"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "В Главное Меню"
+
+[node name="HeroProfileDialog" type="Control" parent="CanvasLayer"]
+visible = false
+z_index = 50
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DarkOverlay" type="ColorRect" parent="CanvasLayer/HeroProfileDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Parchment" type="NinePatchRect" parent="CanvasLayer/HeroProfileDialog"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -560.0
+offset_top = -365.0
+offset_right = 560.0
+offset_bottom = 365.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_parch")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Title" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -450.0
+offset_top = 18.0
+offset_right = 450.0
+offset_bottom = 54.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.28, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 24
+text = "Герой: Сэр Аларик (Паладин)"
+horizontal_alignment = 1
+
+[node name="CloseBtn" type="Button" parent="CanvasLayer/HeroProfileDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -56.0
+offset_top = 18.0
+offset_right = -20.0
+offset_bottom = 54.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 18
+text = "✕"
+
+[node name="ContentHBox" type="HBoxContainer" parent="CanvasLayer/HeroProfileDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = 62.0
+offset_right = -28.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="LeftCol" type="VBoxContainer" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeroHeaderHBox" type="HBoxContainer" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Portrait" type="TextureRect" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol/HeroHeaderHBox"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+texture = ExtResource("5_hero")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeaderTextVBox" type="VBoxContainer" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol/HeroHeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="HeroName" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol/HeroHeaderHBox/HeaderTextVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 20
+text = "Сэр Аларик"
+
+[node name="LevelLabel" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol/HeroHeaderHBox/HeaderTextVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.22, 0.1, 1)
+theme_override_font_sizes/font_size = 15
+text = "Уровень: 1 (Глава 1)"
+
+[node name="XPLabel" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol/HeroHeaderHBox/HeaderTextVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.32, 0.15, 1)
+theme_override_font_sizes/font_size = 13
+text = "Опыт: 0 / 1000"
+
+[node name="XPBar" type="ProgressBar" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol/HeroHeaderHBox/HeaderTextVBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+show_percentage = false
+
+[node name="HSeparator1" type="HSeparator" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol"]
+layout_mode = 2
+
+[node name="StatsTitle" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 17
+text = "Характеристики:"
+
+[node name="AttackLabel" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.15, 0.1, 1)
+theme_override_font_sizes/font_size = 15
+text = "⚔️ Атака: 4 (+20% урон)"
+
+[node name="DefenseLabel" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.15, 0.35, 0.65, 1)
+theme_override_font_sizes/font_size = 15
+text = "🛡️ Защита: 3 (-9% урон)"
+
+[node name="SpellpowerLabel" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.15, 0.65, 1)
+theme_override_font_sizes/font_size = 15
+text = "🔮 Сила Магии: 3"
+
+[node name="KnowledgeLabel" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.15, 0.45, 0.25, 1)
+theme_override_font_sizes/font_size = 15
+text = "📜 Знание: 4 (40 маны)"
+
+[node name="SetBonusLabel" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.45, 0.05, 1)
+theme_override_font_sizes/font_size = 13
+autowrap_mode = 2
+
+[node name="HSeparator2" type="HSeparator" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol"]
+layout_mode = 2
+
+[node name="RelicsTitle" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.25, 0.1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Реликвии и Ключи:"
+
+[node name="RelicsScroll" type="ScrollContainer" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RelicsLabel" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/LeftCol/RelicsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
+theme_override_font_sizes/font_size = 14
+text = "• Нет артефактов"
+autowrap_mode = 2
+
+[node name="MidCol" type="VBoxContainer" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="EquipTitle" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 17
+text = "— Снаряжение на Герое —"
+horizontal_alignment = 1
+
+[node name="MannequinBox" type="Control" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol"]
+clip_contents = true
+custom_minimum_size = Vector2(380, 390)
+layout_mode = 2
+
+[node name="Silhouette" type="TextureRect" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol/MannequinBox"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("7_body")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Slot_relic" type="Button" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol/MannequinBox"]
+layout_mode = 0
+offset_left = 160.0
+offset_top = 8.0
+offset_right = 220.0
+offset_bottom = 68.0
+theme_override_font_sizes/font_size = 11
+text = "👑\nШлем"
+
+[node name="Slot_weapon" type="Button" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol/MannequinBox"]
+layout_mode = 0
+offset_left = 22.0
+offset_top = 135.0
+offset_right = 82.0
+offset_bottom = 195.0
+theme_override_font_sizes/font_size = 11
+text = "⚔️\nОружие"
+
+[node name="Slot_armor" type="Button" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol/MannequinBox"]
+layout_mode = 0
+offset_left = 160.0
+offset_top = 115.0
+offset_right = 220.0
+offset_bottom = 175.0
+theme_override_font_sizes/font_size = 11
+text = "🦺\nДоспех"
+
+[node name="Slot_shield" type="Button" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol/MannequinBox"]
+layout_mode = 0
+offset_left = 298.0
+offset_top = 135.0
+offset_right = 358.0
+offset_bottom = 195.0
+theme_override_font_sizes/font_size = 11
+text = "🛡️\nЩит"
+
+[node name="Slot_accessory" type="Button" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol/MannequinBox"]
+layout_mode = 0
+offset_left = 298.0
+offset_top = 225.0
+offset_right = 358.0
+offset_bottom = 285.0
+theme_override_font_sizes/font_size = 11
+text = "💍\nКольцо"
+
+[node name="Slot_boots" type="Button" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol/MannequinBox"]
+layout_mode = 0
+offset_left = 160.0
+offset_top = 315.0
+offset_right = 220.0
+offset_bottom = 375.0
+theme_override_font_sizes/font_size = 11
+text = "👢\nОбувь"
+
+[node name="BackpackTitle" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.22, 0.1, 1)
+theme_override_font_sizes/font_size = 14
+text = "— Рюкзак (Нажмите для экипировки) —"
+horizontal_alignment = 1
+
+[node name="BackpackScroll" type="ScrollContainer" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BackpackVBox" type="VBoxContainer" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol/BackpackScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="RightCol" type="VBoxContainer" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="SkillsTitle" type="Label" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/RightCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 18
+text = "Вторичные Навыки:"
+
+[node name="SkillsScroll" type="ScrollContainer" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/RightCol"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SkillsVBox" type="VBoxContainer" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/RightCol/SkillsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="LevelUpDialog" type="Control" parent="CanvasLayer"]
+visible = false
+z_index = 50
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DarkOverlay" type="ColorRect" parent="CanvasLayer/LevelUpDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Parchment" type="NinePatchRect" parent="CanvasLayer/LevelUpDialog"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -220.0
+offset_right = 300.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_parch")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Title" type="Label" parent="CanvasLayer/LevelUpDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -280.0
+offset_top = 20.0
+offset_right = 280.0
+offset_bottom = 56.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.3, 0.18, 0.05, 1)
+theme_override_font_sizes/font_size = 24
+text = "★ НОВЫЙ УРОВЕНЬ! ★"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CanvasLayer/LevelUpDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -280.0
+offset_top = 58.0
+offset_right = 280.0
+offset_bottom = 86.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.2, 0.12, 0.05, 1)
+theme_override_font_sizes/font_size = 17
+text = "Сэр Аларик достигает 2 уровня!"
+horizontal_alignment = 1
+
+[node name="StatGainLabel" type="Label" parent="CanvasLayer/LevelUpDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -260.0
+offset_top = 92.0
+offset_right = 260.0
+offset_bottom = 124.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.15, 0.45, 0.15, 1)
+theme_override_font_sizes/font_size = 18
+text = "✦ Основной атрибут: +1 к Атаке!"
+horizontal_alignment = 1
+
+[node name="Instruction" type="Label" parent="CanvasLayer/LevelUpDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -260.0
+offset_top = 126.0
+offset_right = 260.0
+offset_bottom = 152.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.35, 0.22, 0.1, 1)
+theme_override_font_sizes/font_size = 15
+text = "Выберите вторичный навык для изучения:"
+horizontal_alignment = 1
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/LevelUpDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -260.0
+offset_right = 260.0
+offset_bottom = -25.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 12
+
+[node name="SkillBtn1" type="Button" parent="CanvasLayer/LevelUpDialog/Parchment/VBox"]
+custom_minimum_size = Vector2(0, 105)
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Навык 1"
+
+[node name="SkillBtn2" type="Button" parent="CanvasLayer/LevelUpDialog/Parchment/VBox"]
+custom_minimum_size = Vector2(0, 105)
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Навык 2"
+
+[node name="ConfirmEndDayDialog" type="Control" parent="CanvasLayer"]
+visible = false
+z_index = 60
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DarkOverlay" type="ColorRect" parent="CanvasLayer/ConfirmEndDayDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Parchment" type="NinePatchRect" parent="CanvasLayer/ConfirmEndDayDialog"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -110.0
+offset_right = 230.0
+offset_bottom = 110.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_parch")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/ConfirmEndDayDialog/Parchment"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 26
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 26
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/ConfirmEndDayDialog/Parchment/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="CanvasLayer/ConfirmEndDayDialog/Parchment/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 20
+text = "Завершение дня"
+horizontal_alignment = 1
+
+[node name="Prompt" type="Label" parent="CanvasLayer/ConfirmEndDayDialog/Parchment/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.22, 0.14, 0.06, 1)
+theme_override_font_sizes/font_size = 16
+text = "У героя еще остались очки хода (36/36).\nВы действительно хотите завершить день?"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="CanvasLayer/ConfirmEndDayDialog/Parchment/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ConfirmBtn" type="Button" parent="CanvasLayer/ConfirmEndDayDialog/Parchment/Margin/VBox/HBox"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+text = "Завершить день"
+
+[node name="CancelBtn" type="Button" parent="CanvasLayer/ConfirmEndDayDialog/Parchment/Margin/VBox/HBox"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+text = "Отмена"

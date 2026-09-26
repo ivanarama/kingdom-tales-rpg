@@ -1,0 +1,208 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://src/main.gd" id="1_main"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/menu_bg.jpg" id="2_bg"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/parchment_scroll.png" id="3_scroll"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="VignetteOverlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.06, 0.03, 0.01, 0.22)
+
+[node name="SafeMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 28
+
+[node name="MainVBox" type="VBoxContainer" parent="SafeMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TopBar" type="HBoxContainer" parent="SafeMargin/MainVBox"]
+custom_minimum_size = Vector2(0, 116)
+layout_mode = 2
+alignment = 1
+
+[node name="LeftSpacer" type="Control" parent="SafeMargin/MainVBox/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TitleBox" type="Control" parent="SafeMargin/MainVBox/TopBar"]
+custom_minimum_size = Vector2(680, 114)
+layout_mode = 2
+
+[node name="ParchmentScroll" type="NinePatchRect" parent="SafeMargin/MainVBox/TopBar/TitleBox"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_scroll")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="Title" type="Label" parent="SafeMargin/MainVBox/TopBar/TitleBox"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 16.0
+offset_right = 300.0
+offset_bottom = 66.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.28, 0.15, 0.06, 1)
+theme_override_colors/font_shadow_color = Color(0.92, 0.82, 0.52, 0.7)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 38
+text = "СКАЗКИ КОРОЛЕВСТВА"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Subtitle" type="Label" parent="SafeMargin/MainVBox/TopBar/TitleBox"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -48.0
+offset_right = 300.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.5, 0.35, 0.15, 1)
+theme_override_font_sizes/font_size = 20
+text = "Ламповое тактическое приключение"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RightBox" type="HBoxContainer" parent="SafeMargin/MainVBox/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 2
+
+[node name="MiniMusicPlayer" type="PanelContainer" parent="SafeMargin/MainVBox/TopBar/RightBox"]
+custom_minimum_size = Vector2(440, 52)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="PlayerHBox" type="HBoxContainer" parent="SafeMargin/MainVBox/TopBar/RightBox/MiniMusicPlayer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PrevBtn" type="Button" parent="SafeMargin/MainVBox/TopBar/RightBox/MiniMusicPlayer/PlayerHBox"]
+custom_minimum_size = Vector2(46, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "⏮"
+
+[node name="TrackBtn" type="Button" parent="SafeMargin/MainVBox/TopBar/RightBox/MiniMusicPlayer/PlayerHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+text = "🎵 Музыкальная шкатулка"
+text_overrun_behavior = 3
+
+[node name="NextBtn" type="Button" parent="SafeMargin/MainVBox/TopBar/RightBox/MiniMusicPlayer/PlayerHBox"]
+custom_minimum_size = Vector2(46, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "⏭"
+
+[node name="CenterSection" type="CenterContainer" parent="SafeMargin/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ActionCards" type="VBoxContainer" parent="SafeMargin/MainVBox/CenterSection"]
+custom_minimum_size = Vector2(680, 0)
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="ContinueBtn" type="Button" parent="SafeMargin/MainVBox/CenterSection/ActionCards"]
+custom_minimum_size = Vector2(0, 74)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.7, 1)
+theme_override_font_sizes/font_size = 22
+text = "📜 Продолжить поход"
+
+[node name="StartAdventureBtn" type="Button" parent="SafeMargin/MainVBox/CenterSection/ActionCards"]
+custom_minimum_size = Vector2(0, 68)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "⚔️ Новое приключение"
+
+[node name="ArenaBattleBtn" type="Button" parent="SafeMargin/MainVBox/CenterSection/ActionCards"]
+custom_minimum_size = Vector2(0, 68)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🛡️ Тактическая арена (Бой)"
+
+[node name="ChapterSelectBtn" type="Button" parent="SafeMargin/MainVBox/CenterSection/ActionCards"]
+custom_minimum_size = Vector2(0, 68)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🗺️ Выбор Главы (Кампания)"
+
+[node name="BottomToolbar" type="HBoxContainer" parent="SafeMargin/MainVBox"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="MusicSelectBtn" type="Button" parent="SafeMargin/MainVBox/BottomToolbar"]
+custom_minimum_size = Vector2(250, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "🎼 Музыка (40 тем)"
+
+[node name="AboutBtn" type="Button" parent="SafeMargin/MainVBox/BottomToolbar"]
+custom_minimum_size = Vector2(180, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "ℹ️ Об игре"
+
+[node name="ExitBtn" type="Button" parent="SafeMargin/MainVBox/BottomToolbar"]
+custom_minimum_size = Vector2(160, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "🚪 Выход"

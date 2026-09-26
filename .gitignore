@@ -1,0 +1,16 @@
+# Godot cache
+.godot/
+
+# Build artifacts (выкладываются конвейером, не хранятся в git)
+builds/
+*.apk
+*.idsig
+
+# Logs and junk
+*.log
+C:Temp*
+Thumbs.db
+.DS_Store
+
+# локальные заметки агентов
+AGENTS.local.md
