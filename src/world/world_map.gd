@@ -37,6 +37,9 @@ var current_split_slot: int = -1
 @onready var army_container: VBoxContainer = $CanvasLayer/LeftArmyPanel/Parchment/ArmyVBox
 @onready var army_title: Label = $CanvasLayer/LeftArmyPanel/Parchment/Title
 var selected_army_slot: int = -1
+var _army_panel_sig: String = ""
+var _minimap_redraw_accum: float = 0.0
+var chronicle_dialog: Control
 
 # Quest HUD
 @onready var quest_label: Label = $CanvasLayer/QuestHUD/QuestLabel
@@ -99,11 +102,11 @@ func cancel_hero_movement() -> void:
 func _ready() -> void:
 	match GameState.current_chapter:
 		2:
-			SoundManager.play_music("res://assets/audio/music/swamp_theme.wav")
+			SoundManager.play_music("res://assets/audio/music/swamp_theme.ogg")
 		3:
-			SoundManager.play_music("res://assets/audio/music/volcano_theme.wav")
+			SoundManager.play_music("res://assets/audio/music/volcano_theme.ogg")
 		_:
-			SoundManager.play_music("res://assets/audio/music/fairy_tale_theme.wav")
+			SoundManager.play_music("res://assets/audio/music/fairy_tale_theme.ogg")
 
 	_update_hud()
 	_update_quest_hud()
@@ -190,6 +193,12 @@ func _ready() -> void:
 					world_view.objects.erase(c)
 		world_view.queue_redraw()
 	
+	# Восстановить бродячего торговца из сохранения
+	if GameState.merchant_cell.x >= 0:
+		world_view.objects[GameState.merchant_cell] = {"type": "merchant", "name": "Бродячий торговец", "id": "wandering_merchant"}
+		if GameState.merchant_offers.is_empty():
+			GameState.spawn_merchant_offers()
+
 	# Initial camera centering on hero
 	await get_tree().process_frame
 	_center_camera_on_hero()
@@ -200,7 +209,7 @@ func _ready() -> void:
 		world_view._reveal_fog(Vector2i(27, 4), 5)
 		world_view.queue_redraw()
 		_show_crown_recovered_popup()
-	elif GameState.flags.get("bandit_boss", false) and GameState.flags.get("patrol_1", false) and not GameState.quest_completed and not GameState.flags.get("all_enemies_notified", false):
+	elif GameState.flags.get("bandit_boss", false) and not GameState.quest_completed and not GameState.flags.get("all_enemies_notified", false):
 		GameState.flags["all_enemies_notified"] = true
 		world_view._reveal_fog(Vector2i(27, 4), 5)
 		world_view.queue_redraw()
@@ -215,9 +224,15 @@ func _ready() -> void:
 		world_view._reveal_fog(Vector2i(27, 4), 6)
 		world_view.queue_redraw()
 		_show_dragon_defeated_popup()
-	elif not GameState.flags.get("chapter_intro_seen_%d" % GameState.current_chapter, false):
-		GameState.flags["chapter_intro_seen_%d" % GameState.current_chapter] = true
+	elif not GameState.flags.get(tr("chapter_intro_seen_%d") % GameState.current_chapter, false):
+		GameState.flags[tr("chapter_intro_seen_%d") % GameState.current_chapter] = true
 		_show_chapter_intro()
+	elif world_view and world_view.objects.has(world_view.hero_cell):
+		var hero_obj = world_view.objects[world_view.hero_cell]
+		if hero_obj.get("type", "") == "chest":
+			var hero_guard = _find_guard_for_cell(world_view.hero_cell)
+			if hero_guard.is_empty() and not GameState.flags.get(hero_obj.get("id", ""), false):
+				_trigger_object(hero_obj)
 
 func _center_camera_on_hero() -> void:
 	var target_pos = world_view.hero_pixel_pos
@@ -274,15 +289,19 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		match event.keycode:
 			KEY_E:
-				_on_end_day_pressed()
+				if not _is_any_modal_open():
+					_on_end_day_pressed()
 			KEY_H, KEY_C:
-				_toggle_hero_profile()
+				if not _is_any_modal_open():
+					_toggle_hero_profile()
 			KEY_EQUAL, KEY_PLUS, KEY_KP_ADD:
-				_set_map_zoom(map_zoom + 0.1)
+				if not _is_any_modal_open():
+					_set_map_zoom(map_zoom + 0.1)
 			KEY_MINUS, KEY_KP_SUBTRACT:
-				_set_map_zoom(map_zoom - 0.1)
+				if not _is_any_modal_open():
+					_set_map_zoom(map_zoom - 0.1)
 			KEY_SPACE, KEY_ENTER, KEY_KP_ENTER:
-				if not popup_dialog.visible and not split_dialog.visible and not victory_dialog.visible and not hero_dialog.visible and not level_dialog.visible and not $CanvasLayer/SpellbookDialog.visible:
+				if not _is_any_modal_open():
 					if planned_path.size() > 0 and not world_view.is_moving:
 						var p = planned_path.duplicate()
 						_clear_planned_route()
@@ -331,7 +350,11 @@ func _on_cell_clicked(target_cell: Vector2i) -> void:
 		
 	# Clicking on hero's current cell
 	if target_cell == world_view.hero_cell:
-		if planned_path.size() > 0:
+		if world_view.objects.has(target_cell):
+			_clear_planned_route()
+			_trigger_object(world_view.objects[target_cell])
+			return
+		elif planned_path.size() > 0:
 			var p = planned_path.duplicate()
 			_clear_planned_route()
 			if GameState.move_points > 0:
@@ -339,9 +362,25 @@ func _on_cell_clicked(target_cell: Vector2i) -> void:
 			else:
 				SoundManager.play_sfx("click")
 			return
-		elif world_view.objects.has(target_cell):
-			_trigger_object(world_view.objects[target_cell])
 		return
+
+	# Direct interaction when clicking on an adjacent chest
+	if world_view.objects.has(target_cell) and world_view.objects[target_cell].get("type", "") == "chest":
+		var is_adjacent = absi(target_cell.x - world_view.hero_cell.x) <= 1 and absi(target_cell.y - world_view.hero_cell.y) <= 1
+		if is_adjacent:
+			_clear_planned_route()
+			var has_pf = GameState.has_skill("pathfinding") if GameState.has_method("has_skill") else false
+			var step_cost = WorldNavigator.move_step_cost(target_cell, world_view.road_cells, has_pf)
+			if GameState.move_points >= step_cost and world_view.is_passable(target_cell):
+				GameState.move_points -= step_cost
+				world_view.hero_cell = target_cell
+				world_view.hero_pixel_pos = world_view.cell_to_pixel(target_cell)
+				world_view._reveal_fog(target_cell, 5)
+				GameState.hero_cell = target_cell
+				GameState.revealed_cells = world_view.revealed_cells
+				_update_hud()
+			_trigger_object(world_view.objects[target_cell])
+			return
 		
 	# CLICK 2 (Confirm & Move): If clicked on the already planned destination (or target is end of planned route)
 	if target_cell == planned_destination or (planned_path.size() > 0 and target_cell == planned_path[-1]):
@@ -382,8 +421,9 @@ func _move_hero_along_path(path: Array[Vector2i]) -> void:
 			break
 			
 		var has_pf = GameState.has_skill("pathfinding") if GameState.has_method("has_skill") else false
-		var step_cost = 1 if world_view.road_cells.has(next_cell) else (1 if has_pf else 2)
+		var step_cost = WorldNavigator.move_step_cost(next_cell, world_view.road_cells, has_pf)
 		if GameState.move_points < step_cost:
+			_show_no_mp_hint()
 			break
 			
 		# Determine direction
@@ -439,6 +479,17 @@ func _move_hero_along_path(path: Array[Vector2i]) -> void:
 	cancel_movement = false
 	world_view.queue_redraw()
 
+func _get_object_cell(obj: Dictionary) -> Vector2i:
+	if obj.has("cell") and obj["cell"] is Vector2i:
+		return obj["cell"]
+	var obj_id = obj.get("id", "")
+	for c in world_view.objects.keys():
+		if world_view.objects[c] == obj:
+			return c
+		if obj_id != "" and world_view.objects[c].get("id", "") == obj_id:
+			return c
+	return world_view.hero_cell
+
 func _find_guard_for_cell(cell: Vector2i) -> Dictionary:
 	for dy in range(-1, 2):
 		for dx in range(-1, 2):
@@ -454,7 +505,7 @@ func _find_guard_for_cell(cell: Vector2i) -> Dictionary:
 						return obj
 	return {}
 
-func _trigger_guarded_chest(guard: Dictionary, _chest: Dictionary) -> void:
+func _trigger_guarded_chest(guard: Dictionary, chest: Dictionary) -> void:
 	SoundManager.play_sfx("sword_hit")
 	var guard_name = guard.get("name", "Вражеский отряд")
 	var guard_id = guard.get("id", "")
@@ -471,7 +522,10 @@ func _trigger_guarded_chest(guard: Dictionary, _chest: Dictionary) -> void:
 	popup_btn2.visible = true
 	popup_btn2.text = "⚡ Быстрый бой"
 	popup_btn2.pressed.connect(func():
-		_execute_quick_combat(guard_id)
+		_execute_quick_combat(guard_id, func():
+			if not chest.is_empty():
+				_trigger_object(chest)
+		)
 	)
 	_show_popup_dialog()
 
@@ -489,6 +543,53 @@ func _trigger_object(obj: Dictionary) -> void:
 	var obj_id = obj.get("id", "")
 	
 	match obj_type:
+		"merchant":
+			if GameState.merchant_offers.is_empty():
+				popup_title.text = tr("Бродячий торговец")
+				popup_text.text = tr("«Товары на сегодня распроданы, добрый рыцарь! Загляните на следующей неделе!»")
+				popup_btn1.text = tr("До встречи")
+				for conn in popup_btn1.pressed.get_connections():
+					popup_btn1.pressed.disconnect(conn.callable)
+				popup_btn1.pressed.connect(func(): popup_dialog.hide())
+				popup_btn2.visible = false
+				_show_popup_dialog()
+				return
+			popup_title.text = tr("🧳 Бродячий торговец")
+			var desc_lines: Array[String] = []
+			for i in range(GameState.merchant_offers.size()):
+				var offer: Dictionary = GameState.merchant_offers[i]
+				if offer["kind"] == "artifact":
+					var mart: Dictionary = ArtifactData.get_artifact(str(offer["id"]))
+					desc_lines.append(tr("%d) %s — артефакт (%d зол.)") % [i + 1, tr(str(mart.get("name", ""))), int(offer["price"])])
+				else:
+					var munit: Dictionary = UnitData.get_unit(str(offer["id"]))
+					desc_lines.append(tr("%d) Отряд «%s» ×%d — (%d зол.)") % [i + 1, tr(str(munit.get("name", ""))), int(offer["count"]), int(offer["price"])])
+			popup_text.text = tr("«Торг здесь прост, сэр рыцарь: цены честные, товары редкие!»\n\n") + "\n".join(desc_lines)
+			var buy_btns := [popup_btn1, popup_btn2]
+			for bi in range(2):
+				var btn: Button = buy_btns[bi]
+				for conn in btn.pressed.get_connections():
+					btn.pressed.disconnect(conn.callable)
+				if bi < GameState.merchant_offers.size():
+					var offer_idx: int = bi
+					var m_offer: Dictionary = GameState.merchant_offers[bi]
+					var label: String = ""
+					if m_offer["kind"] == "artifact":
+						label = tr("Купить: %s (%d зол.)") % [tr(str(ArtifactData.get_artifact(str(m_offer["id"])).get("name", ""))), int(m_offer["price"])]
+					else:
+						label = tr("Купить: %s ×%d (%d зол.)") % [tr(str(UnitData.get_unit(str(m_offer["id"])).get("name", ""))), int(m_offer["count"]), int(m_offer["price"])]
+					btn.text = label
+					btn.visible = true
+					btn.pressed.connect(func():
+						if GameState.buy_merchant_offer(offer_idx):
+							SoundManager.play_sfx("coin")
+							_update_hud()
+						popup_dialog.hide()
+					)
+				else:
+					btn.visible = false
+			_show_popup_dialog()
+
 		"signpost":
 			popup_title.text = "Путевой Камень"
 			popup_text.text = "На замшелом камне высечены древние указатели:\n\n← На юг: Хижина Старого Лесника\n↑ На север: Водяная Мельница и Святилище Маны\n→ На восток: Железные Врата и Долина Разбойников\n\n[Подсказка: Пробел — исследовать место под конем, E — следующий день]"
@@ -512,7 +613,15 @@ func _trigger_object(obj: Dictionary) -> void:
 				)
 				
 		"chest":
-			var guard = _find_guard_for_cell(world_view.hero_cell)
+			if obj_id != "" and GameState.flags.get(obj_id, false):
+				world_view.remove_object_by_id(obj_id)
+				var c_cell = _get_object_cell(obj)
+				world_view.remove_object_at(c_cell)
+				popup_dialog.hide()
+				return
+				
+			var chest_cell = _get_object_cell(obj)
+			var guard = _find_guard_for_cell(chest_cell)
 			if not guard.is_empty():
 				_trigger_guarded_chest(guard, obj)
 				return
@@ -525,16 +634,22 @@ func _trigger_object(obj: Dictionary) -> void:
 				SoundManager.play_sfx("coin")
 				GameState.add_gold(1000)
 				GameState.flags[obj_id] = true
-				world_view.objects.erase(world_view.hero_cell)
+				world_view.remove_object_by_id(obj_id)
+				world_view.remove_object_at(chest_cell)
 				world_view.queue_redraw()
+				_update_hud()
+				GameState.save_game()
 				popup_dialog.hide()
 			)
 			popup_btn2.pressed.connect(func():
 				SoundManager.play_sfx("victory")
 				GameState.add_xp(600)
 				GameState.flags[obj_id] = true
-				world_view.objects.erase(world_view.hero_cell)
+				world_view.remove_object_by_id(obj_id)
+				world_view.remove_object_at(chest_cell)
 				world_view.queue_redraw()
+				_update_hud()
+				GameState.save_game()
 				popup_dialog.hide()
 			)
 				
@@ -551,53 +666,34 @@ func _trigger_object(obj: Dictionary) -> void:
 				popup_dialog.hide()
 			)
 			
-		"fairy_dwelling":
-			popup_title.text = "Роща Волшебных Фей"
-			var avail: int = GameState.dwelling_stock.get("fairy_camp", 0)
-			var unit_cost := 30
-			if avail <= 0:
-				popup_text.text = "Все феи-лучницы уже наняты на этой неделе!\n\nНовые добровольцы прибудут с началом новой недели (День 8)."
-				popup_btn1.text = "Понятно"
-				popup_btn1.pressed.connect(func(): popup_dialog.hide())
-			else:
-				var max_can_buy = mini(avail, GameState.gold / unit_cost)
-				popup_text.text = "Хранительница рощи приветствует паладина:\n\n«Мы готовы направить лучниц на службу Королевству!»\n\nДоступно: %d фей-лучниц (по %d золота)\nВ вашей казне: %d золота" % [
-					avail, unit_cost, GameState.gold
-				]
-				if max_can_buy <= 0:
-					popup_btn1.text = "Недостаточно золота (нужно хотя бы %d зол.)" % unit_cost
-					popup_btn1.pressed.connect(func(): popup_dialog.hide())
-				else:
-					popup_btn1.text = "Нанять всех доступных (%d фей за %d зол.)" % [max_can_buy, max_can_buy * unit_cost]
-					popup_btn1.pressed.connect(func():
-						if GameState.spend_gold(max_can_buy * unit_cost):
-							SoundManager.play_sfx("coin")
-							GameState.dwelling_stock["fairy_camp"] -= max_can_buy
-							GameState.add_units_to_army("fairy_archer", max_can_buy)
-							GameState.flags[obj_id] = true
-							world_view.queue_redraw()
-							popup_dialog.hide()
-					)
-					if max_can_buy > 1:
-						var small_pack = mini(5, max_can_buy)
-						popup_btn2.visible = true
-						popup_btn2.text = "Нанять отряд (%d фей за %d зол.)" % [small_pack, small_pack * unit_cost]
-						popup_btn2.pressed.connect(func():
-							if GameState.spend_gold(small_pack * unit_cost):
-								SoundManager.play_sfx("coin")
-								GameState.dwelling_stock["fairy_camp"] -= small_pack
-								GameState.add_units_to_army("fairy_archer", small_pack)
-								GameState.flags[obj_id] = true
-								world_view.queue_redraw()
-								popup_dialog.hide()
-						)
+		"fairy_dwelling", "druid_camp", "griffin_roost":
+			_open_dwelling_popup(obj_id)
 
 		"forester":
 			popup_title.text = "Хижина Старого Лесника"
 			if GameState.quest_completed:
 				popup_text.text = "«Слава сэру Аларику! Лес снова полон света и птичьего пения. Вы избавили нас от напасти!»"
 				popup_btn1.text = "Поклониться"
+				for conn in popup_btn1.pressed.get_connections():
+					popup_btn1.pressed.disconnect(conn.callable)
 				popup_btn1.pressed.connect(func(): popup_dialog.hide())
+				var avail_fx: int = GameState.dwelling_stock.get("forester_fox", 0)
+				var fx_cost := 45
+				if avail_fx > 0:
+					popup_text.text += "\n\n" + tr("«Лесные духи-лисы желают путешествовать с вами: %d шт. (по %d золота). Казна: %d.»") % [avail_fx, fx_cost, GameState.gold]
+					popup_btn2.visible = true
+					popup_btn2.text = tr("Нанять лис-оборотней (%d за %d зол.)") % [avail_fx, avail_fx * fx_cost]
+					for conn in popup_btn2.pressed.get_connections():
+						popup_btn2.pressed.disconnect(conn.callable)
+					popup_btn2.pressed.connect(func():
+						if GameState.spend_gold(avail_fx * fx_cost):
+							SoundManager.play_sfx("coin")
+							GameState.dwelling_stock["forester_fox"] -= avail_fx
+							GameState.add_units_to_army("fox_shifter", avail_fx)
+							popup_dialog.hide()
+					)
+				else:
+					popup_btn2.visible = false
 			elif GameState.quest_forester_started:
 				popup_text.text = "«Врата открыты, паладин! Спешите на восток — разбейте атамана в его логове и верните Венец Королеве Фей!»"
 				popup_btn1.text = "Я выполню долг!"
@@ -679,6 +775,24 @@ func _trigger_object(obj: Dictionary) -> void:
 				popup_text.text = "Древние письмена потускнели. Обелиск уже даровал вам свою благодать."
 				popup_btn1.text = "Отойти"
 				popup_btn1.pressed.connect(func(): popup_dialog.hide())
+			elif GameState.flags.get("patrol_obelisk", false):
+				var avail_sg: int = GameState.dwelling_stock.get("obelisk_guard", 0)
+				var sg_cost := 200
+				popup_text.text = "Руны гаснут: стражи Обелиска пали в бою, и древние изваяния признали вашу доблесть. Один из Каменных Стражей готов следовать за вами!"
+				if avail_sg > 0:
+					popup_text.text += "\n\n" + tr("В наличии: %d страж(а) (по %d золота). Казна: %d.") % [avail_sg, sg_cost, GameState.gold]
+					popup_btn1.text = tr("Нанять Каменного Стража (%d зол.)") % sg_cost
+					popup_btn1.pressed.connect(func():
+						if GameState.spend_gold(sg_cost):
+							SoundManager.play_sfx("coin")
+							GameState.dwelling_stock["obelisk_guard"] -= 1
+							GameState.add_units_to_army("stone_guardian", 1)
+							popup_dialog.hide()
+					)
+				else:
+					popup_text.text += "\n\n" + tr("Все стражи уже следуют за вами. Новые восстанут к следующей неделе.")
+					popup_btn1.text = tr("Отойти")
+					popup_btn1.pressed.connect(func(): popup_dialog.hide())
 			else:
 				popup_text.text = "Прикоснувшись к руническому монолиту, вы чувствуете, как тело наполняется силой легендарных героев прошлого!\n\n+2 к Атаке, +2 к Защите!"
 				popup_btn1.text = "Принять силу предков"
@@ -695,7 +809,26 @@ func _trigger_object(obj: Dictionary) -> void:
 				popup_title.text = "Священная Роща Королевы Фей"
 				popup_text.text = "Королева Фей тепло улыбается вам:\n\n«Свет и гармония вернулись в сказочный лес. Спасибо за верность и отвагу, сэр Аларик! Вы навсегда наш великий герой и спаситель!»"
 				popup_btn1.text = "Благодарю вас!"
+				for conn in popup_btn1.pressed.get_connections():
+					popup_btn1.pressed.disconnect(conn.callable)
 				popup_btn1.pressed.connect(func(): popup_dialog.hide())
+				var avail_pg: int = GameState.dwelling_stock.get("shrine_pegasus", 0)
+				var pg_cost := 120
+				if avail_pg > 0:
+					popup_text.text += "\n\n" + tr("Крылатые пегасы готовы служить: %d шт. (по %d золота). Казна: %d.") % [avail_pg, pg_cost, GameState.gold]
+					popup_btn2.visible = true
+					popup_btn2.text = tr("Нанять пегасов (%d за %d зол.)") % [avail_pg, avail_pg * pg_cost]
+					for conn in popup_btn2.pressed.get_connections():
+						popup_btn2.pressed.disconnect(conn.callable)
+					popup_btn2.pressed.connect(func():
+						if GameState.spend_gold(avail_pg * pg_cost):
+							SoundManager.play_sfx("coin")
+							GameState.dwelling_stock["shrine_pegasus"] -= avail_pg
+							GameState.add_units_to_army("royal_pegasus", avail_pg)
+							popup_dialog.hide()
+					)
+				else:
+					popup_btn2.visible = false
 				_show_popup_dialog()
 				return
 			elif GameState.has_fairy_crown:
@@ -703,7 +836,9 @@ func _trigger_object(obj: Dictionary) -> void:
 				GameState.add_gold(2000)
 				GameState.add_xp(2000)
 				GameState.add_units_to_army("griffin", 8)
+				GameState.add_units_to_army("royal_pegasus", 4)
 				GameState.quest_completed = true
+				GameState.unlock_feat("ch1_done")
 				_update_hud()
 				_update_quest_hud()
 				
@@ -784,58 +919,6 @@ func _trigger_object(obj: Dictionary) -> void:
 					popup_dialog.hide()
 				)
 
-		"druid_camp":
-			popup_title.text = "Круг Болотных Друидов"
-			var avail_dr: int = GameState.dwelling_stock.get("druid_camp", 0)
-			var unit_cost_dr := 45
-			if avail_dr <= 0:
-				popup_text.text = "Все друиды уже присоединились к вашему войску на этой неделе!"
-				popup_btn1.text = "Понятно"
-				popup_btn1.pressed.connect(func(): popup_dialog.hide())
-			else:
-				var max_can_buy = mini(avail_dr, GameState.gold / unit_cost_dr)
-				popup_text.text = "Верховный друид предлагает помощь природы:\n\nДоступно: %d лесных друидов (по %d золота)\nКазна: %d золота" % [
-					avail_dr, unit_cost_dr, GameState.gold
-				]
-				if max_can_buy <= 0:
-					popup_btn1.text = "Недостаточно золота"
-					popup_btn1.pressed.connect(func(): popup_dialog.hide())
-				else:
-					popup_btn1.text = "Нанять отряд (%d друидов за %d зол.)" % [max_can_buy, max_can_buy * unit_cost_dr]
-					popup_btn1.pressed.connect(func():
-						if GameState.spend_gold(max_can_buy * unit_cost_dr):
-							SoundManager.play_sfx("coin")
-							GameState.dwelling_stock["druid_camp"] -= max_can_buy
-							GameState.add_units_to_army("druid", max_can_buy)
-							popup_dialog.hide()
-					)
-
-		"griffin_roost":
-			popup_title.text = "Гнездовье Королевских Грифонов"
-			var avail_gr: int = GameState.dwelling_stock.get("griffin_nest", 0)
-			var unit_cost_gr := 65
-			if avail_gr <= 0:
-				popup_text.text = "Все грифоны уже наняты на этой неделе!"
-				popup_btn1.text = "Понятно"
-				popup_btn1.pressed.connect(func(): popup_dialog.hide())
-			else:
-				var max_can_buy = mini(avail_gr, GameState.gold / unit_cost_gr)
-				popup_text.text = "Гордые грифоны готовы взмыть в бой:\n\nДоступно: %d грифонов (по %d золота)\nКазна: %d золота" % [
-					avail_gr, unit_cost_gr, GameState.gold
-				]
-				if max_can_buy <= 0:
-					popup_btn1.text = "Недостаточно золота"
-					popup_btn1.pressed.connect(func(): popup_dialog.hide())
-				else:
-					popup_btn1.text = "Нанять грифонов (%d за %d зол.)" % [max_can_buy, max_can_buy * unit_cost_gr]
-					popup_btn1.pressed.connect(func():
-						if GameState.spend_gold(max_can_buy * unit_cost_gr):
-							SoundManager.play_sfx("coin")
-							GameState.dwelling_stock["griffin_nest"] -= max_can_buy
-							GameState.add_units_to_army("griffin", max_can_buy)
-							popup_dialog.hide()
-					)
-
 		"upgrade_altar":
 			popup_title.text = "Алтарь Преображения Войск"
 			var upgrade_slot = -1
@@ -850,8 +933,8 @@ func _trigger_object(obj: Dictionary) -> void:
 					var next_udata = UnitData.get_unit(up_to)
 					var cost_each = 15 if udata.tier <= 2 else 35
 					upgrade_cost = cost_each * slot["count"]
-					upgrade_name = "Улучшить %s -> %s (%d шт. за %d зол.)" % [
-						udata.name, next_udata.name, slot["count"], upgrade_cost
+					upgrade_name = tr("Улучшить %s -> %s (%d шт. за %d зол.)") % [
+						tr(udata.name), tr(next_udata.name), slot["count"], upgrade_cost
 					]
 					break
 			if upgrade_slot == -1:
@@ -870,7 +953,7 @@ func _trigger_object(obj: Dictionary) -> void:
 							popup_dialog.hide()
 					)
 				else:
-					popup_btn1.text = "Недостаточно золота (нужно %d зол.)" % upgrade_cost
+					popup_btn1.text = tr("Недостаточно золота (нужно %d зол.)") % upgrade_cost
 					popup_btn1.pressed.connect(func(): popup_dialog.hide())
 
 		"crypt":
@@ -962,6 +1045,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				GameState.add_xp(3000)
 				GameState.add_units_to_army("druid", 8)
 				GameState.quest_completed = true
+				GameState.unlock_feat("ch2_done")
 				_update_hud()
 				_update_quest_hud()
 				victory_title.text = "👑 ПОБЕДА В ГЛАВЕ 2: ПРОКЛЯТЫЕ ТОПИ! 👑"
@@ -992,6 +1076,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				GameState.add_gold(5000)
 				GameState.add_xp(5000)
 				GameState.quest_completed = true
+				GameState.unlock_feat("ch3_done")
 				_update_hud()
 				_update_quest_hud()
 				victory_title.text = "👑 ВЕЛИКИЙ ТРИУМФ ВСЕЙ КАМПАНИИ! 👑"
@@ -1016,7 +1101,7 @@ func _show_popup_dialog() -> void:
 	popup_dialog.move_to_front()
 	popup_dialog.visible = true
 
-func _execute_quick_combat(battle_id: String) -> void:
+func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable()) -> void:
 	# 1. Determine enemy army for this encounter
 	var enemy_army: Array[Dictionary] = []
 	var battle_name = "Вражеский отряд"
@@ -1229,8 +1314,15 @@ func _execute_quick_combat(battle_id: String) -> void:
 			popup_text.text = "Ваша армия стремительно сокрушила врага (%s)!\n\nПотери войска:\n%s\nПолучено награды:\n💰 Золото: +%d\n⭐ Опыт: +%d%s" % [
 				battle_name, casualties_desc, reward_gold, reward_xp, artifact_msg
 			]
-			popup_btn1.text = "Великолепно!"
-			popup_btn1.pressed.connect(func(): popup_dialog.hide())
+			if on_victory.is_valid():
+				popup_btn1.text = "Открыть сундук!"
+				popup_btn1.pressed.connect(func():
+					popup_dialog.hide()
+					on_victory.call()
+				)
+			else:
+				popup_btn1.text = "Великолепно!"
+				popup_btn1.pressed.connect(func(): popup_dialog.hide())
 			popup_btn2.visible = false
 			_show_popup_dialog()
 	else:
@@ -1242,27 +1334,42 @@ func _execute_quick_combat(battle_id: String) -> void:
 		popup_btn2.visible = false
 		_show_popup_dialog()
 
+func _is_any_modal_open() -> bool:
+	if world_view.is_moving:
+		return true
+	for d in [popup_dialog, split_dialog, victory_dialog, hero_dialog, level_dialog, confirm_end_day_dialog, pause_dialog, $CanvasLayer/SpellbookDialog]:
+		if d != null and is_instance_valid(d) and d.visible:
+			return true
+	return false
+
 func _update_hud() -> void:
 	if name_label:
-		name_label.text = "%s (ур. %d)" % [GameState.hero_name, GameState.level]
+		name_label.text = tr("%s (ур. %d)") % [GameState.hero_name, GameState.level]
 	var portrait_node = $CanvasLayer/TopHUD/Portrait as TextureRect
 	if portrait_node and ResourceLoader.exists(GameState.hero_portrait):
 		portrait_node.texture = load(GameState.hero_portrait)
-	gold_label.text = "🪙 %d" % GameState.gold
-	mana_label.text = "🔮 %d/%d" % [GameState.current_mana, GameState.max_mana]
-	day_label.text = "Гл. %d • День %d" % [GameState.current_chapter, GameState.day]
-	mp_label.text = "Ход: %d/%d" % [GameState.move_points, GameState.max_move_points]
+	gold_label.text = tr("🪙 %d") % GameState.gold
+	mana_label.text = tr("🔮 %d/%d") % [GameState.current_mana, GameState.max_mana]
+	day_label.text = tr("Гл. %d • День %d") % [GameState.current_chapter, GameState.day]
+	mp_label.text = tr("Ход: %d/%d") % [GameState.move_points, GameState.max_move_points]
 	mp_bar.max_value = GameState.max_move_points
 	mp_bar.value = GameState.move_points
 	
-	# Update left army panel
+	# Update left army panel (rebuild only when its contents actually changed)
+	var army_sig := str(selected_army_slot) + ":"
+	for slot in GameState.player_army:
+		army_sig += str(slot["unit_id"]) + ":" + str(slot["count"]) + "|"
+	if army_sig == _army_panel_sig:
+		return
+	_army_panel_sig = army_sig
+
 	for child in army_container.get_children():
 		child.queue_free()
 		
 	if army_title:
 		if selected_army_slot != -1 and selected_army_slot < GameState.player_army.size():
 			var sel_udata = UnitData.get_unit(GameState.player_army[selected_army_slot]["unit_id"])
-			army_title.text = "✦ %s: ОБМЕН ✦" % sel_udata.get("name", "ОТРЯД").to_upper()
+			army_title.text = tr("✦ %s: ОБМЕН ✦") % tr(sel_udata.get("name", "ОТРЯД")).to_upper()
 			army_title.add_theme_color_override("font_color", Color(0.7, 0.32, 0.05))
 		else:
 			selected_army_slot = -1
@@ -1323,7 +1430,7 @@ func _update_hud() -> void:
 		lbl.add_theme_color_override("font_color", font_col)
 		lbl.add_theme_font_size_override("font_size", 13)
 		var prefix = "★ " if selected_army_slot == slot_idx else ""
-		lbl.text = "%s%s\n× %d" % [prefix, udata.get("name", ""), slot["count"]]
+		lbl.text = "%s%s\n× %d" % [prefix, tr(udata.get("name", "")), slot["count"]]
 		lbl.clip_text = true
 		lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		row.add_child(lbl)
@@ -1420,7 +1527,7 @@ func _open_split_dialog(slot_idx: int) -> void:
 	current_split_slot = slot_idx
 	var slot = GameState.player_army[slot_idx]
 	var udata = UnitData.get_unit(slot["unit_id"])
-	split_info.text = "Отряд: %s (всего: %d)" % [udata.name, slot["count"]]
+	split_info.text = tr("Отряд: %s (всего: %d)") % [tr(udata.name), slot["count"]]
 	split_slider.min_value = 1
 	split_slider.max_value = slot["count"] - 1
 	split_slider.value = 1
@@ -1429,7 +1536,7 @@ func _open_split_dialog(slot_idx: int) -> void:
 	split_dialog.show()
 
 func _on_split_slider_changed(val: float) -> void:
-	split_value_lbl.text = "Выделить в новый отряд: %d" % int(val)
+	split_value_lbl.text = tr("Выделить в новый отряд: %d") % int(val)
 
 func _on_confirm_split() -> void:
 	if current_split_slot < 0 or current_split_slot >= GameState.player_army.size():
@@ -1463,6 +1570,9 @@ func _execute_end_day() -> void:
 	SoundManager.play_sfx("click")
 	GameState.next_day()
 	world_view.queue_redraw()
+	_show_day_tip()
+	if GameState.day % 7 == 1:
+		_spawn_merchant()
 	if GameState.last_astrologers_event.size() > 0:
 		_show_astrologers_popup(GameState.last_astrologers_event)
 
@@ -1541,7 +1651,7 @@ func _open_spellbook() -> void:
 	var subtitle = book.get_node_or_null("Parchment/Margin/MainVBox/ManaSubtitle")
 	if subtitle:
 		var sp = GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower
-		subtitle.text = "Запас маны: %d / %d 🔮  •  Сила Магии: %d" % [GameState.current_mana, GameState.max_mana, sp]
+		subtitle.text = tr("Запас маны: %d / %d 🔮  •  Сила Магии: %d") % [GameState.current_mana, GameState.max_mana, sp]
 	
 	var scry_btn = book.get_node_or_null("Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox/ScryCard/CardVBox/ScryBtn")
 	if scry_btn:
@@ -1568,7 +1678,7 @@ func _open_spellbook() -> void:
 			p.add_child(pv)
 			
 			var stitle = Label.new()
-			stitle.text = "✦ %s (%d 🔮)" % [sdata.name, sdata.mana_cost]
+			stitle.text = tr("✦ %s (%d 🔮)") % [sdata.name, sdata.mana_cost]
 			stitle.add_theme_font_size_override("font_size", 14)
 			stitle.add_theme_color_override("font_color", Color(0.3, 0.18, 0.08))
 			pv.add_child(stitle)
@@ -1616,6 +1726,34 @@ func _cast_restoration() -> void:
 	popup_btn1.pressed.connect(func(): popup_dialog.hide())
 	_show_popup_dialog()
 
+## Клетка текущей сюжетной цели — для маркера на миникарте и стрелки у героя.
+func _get_current_objective_cell() -> Vector2i:
+	if GameState.quest_completed:
+		return Vector2i(-99, -99)
+	match GameState.current_chapter:
+		2:
+			if not GameState.flags.get("witch_hut_visited", false):
+				return Vector2i(6, 17)
+			elif not GameState.flags.get("bone_gate_opened", false):
+				return Vector2i(14, 11)
+			elif not GameState.flags.get("lich_defeated", false):
+				return Vector2i(28, 11)
+			return Vector2i(27, 4)
+		3:
+			if not GameState.flags.get("dragon_gate_opened", false):
+				return Vector2i(14, 11)
+			elif not GameState.flags.get("dragon_defeated", false):
+				return Vector2i(28, 11)
+			return Vector2i(27, 4)
+		_:
+			if not GameState.quest_forester_started:
+				return Vector2i(7, 18)
+			elif not GameState.flags.get("iron_gate_opened", false):
+				return Vector2i(14, 11)
+			elif not GameState.has_fairy_crown:
+				return Vector2i(28, 11)
+			return Vector2i(27, 4)
+
 func _update_quest_hud() -> void:
 	if not quest_label:
 		return
@@ -1651,6 +1789,10 @@ func _update_quest_hud() -> void:
 				quest_label.text = "👑 ВЕРНИТЕ ВЕНЕЦ! Доставьте реликвию Королеве Фей в Священную Рощу (27, 4)!"
 			else:
 				quest_label.text = "★ ГЛАВА 1 ЗАВЕРШЕНА! Отправляйтесь в Проклятые Топи (Глава 2)!"
+	if world_view:
+		world_view.objective_cell = _get_current_objective_cell()
+		world_view.queue_redraw()
+
 
 func _toggle_hero_profile() -> void:
 	if hero_dialog.visible:
@@ -1665,11 +1807,11 @@ func _open_hero_profile() -> void:
 	hero_dialog.show()
 
 func _update_hero_profile() -> void:
-	hero_dialog.get_node("Parchment/Title").text = "Герой: %s (%s)" % [GameState.hero_name, GameState.hero_title]
+	hero_dialog.get_node("Parchment/Title").text = tr("Герой: %s (%s)") % [GameState.hero_name, GameState.hero_title]
 	if hero_name_lbl:
 		hero_name_lbl.text = GameState.hero_name
-	hero_level_lbl.text = "Уровень: %d (Глава %d)" % [GameState.level, GameState.current_chapter]
-	hero_xp_lbl.text = "Опыт: %d / %d" % [GameState.xp, GameState.next_level_xp]
+	hero_level_lbl.text = tr("Уровень: %d (Глава %d)") % [GameState.level, GameState.current_chapter]
+	hero_xp_lbl.text = tr("Опыт: %d / %d") % [GameState.xp, GameState.next_level_xp]
 	hero_xp_bar.max_value = GameState.next_level_xp
 	hero_xp_bar.value = GameState.xp
 	
@@ -1690,21 +1832,21 @@ func _update_hero_profile() -> void:
 	# Primary Attributes
 	var tot_att = GameState.get_total_attack() if GameState.has_method("get_total_attack") else GameState.attack
 	var att_bonus = tot_att - GameState.attack
-	var att_str = (" (+%d от снаряжения)" % att_bonus) if att_bonus > 0 else ""
-	hero_att_lbl.text = "⚔️ Атака: %d (+%d%% урон)%s" % [tot_att, tot_att * 5, att_str]
+	var att_str = (tr(" (+%d от снаряжения)") % att_bonus) if att_bonus > 0 else ""
+	hero_att_lbl.text = tr("⚔️ Атака: %d (+%d%% урон)%s") % [tot_att, tot_att * 5, att_str]
 	
 	var tot_def = GameState.get_total_defense() if GameState.has_method("get_total_defense") else GameState.defense
 	var def_bonus = tot_def - GameState.defense
-	var def_str = (" (+%d от снаряжения)" % def_bonus) if def_bonus > 0 else ""
-	hero_def_lbl.text = "🛡️ Защита: %d (-%d%% урон)%s" % [tot_def, tot_def * 3, def_str]
+	var def_str = (tr(" (+%d от снаряжения)") % def_bonus) if def_bonus > 0 else ""
+	hero_def_lbl.text = tr("🛡️ Защита: %d (-%d%% урон)%s") % [tot_def, tot_def * 3, def_str]
 	
 	var tot_sp = GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower
 	var sp_bonus = tot_sp - GameState.spellpower
-	var sp_str = (" (+%d от снаряжения)" % sp_bonus) if sp_bonus > 0 else ""
-	hero_sp_lbl.text = "🔮 Сила Магии: %d%s" % [tot_sp, sp_str]
+	var sp_str = (tr(" (+%d от снаряжения)") % sp_bonus) if sp_bonus > 0 else ""
+	hero_sp_lbl.text = tr("🔮 Сила Магии: %d%s") % [tot_sp, sp_str]
 	
 	var tot_kn = GameState.get_total_knowledge() if GameState.has_method("get_total_knowledge") else GameState.knowledge
-	hero_kn_lbl.text = "📜 Знание: %d (%d маны)" % [tot_kn, GameState.max_mana]
+	hero_kn_lbl.text = tr("📜 Знание: %d (%d маны)") % [tot_kn, GameState.max_mana]
 	
 	# Set Synergy Bonus
 	if hero_set_bonus_lbl:
@@ -1766,7 +1908,7 @@ func _update_hero_profile() -> void:
 			for a_id in GameState.inventory_artifacts:
 				var art = ArtifactData.get_artifact(a_id)
 				var btn = Button.new()
-				btn.text = "Надеть: %s %s [%s]" % [
+				btn.text = tr("Надеть: %s %s [%s]") % [
 					art.get("icon", "✦"),
 					art.get("name", ""),
 					ArtifactData.get_slot_title(art.get("slot", ""))
@@ -1810,8 +1952,8 @@ func _process_next_level_up() -> void:
 		
 	var info: Dictionary = GameState.pending_level_ups[0]
 	SoundManager.play_sfx("victory")
-	level_sub_lbl.text = "Рыцарь Аларик достигает %d уровня!" % info["level"]
-	level_stat_lbl.text = "✦ Основной атрибут: +1 к %s!" % info["stat"]
+	level_sub_lbl.text = tr("Рыцарь Аларик достигает %d уровня!") % info["level"]
+	level_stat_lbl.text = tr("✦ Основной атрибут: +1 к %s!") % info["stat"]
 	
 	var options: Array = info.get("options", [])
 	var lvl_names = ["", "Базовый", "Продвинутый", "Эксперт"]
@@ -1861,9 +2003,12 @@ func _process_next_level_up() -> void:
 	level_dialog.move_to_front()
 	level_dialog.show()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if minimap_canvas and is_instance_valid(minimap_canvas):
-		minimap_canvas.queue_redraw()
+		_minimap_redraw_accum += delta
+		if _minimap_redraw_accum >= 0.1:
+			_minimap_redraw_accum = 0.0
+			minimap_canvas.queue_redraw()
 
 func _setup_minimap_and_menu() -> void:
 	# 1. Minimap Panel (Top-Right: width 224, height 204)
@@ -2043,6 +2188,14 @@ func _draw_minimap() -> void:
 	# Hero Position
 	var h_pos = Vector2(world_view.hero_cell.x * cw + cw / 2.0, world_view.hero_cell.y * ch + ch / 2.0)
 	minimap_canvas.draw_circle(h_pos, 3.5, Color(0.2, 1.0, 0.3))
+	# Quest objective: pulsing golden marker
+	var obj_cell = world_view.objective_cell
+	if obj_cell.x >= 0:
+		var o_pos = Vector2(obj_cell.x * cw + cw / 2.0, obj_cell.y * ch + ch / 2.0)
+		var pulse = 0.5 + 0.5 * sin(Time.get_ticks_msec() / 250.0)
+		minimap_canvas.draw_arc(o_pos, 4.0 + pulse * 3.0, 0.0, TAU, 16, Color(1.0, 0.85, 0.2, 0.9), 1.6)
+		minimap_canvas.draw_circle(o_pos, 2.0, Color(1.0, 0.85, 0.2, 0.95))
+
 
 	# Camera Viewport Rect
 	if is_instance_valid(scroll_container):
@@ -2125,7 +2278,8 @@ func _setup_pause_dialog() -> void:
 			SoundManager.play_sfx("coin")
 			save_btn.text = "✓ Игра сохранена!"
 			await get_tree().create_timer(1.2).timeout
-			save_btn.text = "💾 Сохранить игру"
+			if is_instance_valid(save_btn):
+				save_btn.text = "💾 Сохранить игру"
 	)
 	vbox.add_child(save_btn)
 
@@ -2141,12 +2295,86 @@ func _setup_pause_dialog() -> void:
 	)
 	vbox.add_child(load_btn)
 
+	# Слоты сохранений (1-3): сохранить / загрузить
+	var slots_lbl = Label.new()
+	slots_lbl.text = tr("Слоты сохранений (1-3):")
+	slots_lbl.add_theme_font_size_override("font_size", 15)
+	slots_lbl.add_theme_color_override("font_color", Color(0.3, 0.18, 0.08))
+	vbox.add_child(slots_lbl)
+
+	var save_row = HBoxContainer.new()
+	save_row.add_theme_constant_override("separation", 8)
+	var load_row = HBoxContainer.new()
+	load_row.add_theme_constant_override("separation", 8)
+	for i in range(1, 4):
+		var slot_idx = i
+		var slot_path = GameState.SAVE_SLOTS[i]
+
+		var sb = Button.new()
+		sb.text = tr("💾 Слот %d") % i
+		sb.tooltip_text = tr("Сохранить игру в выбранный слот")
+		sb.custom_minimum_size = Vector2(0, 40)
+		sb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sb.pressed.connect(func():
+			if GameState.save_game(slot_path):
+				SoundManager.play_sfx("coin")
+				sb.text = tr("✓ %d") % slot_idx
+			else:
+				sb.text = tr("✗ %d") % slot_idx
+		)
+		save_row.add_child(sb)
+
+		var lb = Button.new()
+		lb.text = tr("📂 %d") % i
+		lb.tooltip_text = tr("Загрузить игру из выбранного слота")
+		lb.custom_minimum_size = Vector2(0, 40)
+		lb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lb.pressed.connect(func():
+			if GameState.load_game(slot_path):
+				SoundManager.play_sfx("page_turn")
+				get_tree().reload_current_scene()
+		)
+		load_row.add_child(lb)
+
+	vbox.add_child(save_row)
+	vbox.add_child(load_row)
+
+	var chron_btn = Button.new()
+	chron_btn.text = tr("📜 Летопись подвигов")
+	chron_btn.custom_minimum_size = Vector2(0, 42)
+	chron_btn.pressed.connect(func():
+		SoundManager.play_sfx("page_turn")
+		_show_chronicle_dialog()
+	)
+	vbox.add_child(chron_btn)
+
 	# Audio Settings
 	var vol_title = Label.new()
 	vol_title.text = "Настройки звука:"
 	vol_title.add_theme_font_size_override("font_size", 16)
 	vol_title.add_theme_color_override("font_color", Color(0.3, 0.18, 0.08))
 	vbox.add_child(vol_title)
+
+	# Master Volume
+	var master_box = HBoxContainer.new()
+	var master_lbl = Label.new()
+	master_lbl.text = tr("Общая громкость:")
+	master_lbl.custom_minimum_size = Vector2(80, 0)
+	master_lbl.add_theme_color_override("font_color", Color(0.3, 0.18, 0.08))
+	var master_slider = HSlider.new()
+	master_slider.min_value = 0.0
+	master_slider.max_value = 1.0
+	master_slider.step = 0.05
+	master_slider.value = SettingsManager.master_volume
+	master_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	master_slider.value_changed.connect(func(v: float):
+		SettingsManager.master_volume = v
+		SettingsManager.apply()
+		SettingsManager.save_settings()
+	)
+	master_box.add_child(master_lbl)
+	master_box.add_child(master_slider)
+	vbox.add_child(master_box)
 
 	# Music Volume
 	var music_box = HBoxContainer.new()
@@ -2182,6 +2410,40 @@ func _setup_pause_dialog() -> void:
 	sfx_box.add_child(sfx_slider)
 	vbox.add_child(sfx_box)
 
+	# Music/SFX sliders also persist
+	music_slider.value_changed.connect(func(_v: float): SettingsManager.save_settings())
+	sfx_slider.value_changed.connect(func(_v: float): SettingsManager.save_settings())
+
+	# Language
+	var lang_box = HBoxContainer.new()
+	var lang_lbl = Label.new()
+	lang_lbl.text = tr("Язык:")
+	lang_lbl.custom_minimum_size = Vector2(80, 0)
+	lang_lbl.add_theme_color_override("font_color", Color(0.3, 0.18, 0.08))
+	var lang_opt = OptionButton.new()
+	lang_opt.add_item("Русский", 0)
+	lang_opt.add_item("English", 1)
+	lang_opt.select(1 if SettingsManager.locale == "en" else 0)
+	lang_opt.item_selected.connect(func(idx: int):
+		SoundManager.play_sfx("click")
+		SettingsManager.set_locale("en" if idx == 1 else "ru")
+	)
+	lang_box.add_child(lang_lbl)
+	lang_box.add_child(lang_opt)
+	lang_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_child(lang_box)
+
+	# Упрощённые анимации
+	var anim_chk := CheckButton.new()
+	anim_chk.text = tr("Упрощённые анимации (для слабых устройств)")
+	anim_chk.button_pressed = SettingsManager.reduced_animations
+	anim_chk.add_theme_color_override("font_color", Color(0.3, 0.18, 0.08))
+	anim_chk.toggled.connect(func(on: bool):
+		SettingsManager.reduced_animations = on
+		SettingsManager.save_settings()
+	)
+	vbox.add_child(anim_chk)
+
 	var menu_btn = Button.new()
 	menu_btn.text = "Выйти в главное меню"
 	menu_btn.custom_minimum_size = Vector2(0, 42)
@@ -2191,6 +2453,328 @@ func _setup_pause_dialog() -> void:
 		get_tree().change_scene_to_file("res://src/main.tscn")
 	)
 	vbox.add_child(menu_btn)
+
+## Короткий совет дня (каждый 2-й день, если нет недельного события)
+const DAY_TIPS: Array[String] = [
+	"Стрелки бьют вдвое слабее, если враг подошёл вплотную — прикрывайте фей-лучниц!",
+	"Грифоны отвечают на все удары без устали. Отправляйте их первыми в гущу боя!",
+	"Заклинание героя действует один раз за раунд — но не тратит ход отряда!",
+	"Слепой враг пропускает ход, пока не получит урон. Ослепляйте самых опасных!",
+	"Золото из сундука можно обменять на опыт — иногда опыт ценнее казны.",
+	"Древни регенерируют каждый раунд — затягивайте бой на их стороне невыгодно.",
+	"Навык Лидерства даёт отрядам шанс на дополнительный ход. Прокачивайте!",
+	"Драконье дыхание пробивает строй на 2 гекса — не выстраивайтесь в линию!"
+]
+
+func _show_day_tip() -> void:
+	if GameState.day % 2 != 0:
+		return
+	if not GameState.last_astrologers_event.is_empty():
+		return
+	for conn in popup_btn1.pressed.get_connections():
+		popup_btn1.pressed.disconnect(conn.callable)
+	popup_btn2.visible = false
+	popup_title.text = tr("💡 Совет дня")
+	popup_text.text = DAY_TIPS[randi() % DAY_TIPS.size()]
+	popup_btn1.text = tr("Спасибо, буду знать!")
+	popup_btn1.pressed.connect(func(): popup_dialog.hide())
+	_show_popup_dialog()
+
+func _show_no_mp_hint() -> void:
+	for conn in popup_btn1.pressed.get_connections():
+		popup_btn1.pressed.disconnect(conn.callable)
+	popup_btn2.visible = false
+	popup_title.text = tr("Марш прерван")
+	popup_text.text = tr("Очки хода исчерпаны. Завершите день (клавиша E или кнопка \"Завершить день\"), чтобы выступить в новый путь!")
+	popup_btn1.text = tr("Ясно")
+	popup_btn1.pressed.connect(func(): popup_dialog.hide())
+	_show_popup_dialog()
+
+func _show_chronicle_dialog() -> void:
+	if chronicle_dialog != null:
+		chronicle_dialog.queue_free()
+	chronicle_dialog = Control.new()
+	chronicle_dialog.visible = false
+	chronicle_dialog.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	$CanvasLayer.add_child(chronicle_dialog)
+
+	var overlay = ColorRect.new()
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.color = Color(0, 0, 0, 0.72)
+	overlay.gui_input.connect(func(ev: InputEvent):
+		if ev is InputEventMouseButton and ev.pressed:
+			chronicle_dialog.hide()
+	)
+	chronicle_dialog.add_child(overlay)
+
+	var center = CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	chronicle_dialog.add_child(center)
+
+	var parch = NinePatchRect.new()
+	parch.texture = load("res://assets/art/ui/parchment_panel.png")
+	parch.patch_margin_left = 24
+	parch.patch_margin_top = 24
+	parch.patch_margin_right = 24
+	parch.patch_margin_bottom = 24
+	parch.custom_minimum_size = Vector2(640, 620)
+	center.add_child(parch)
+
+	var margin = MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 30)
+	margin.add_theme_constant_override("margin_right", 30)
+	margin.add_theme_constant_override("margin_top", 22)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	parch.add_child(margin)
+
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title = Label.new()
+	title.text = tr("📜 ЛЕТОПИСЬ ПОДВИГОВ")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 24)
+	title.add_theme_color_override("font_color", Color(0.28, 0.16, 0.08))
+	vbox.add_child(title)
+
+	var unlocked_count = GameState.chronicle.size()
+	var sub = Label.new()
+	sub.text = tr("Открыто подвигов: %d из %d") % [unlocked_count, GameState.CHRONICLE_DEFS.size()]
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.add_theme_font_size_override("font_size", 14)
+	sub.add_theme_color_override("font_color", Color(0.45, 0.3, 0.15))
+	vbox.add_child(sub)
+
+	var scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(0, 380)
+	vbox.add_child(scroll)
+
+	var list = VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 4)
+	scroll.add_child(list)
+
+	for feat in GameState.CHRONICLE_DEFS:
+		var unlocked = GameState.is_feat_unlocked(feat["id"])
+		var row = PanelContainer.new()
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var st = StyleBoxFlat.new()
+		st.set_corner_radius_all(6)
+		st.bg_color = Color(1.0, 0.93, 0.6, 0.35) if unlocked else Color(0, 0, 0, 0.05)
+		row.add_theme_stylebox_override("panel", st)
+		var lbl = Label.new()
+		var mark = "✅ " if unlocked else "🔒 "
+		var when = ""
+		if unlocked and GameState.chronicle.get(feat["id"], {}).get("day", 0) > 0:
+			when = " • " + tr("день %d") % int(GameState.chronicle[feat["id"]]["day"])
+		lbl.text = mark + tr(str(feat["title"])) + " — " + tr(str(feat["desc"])) + when
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lbl.add_theme_font_size_override("font_size", 14)
+		lbl.add_theme_color_override("font_color", Color(0.25, 0.15, 0.05) if unlocked else Color(0.45, 0.4, 0.35))
+		row.add_child(lbl)
+		list.add_child(row)
+
+	var close_b = Button.new()
+	close_b.text = tr("Закрыть")
+	close_b.custom_minimum_size = Vector2(180, 46)
+	close_b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_b.pressed.connect(func():
+		SoundManager.play_sfx("click")
+		chronicle_dialog.hide()
+	)
+	vbox.add_child(close_b)
+
+	chronicle_dialog.move_to_front()
+	chronicle_dialog.show()
+
+
+## Бродячий торговец: появляется раз в неделю на открытой свободной клетке.
+func _spawn_merchant() -> void:
+	world_view.remove_object_by_id("wandering_merchant")
+	var candidates: Array[Vector2i] = []
+	for y in range(world_view.MAP_ROWS):
+		for x in range(world_view.MAP_COLS):
+			var c := Vector2i(x, y)
+			if c == world_view.hero_cell or not world_view.is_passable(c):
+				continue
+			if world_view.objects.has(c) or not world_view.revealed_cells.has(c):
+				continue
+			candidates.append(c)
+	if candidates.is_empty():
+		return
+	var cell: Vector2i = candidates[randi() % candidates.size()]
+	world_view.objects[cell] = {"type": "merchant", "name": "Бродячий торговец", "id": "wandering_merchant"}
+	GameState.merchant_cell = cell
+	GameState.spawn_merchant_offers()
+	world_view.queue_redraw()
+
+## Дата-драйвен наём: попап жилища из data/dwellings.json.
+func _open_dwelling_popup(obj_id: String) -> void:
+	var reg: Dictionary = DwellingData.get_dwelling(obj_id)
+	if reg.is_empty():
+		return
+	popup_title.text = tr(str(reg.get("popup_title", "")))
+	var stock: int = int(GameState.dwelling_stock.get(str(reg.get("stock_key", "")), 0))
+	var cost := int(reg.get("cost", 50))
+	popup_btn2.visible = false
+	if stock <= 0:
+		popup_text.text = tr(str(reg.get("soldout", "")))
+		popup_btn1.text = tr("Понятно")
+		for conn in popup_btn1.pressed.get_connections():
+			popup_btn1.pressed.disconnect(conn.callable)
+		popup_btn1.pressed.connect(func(): popup_dialog.hide())
+		_show_popup_dialog()
+		return
+	popup_text.text = tr(str(reg.get("intro", ""))) % [stock, cost, GameState.gold]
+	var max_can_buy: int = mini(stock, GameState.gold / cost)
+	for conn in popup_btn1.pressed.get_connections():
+		popup_btn1.pressed.disconnect(conn.callable)
+	if max_can_buy <= 0:
+		popup_btn1.text = tr("Недостаточно золота (нужно хотя бы %d зол.)") % cost
+		popup_btn1.pressed.connect(func(): popup_dialog.hide())
+	else:
+		popup_btn1.text = tr(str(reg.get("hire_btn", ""))) % [max_can_buy, max_can_buy * cost]
+		popup_btn1.pressed.connect(func():
+			if GameState.spend_gold(max_can_buy * cost):
+				SoundManager.play_sfx("coin")
+				GameState.dwelling_stock[str(reg.get("stock_key", ""))] -= max_can_buy
+				GameState.add_units_to_army(str(reg.get("unit", "")), max_can_buy)
+				GameState.flags[obj_id] = true
+				world_view.queue_redraw()
+				popup_dialog.hide()
+		)
+	_show_popup_dialog()
+
+## Кодекс существ: все юниты с характеристиками и способностями.
+func _show_bestiary_dialog() -> void:
+	var bd = Control.new()
+	bd.visible = false
+	bd.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	$CanvasLayer.add_child(bd)
+
+	var overlay = ColorRect.new()
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.color = Color(0, 0, 0, 0.72)
+	overlay.gui_input.connect(func(ev: InputEvent):
+		if ev is InputEventMouseButton and ev.pressed:
+			bd.hide()
+	)
+	bd.add_child(overlay)
+
+	var center = CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bd.add_child(center)
+
+	var parch = NinePatchRect.new()
+	parch.texture = load("res://assets/art/ui/parchment_panel.png")
+	parch.patch_margin_left = 24
+	parch.patch_margin_top = 24
+	parch.patch_margin_right = 24
+	parch.patch_margin_bottom = 24
+	parch.custom_minimum_size = Vector2(700, 640)
+	center.add_child(parch)
+
+	var margin = MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 30)
+	margin.add_theme_constant_override("margin_right", 30)
+	margin.add_theme_constant_override("margin_top", 22)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	parch.add_child(margin)
+
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title = Label.new()
+	title.text = tr("📖 КОДЕКС СУЩЕСТВ")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 24)
+	title.add_theme_color_override("font_color", Color(0.28, 0.16, 0.08))
+	vbox.add_child(title)
+
+	var scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(0, 420)
+	vbox.add_child(scroll)
+
+	var list = VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 6)
+	scroll.add_child(list)
+
+	var ids := UnitData.UNITS.keys()
+	ids.sort_custom(func(a, b):
+		var ua: Dictionary = UnitData.UNITS[a]
+		var ub: Dictionary = UnitData.UNITS[b]
+		if int(ua.get("tier", 0)) != int(ub.get("tier", 0)):
+			return int(ua.get("tier", 0)) < int(ub.get("tier", 0))
+		return str(ua.get("name", "")) < str(ub.get("name", ""))
+	)
+	for uid in ids:
+		var u: Dictionary = UnitData.UNITS[uid]
+		var row = PanelContainer.new()
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var st = StyleBoxFlat.new()
+		st.set_corner_radius_all(6)
+		st.bg_color = Color(1.0, 0.93, 0.6, 0.18)
+		row.add_theme_stylebox_override("panel", st)
+		var hb = HBoxContainer.new()
+		hb.add_theme_constant_override("separation", 10)
+		row.add_child(hb)
+		var token = TextureRect.new()
+		token.custom_minimum_size = Vector2(56, 56)
+		token.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		token.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		var tpath = u.get("token_path", "")
+		if ResourceLoader.exists(tpath):
+			token.texture = load(tpath)
+		hb.add_child(token)
+		var info = VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.add_theme_constant_override("separation", 2)
+		hb.add_child(info)
+		var name_l = Label.new()
+		name_l.text = "%s — %s %d" % [tr(str(u.get("name", uid))), tr("тир"), int(u.get("tier", 1))]
+		name_l.add_theme_font_size_override("font_size", 15)
+		name_l.add_theme_color_override("font_color", Color(0.6, 0.42, 0.1))
+		info.add_child(name_l)
+		var stats_l = Label.new()
+		stats_l.text = "❤ %d   ⚔ %d-%d   🛡 %d   💨 %d   ✦ %d" % [
+			int(u.get("max_hp", 0)), int(u.get("min_dmg", 0)), int(u.get("max_dmg", 0)),
+			int(u.get("defense", 0)), int(u.get("speed", 0)), int(u.get("initiative", 0))
+		]
+		stats_l.add_theme_font_size_override("font_size", 13)
+		stats_l.add_theme_color_override("font_color", Color(0.25, 0.15, 0.05))
+		info.add_child(stats_l)
+		var traits_l = Label.new()
+		traits_l.text = tr(UnitData.get_trait_string(uid))
+		traits_l.add_theme_font_size_override("font_size", 12)
+		traits_l.add_theme_color_override("font_color", Color(0.45, 0.32, 0.12))
+		info.add_child(traits_l)
+		var desc_l = Label.new()
+		desc_l.text = tr(str(u.get("description", "")))
+		desc_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_l.add_theme_font_size_override("font_size", 12)
+		desc_l.add_theme_color_override("font_color", Color(0.3, 0.22, 0.12))
+		info.add_child(desc_l)
+		list.add_child(row)
+
+	var close_b = Button.new()
+	close_b.text = tr("Закрыть")
+	close_b.custom_minimum_size = Vector2(180, 46)
+	close_b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_b.pressed.connect(func():
+		SoundManager.play_sfx("click")
+		bd.hide()
+	)
+	vbox.add_child(close_b)
+
+	bd.move_to_front()
+	bd.show()
 
 func _toggle_pause_menu() -> void:
 	if pause_dialog:
