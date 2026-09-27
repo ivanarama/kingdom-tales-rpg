@@ -35,6 +35,7 @@ var facing_dir: Vector2i = Vector2i(1, 0)
 var move_dir: Vector2i = Vector2i.ZERO
 var walk_anim_timer: float = 0.0
 var anim_timer: float = 0.0
+var objective_cell: Vector2i = Vector2i(-99, -99) # цель квеста (задаёт world_map)
 var movement_start_time: int = 0
 
 # Path preview and locked planned route (HoMM3 2-click movement)
@@ -100,6 +101,7 @@ func _load_textures() -> void:
 	icons["gate"] = load("res://assets/art/world/icon_exit.png")
 	icons["signpost"] = load("res://assets/art/world/icon_dialogue.png")
 	icons["obelisk"] = load("res://assets/art/world/icon_artifact.png")
+	icons["merchant"] = load("res://assets/art/world/icon_artifact.png")
 	icons["fairy_shrine"] = load("res://assets/art/world/icon_quest.png")
 	
 	# Chapter 2 & 3 aliases
@@ -256,13 +258,13 @@ func _generate_chapter1_layout() -> void:
 
 	# Chapter 1 Chests
 	if not GameState.flags.get("chest_start", false):
-		objects[Vector2i(4, 9)] = {"type": "chest", "name": "Сундук в траве", "id": "chest_start"}
+		objects[Vector2i(4, 9)] = {"type": "chest", "name": "Сундук в траве", "id": "chest_start", "cell": Vector2i(4, 9)}
 	if not GameState.flags.get("chest_north", false):
-		objects[Vector2i(11, 3)] = {"type": "chest", "name": "Сундук у мельницы", "id": "chest_north"}
+		objects[Vector2i(11, 3)] = {"type": "chest", "name": "Сундук у мельницы", "id": "chest_north", "cell": Vector2i(11, 3)}
 	if not GameState.flags.get("chest_grove", false):
-		objects[Vector2i(11, 13)] = {"type": "chest", "name": "Тайник в чащобе", "id": "chest_grove"}
+		objects[Vector2i(11, 13)] = {"type": "chest", "name": "Тайник в чащобе", "id": "chest_grove", "cell": Vector2i(11, 13)}
 	if not GameState.flags.get("chest_hoard", false):
-		objects[Vector2i(25, 18)] = {"type": "chest", "name": "Сокровище Ущелья", "id": "chest_hoard"}
+		objects[Vector2i(25, 18)] = {"type": "chest", "name": "Сокровище Ущелья", "id": "chest_hoard", "cell": Vector2i(25, 18)}
 
 	# Chapter 1 Tactical Encounters (Guarding locations & paths)
 	if not GameState.flags.get("patrol_wolves", false):
@@ -369,11 +371,11 @@ func _generate_chapter2_layout() -> void:
 
 	# Chapter 2 Chests
 	if not GameState.flags.get("chest_swamp_1", false):
-		objects[Vector2i(10, 17)] = {"type": "chest", "name": "Сундук в мху", "id": "chest_swamp_1"}
+		objects[Vector2i(10, 17)] = {"type": "chest", "name": "Сундук в мху", "id": "chest_swamp_1", "cell": Vector2i(10, 17)}
 	if not GameState.flags.get("chest_swamp_north", false):
-		objects[Vector2i(7, 4)] = {"type": "chest", "name": "Сундук утопленника", "id": "chest_swamp_north"}
+		objects[Vector2i(7, 4)] = {"type": "chest", "name": "Сундук утопленника", "id": "chest_swamp_north", "cell": Vector2i(7, 4)}
 	if not GameState.flags.get("chest_swamp_2", false):
-		objects[Vector2i(25, 17)] = {"type": "chest", "name": "Сокровище Склепа", "id": "chest_swamp_2"}
+		objects[Vector2i(25, 17)] = {"type": "chest", "name": "Сокровище Склепа", "id": "chest_swamp_2", "cell": Vector2i(25, 17)}
 
 	# Chapter 2 Tactical Encounters
 	if not GameState.flags.get("swamp_patrol_road", false):
@@ -450,9 +452,9 @@ func _generate_chapter3_layout() -> void:
 
 	# Chapter 3 Chests
 	if not GameState.flags.get("chest_volcano_1", false):
-		objects[Vector2i(4, 13)] = {"type": "chest", "name": "Сундук в пепле", "id": "chest_volcano_1"}
+		objects[Vector2i(4, 13)] = {"type": "chest", "name": "Сундук в пепле", "id": "chest_volcano_1", "cell": Vector2i(4, 13)}
 	if not GameState.flags.get("chest_volcano_2", false):
-		objects[Vector2i(25, 18)] = {"type": "chest", "name": "Клад Дракона", "id": "chest_volcano_2"}
+		objects[Vector2i(25, 18)] = {"type": "chest", "name": "Клад Дракона", "id": "chest_volcano_2", "cell": Vector2i(25, 18)}
 
 	# Chapter 3 Tactical Encounters
 	if not GameState.flags.get("dragon_patrol_pass", false):
@@ -478,10 +480,13 @@ func is_passable(cell: Vector2i) -> bool:
 	return true
 
 func _reveal_fog(center: Vector2i, radius: int) -> void:
+	var bounds := Rect2i(0, 0, MAP_COLS, MAP_ROWS)
 	for dy in range(-radius, radius + 1):
 		for dx in range(-radius, radius + 1):
 			if dx * dx + dy * dy <= radius * radius:
-				revealed_cells[center + Vector2i(dx, dy)] = true
+				var c := center + Vector2i(dx, dy)
+				if bounds.has_point(c):
+					revealed_cells[c] = true
 	GameState.revealed_cells = revealed_cells
 
 func _gui_input(event: InputEvent) -> void:
@@ -518,11 +523,20 @@ func _update_preview_path() -> void:
 	var has_pf = GameState.has_skill("pathfinding") if GameState.has_method("has_skill") else false
 	preview_path = WorldNavigator.find_path(hero_cell, hovered_cell, forest_cells, bounds, road_cells, has_pf)
 
+var _reduced_accum: float = 0.0
+
 func _process(delta: float) -> void:
 	anim_timer += delta
 	if is_moving:
 		walk_anim_timer += delta * 12.0
-	queue_redraw()
+	# Упрощённые анимации: живая карта обновляется 10 раз в секунду вместо каждого кадра
+	if SettingsManager.reduced_animations and not is_moving:
+		_reduced_accum += delta
+		if _reduced_accum >= 0.1:
+			_reduced_accum = 0.0
+			queue_redraw()
+	else:
+		queue_redraw()
 
 func _draw() -> void:
 	# 1. Base Terrain by Chapter Biome
@@ -772,7 +786,7 @@ func _draw() -> void:
 		var obj_id = obj.get("id", "")
 		match type:
 			"mill":
-				is_claimed = GameState.flags.get(obj_id, false) or GameState.flags.get("watermill", false)
+				is_claimed = GameState.flags.get(obj_id, false)
 			"fairy_dwelling":
 				is_claimed = GameState.flags.get(obj_id, false) or GameState.dwelling_stock.get("fairy_camp", 14) < 14
 			"fountain":
@@ -865,6 +879,19 @@ func _draw() -> void:
 			
 	# Active selection ring under knight
 	draw_arc(hero_pos + Vector2(0, 8), 24.0, 0.0, TAU, 24, Color(0.95, 0.82, 0.3, 0.75), 2.5)
+	# Quest compass: golden arrow orbiting the hero, pointing at the objective
+	if objective_cell.x >= 0 and objective_cell != hero_cell:
+		var target_px = cell_to_pixel(objective_cell)
+		var dir_vec = (target_px - hero_pos)
+		if dir_vec.length() > 60.0:
+			var ang = dir_vec.angle()
+			var orbit_r = 44.0 + sin(anim_timer * 4.0) * 4.0
+			var tip = hero_pos + Vector2(cos(ang), sin(ang)) * orbit_r
+			var wing_a = tip - Vector2(cos(ang - 0.5), sin(ang - 0.5)) * 12.0
+			var wing_b = tip - Vector2(cos(ang + 0.5), sin(ang + 0.5)) * 12.0
+			draw_colored_polygon(PackedVector2Array([tip, wing_a, wing_b]), Color(1.0, 0.85, 0.2, 0.9))
+			draw_circle(tip, 3.0, Color(1.0, 0.95, 0.6, 0.95))
+
 	
 	# 5. Fog of War (100% Solid Opaque Shroud)
 	for y in range(MAP_ROWS):

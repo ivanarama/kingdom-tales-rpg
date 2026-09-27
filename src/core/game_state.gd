@@ -8,6 +8,9 @@ signal gold_changed(new_gold: int)
 signal day_advanced(day: int)
 signal level_up_pending(level_data: Dictionary)
 
+func _ready() -> void:
+	load_chronicle()
+
 # Hero RPG data
 var hero_name: String = "Рыцарь Аларик"
 var hero_title: String = "Паладин Королевства"
@@ -24,6 +27,7 @@ var demo_difficulty_title: String = "🟡 Воитель (Нормально)"
 var demo_encounter_title: String = "Случайная битва"
 
 var current_chapter: int = 1
+var campaign_difficulty: String = "normal" # easy/normal/hard/legendary — скейлит кампанию
 
 var level: int = 1
 var xp: int = 0
@@ -72,7 +76,7 @@ const ALL_SKILLS: Dictionary = {
 	"leadership": {
 		"name": "Лидерство",
 		"icon": "👑",
-		"desc": "Повышает боевой дух: 15% шанс воодушевления отряда (+30% крит. урон в бою)."
+		"desc": "Боевой дух: 15% шанс крит. удара (+30% урона) и шанс дополнительного хода при атаке: 5% + 10% за уровень навыка."
 	},
 	"sorcery": {
 		"name": "Волшебство",
@@ -245,6 +249,9 @@ func add_xp(amount: int) -> void:
 		}
 		pending_level_ups.append(lvl_info)
 		level_up_pending.emit(lvl_info)
+	if level >= 5:
+		unlock_feat("hero_level5")
+	state_changed.emit()
 
 # Army stacks (up to 5 slots)
 var player_army: Array[Dictionary] = [
@@ -252,15 +259,26 @@ var player_army: Array[Dictionary] = [
 	{"unit_id": "fairy_archer", "count": 18}
 ]
 
-var learned_spells: Array[String] = ["fireball", "heal", "bless", "haste", "scrying", "restoration", "lightning", "slow", "stoneskin", "blind"]
+var learned_spells: Array[String] = ["fireball", "heal", "bless", "haste", "scrying", "restoration", "lightning", "slow", "stoneskin", "blind", "inspiration", "shield_light", "retribution"]
 
-# World progress flags
+# World progress flags (ключи = id объектов с world_view, читаются через flags.get(oid))
 var flags: Dictionary = {
-	"watermill_visited": false,
-	"magic_shrine_visited": false,
-	"chest_opened": false,
-	"fairy_dwelling_hired": false,
-	"goblin_camp_defeated": false
+	"watermill": false,
+	"mana_fountain": false,
+	"fairy_camp": false,
+	"patrol_goblins": false,
+	# Chapter 1 Chests
+	"chest_start": false,
+	"chest_north": false,
+	"chest_grove": false,
+	"chest_hoard": false,
+	# Chapter 2 Chests
+	"chest_swamp_1": false,
+	"chest_swamp_north": false,
+	"chest_swamp_2": false,
+	# Chapter 3 Chests
+	"chest_volcano_1": false,
+	"chest_volcano_2": false
 }
 
 # Current encounter data (when entering battle)
@@ -270,6 +288,8 @@ func add_gold(amount: int) -> void:
 	gold += amount
 	gold_changed.emit(gold)
 	state_changed.emit()
+	if gold >= 5000:
+		unlock_feat("wealthy")
 
 func spend_gold(amount: int) -> bool:
 	if gold >= amount:
@@ -370,6 +390,58 @@ var revealed_cells: Dictionary = {}
 var dwelling_stock: Dictionary = {
 	"fairy_camp": 14
 }
+
+# Бродячий торговец: 2 предложения в неделю (артефакт + подкрепление)
+var merchant_cell := Vector2i(-99, -99)
+var merchant_offers: Array[Dictionary] = []
+
+func spawn_merchant_offers() -> void:
+	merchant_offers.clear()
+	# Артефакт: любой, которого ещё нет у героя
+	var owned: Array[String] = []
+	for sl in equipped_artifacts.values():
+		owned.append(str(sl))
+	owned.append_array(inventory_artifacts)
+	var pool: Array[String] = []
+	for aid in ArtifactData.ARTIFACTS.keys():
+		if not owned.has(str(aid)):
+			pool.append(str(aid))
+	if pool.size() > 0:
+		var aid: String = pool[randi() % pool.size()]
+		var art: Dictionary = ArtifactData.get_artifact(aid)
+		var points: int = int(art.get("attack_bonus", 0)) + int(art.get("defense_bonus", 0)) \
+			+ int(art.get("spellpower_bonus", 0)) + int(art.get("knowledge_bonus", 0)) \
+			+ int(art.get("mp_bonus", 0)) / 4 + int(art.get("mana_bonus", 0)) / 10
+		merchant_offers.append({
+			"kind": "artifact",
+			"id": aid,
+			"count": 1,
+			"price": 400 + points * 150
+		})
+	# Подкрепление: случайный отряд невысокого тира
+	var unit_pool := ["fairy_archer", "wolf", "goblin", "griffin", "druid", "royal_pegasus", "fox_shifter"]
+	var uid: String = unit_pool[randi() % unit_pool.size()]
+	var cnt := 3 + randi() % 6
+	var tier: int = int(UnitData.get_unit(uid).get("tier", 1))
+	merchant_offers.append({
+		"kind": "units",
+		"id": uid,
+		"count": cnt,
+		"price": cnt * (30 + tier * 35)
+	})
+
+func buy_merchant_offer(idx: int) -> bool:
+	if idx < 0 or idx >= merchant_offers.size():
+		return false
+	var offer: Dictionary = merchant_offers[idx]
+	if not spend_gold(int(offer["price"])):
+		return false
+	if offer["kind"] == "artifact":
+		inventory_artifacts.append(str(offer["id"]))
+	else:
+		add_units_to_army(str(offer["id"]), int(offer["count"]))
+	merchant_offers.remove_at(idx)
+	return true
 var last_astrologers_event: Dictionary = {}
 
 func next_day() -> void:
@@ -384,6 +456,9 @@ func next_day() -> void:
 		dwelling_stock["fairy_camp"] = dwelling_stock.get("fairy_camp", 0) + 14
 		dwelling_stock["druid_camp"] = dwelling_stock.get("druid_camp", 0) + 8
 		dwelling_stock["griffin_nest"] = dwelling_stock.get("griffin_nest", 0) + 6
+		dwelling_stock["shrine_pegasus"] = dwelling_stock.get("shrine_pegasus", 0) + 2
+		dwelling_stock["forester_fox"] = dwelling_stock.get("forester_fox", 0) + 6
+		dwelling_stock["obelisk_guard"] = dwelling_stock.get("obelisk_guard", 0) + 1
 		
 		# Astrologers proclaim... (Weekly events on day 8, 15, 22...)
 		if day > 1:
@@ -427,6 +502,8 @@ func next_day() -> void:
 			last_astrologers_event.clear()
 	else:
 		last_astrologers_event.clear()
+	if day >= 7:
+		unlock_feat("week_kept")
 	day_advanced.emit(day)
 	state_changed.emit()
 	save_game()
@@ -453,6 +530,9 @@ func start_chapter(chapter_num: int) -> void:
 		1:
 			hero_cell = Vector2i(4, 11)
 			dwelling_stock["fairy_camp"] = 14
+			dwelling_stock["shrine_pegasus"] = 2
+			dwelling_stock["forester_fox"] = 6
+			dwelling_stock["obelisk_guard"] = 1
 		2:
 			hero_cell = Vector2i(3, 11)
 			dwelling_stock["druid_camp"] = 8
@@ -462,6 +542,9 @@ func start_chapter(chapter_num: int) -> void:
 		_:
 			hero_cell = Vector2i(4, 11)
 			dwelling_stock["fairy_camp"] = 14
+			dwelling_stock["shrine_pegasus"] = 2
+			dwelling_stock["forester_fox"] = 6
+			dwelling_stock["obelisk_guard"] = 1
 			
 	state_changed.emit()
 	save_game()
@@ -492,7 +575,7 @@ func set_hero_class(class_id: String) -> void:
 				{"unit_id": "griffin", "count": 4},
 				{"unit_id": "fairy_archer", "count": 24}
 			]
-			learned_spells = ["fireball", "lightning", "slow", "bless", "heal", "scrying", "restoration", "haste", "stoneskin", "blind"]
+			learned_spells = ["fireball", "lightning", "slow", "bless", "heal", "scrying", "restoration", "haste", "stoneskin", "blind", "inspiration", "shield_light", "retribution"]
 		"ranger":
 			hero_name = "Следопыт Торн"
 			hero_title = "Хранитель Чащобы"
@@ -518,7 +601,7 @@ func set_hero_class(class_id: String) -> void:
 				{"unit_id": "griffin", "count": 8},
 				{"unit_id": "fairy_archer", "count": 14}
 			]
-			learned_spells = ["heal", "haste", "slow", "bless", "scrying", "restoration", "fireball", "lightning", "stoneskin", "blind"]
+			learned_spells = ["heal", "haste", "slow", "bless", "scrying", "restoration", "fireball", "lightning", "stoneskin", "blind", "inspiration", "shield_light", "retribution"]
 		_:
 			hero_class_id = "paladin"
 			hero_name = "Рыцарь Аларик"
@@ -543,7 +626,7 @@ func set_hero_class(class_id: String) -> void:
 				{"unit_id": "griffin", "count": 6},
 				{"unit_id": "fairy_archer", "count": 18}
 			]
-			learned_spells = ["fireball", "heal", "bless", "haste", "scrying", "restoration", "lightning", "slow", "stoneskin", "blind"]
+			learned_spells = ["fireball", "heal", "bless", "haste", "scrying", "restoration", "lightning", "slow", "stoneskin", "blind", "inspiration", "shield_light", "retribution"]
 			
 	max_mana = get_total_max_mana()
 	current_mana = max_mana
@@ -586,13 +669,24 @@ func reset() -> void:
 		{"unit_id": "griffin", "count": 6},
 		{"unit_id": "fairy_archer", "count": 18}
 	]
-	learned_spells = ["fireball", "heal", "bless", "haste", "scrying", "restoration", "lightning", "slow", "stoneskin", "blind"]
+	learned_spells = ["fireball", "heal", "bless", "haste", "scrying", "restoration", "lightning", "slow", "stoneskin", "blind", "inspiration", "shield_light", "retribution"]
 	flags = {
-		"watermill_visited": false,
-		"magic_shrine_visited": false,
-		"chest_opened": false,
-		"fairy_dwelling_hired": false,
-		"goblin_camp_defeated": false
+		"watermill": false,
+		"mana_fountain": false,
+		"fairy_camp": false,
+		"patrol_goblins": false,
+		# Chapter 1 Chests
+		"chest_start": false,
+		"chest_north": false,
+		"chest_grove": false,
+		"chest_hoard": false,
+		# Chapter 2 Chests
+		"chest_swamp_1": false,
+		"chest_swamp_north": false,
+		"chest_swamp_2": false,
+		# Chapter 3 Chests
+		"chest_volcano_1": false,
+		"chest_volcano_2": false
 	}
 	pending_battle = {}
 	pending_battle_id = ""
@@ -605,10 +699,101 @@ func reset() -> void:
 	quest_completed = false
 	hero_cell = Vector2i(4, 11)
 	revealed_cells = {}
-	dwelling_stock = {"fairy_camp": 14}
+	campaign_difficulty = "normal"
+	merchant_cell = Vector2i(-99, -99)
+	merchant_offers.clear()
+	dwelling_stock = {"fairy_camp": 14, "shrine_pegasus": 2, "forester_fox": 6, "obelisk_guard": 1}
 	state_changed.emit()
 
 const SAVE_PATH := "user://savegame.json"
+const CURRENT_SAVE_VERSION := 3
+const SAVE_SLOTS: Array[String] = ["user://savegame.json", "user://save_slot_1.json", "user://save_slot_2.json", "user://save_slot_3.json"]
+
+func get_newest_save_path() -> String:
+	# Метка времени читается из самого файла (mtime грубее секунды и даёт ничьи)
+	var newest := SAVE_SLOTS[0]
+	var best_time := -1.0
+	for p in SAVE_SLOTS:
+		if not FileAccess.file_exists(p):
+			continue
+		var t := _read_saved_at(p)
+		if t < 0.0:
+			t = float(FileAccess.get_modified_time(p))
+		if t > best_time:
+			best_time = t
+			newest = p
+	return newest
+
+func _read_saved_at(path: String) -> float:
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return -1.0
+	var parsed = JSON.parse_string(file.get_as_text())
+	if typeof(parsed) == TYPE_DICTIONARY and parsed.has("saved_at"):
+		return float(parsed["saved_at"])
+	return -1.0
+
+func has_artifact_effect(art_id: String) -> bool:
+	# Боевые эффекты артефактов работают только из надетых слотов
+	return equipped_artifacts.values().has(art_id)
+
+# ============ Летопись подвигов (локальные достижения) ============
+const CHRONICLE_PATH := "user://chronicle.json"
+const CHRONICLE_DEFS: Array[Dictionary] = [
+	{"id": "first_blood", "title": "Первая победа", "desc": "Одержите первую победу в тактическом бою."},
+	{"id": "flawless", "title": "Без единой потери", "desc": "Побеждите в бою, не потеряв ни одного воина."},
+	{"id": "boss_bandit", "title": "Возвращение Венца", "desc": "Сокрушите Атамана разбойников."},
+	{"id": "boss_lich", "title": "Развеянная тьма", "desc": "Уничтожьте Древнего Лича."},
+	{"id": "boss_dragon", "title": "Владыка Огня повержен", "desc": "Победите Красного Дракона."},
+	{"id": "ch1_done", "title": "Зачарованный Лес спасён", "desc": "Завершите первую главу кампании."},
+	{"id": "ch2_done", "title": "Топи очищены", "desc": "Завершите вторую главу кампании."},
+	{"id": "ch3_done", "title": "Великая Сказка", "desc": "Завершите всю кампанию."},
+	{"id": "week_kept", "title": "Неделя в походе", "desc": "Доведите свой поход до седьмого дня."},
+	{"id": "wealthy", "title": "Богатая казна", "desc": "Соберите 5000 золота."},
+	{"id": "hero_level5", "title": "Прославленный герой", "desc": "Достигните 5 уровня."}
+]
+var chronicle: Dictionary = {} # id -> {"day": int, "ts": String}
+
+func unlock_feat(id: String) -> bool:
+	if chronicle.has(id):
+		return false
+	var meta := {}
+	for d in CHRONICLE_DEFS:
+		if d["id"] == id:
+			meta = d
+			break
+	if meta.is_empty():
+		return false
+	chronicle[id] = {
+		"title": str(meta["title"]),
+		"desc": str(meta["desc"]),
+		"day": day,
+		"ts": Time.get_datetime_string_from_system()
+	}
+	save_chronicle()
+	return true
+
+func is_feat_unlocked(id: String) -> bool:
+	return chronicle.has(id)
+
+func save_chronicle() -> bool:
+	var file = FileAccess.open(CHRONICLE_PATH, FileAccess.WRITE)
+	if not file:
+		return false
+	file.store_string(JSON.stringify(chronicle, "\t"))
+	file.close()
+	return true
+
+func load_chronicle() -> void:
+	chronicle.clear()
+	if not FileAccess.file_exists(CHRONICLE_PATH):
+		return
+	var file = FileAccess.open(CHRONICLE_PATH, FileAccess.READ)
+	if file == null:
+		return
+	var parsed = JSON.parse_string(file.get_as_text())
+	if typeof(parsed) == TYPE_DICTIONARY:
+		chronicle = parsed
 
 func has_save_game(path: String = SAVE_PATH) -> bool:
 	return FileAccess.file_exists(path)
@@ -640,7 +825,11 @@ func save_game(path: String = SAVE_PATH) -> bool:
 		rev_arr.append([c.x, c.y])
 	
 	var data = {
-		"version": 1,
+		"version": CURRENT_SAVE_VERSION,
+		"saved_at": Time.get_unix_time_from_system(),
+		"campaign_difficulty": campaign_difficulty,
+		"merchant_cell": [merchant_cell.x, merchant_cell.y],
+		"merchant_offers": merchant_offers,
 		"hero_class_id": hero_class_id,
 		"hero_name": hero_name,
 		"hero_title": hero_title,
@@ -672,9 +861,18 @@ func save_game(path: String = SAVE_PATH) -> bool:
 		"quest_completed": quest_completed,
 		"hero_cell": [hero_cell.x, hero_cell.y],
 		"revealed_cells": rev_arr,
-		"dwelling_stock": dwelling_stock
+		"dwelling_stock": dwelling_stock,
+		"pending_level_ups": pending_level_ups,
+		"last_astrologers_event": last_astrologers_event
 	}
 	
+	# Бэкап предыдущего сохранения перед записью
+	if FileAccess.file_exists(path):
+		var bak := path + ".bak"
+		if FileAccess.file_exists(bak):
+			DirAccess.remove_absolute(bak)
+		DirAccess.copy_absolute(path, bak)
+
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	if not file:
 		return false
@@ -682,21 +880,40 @@ func save_game(path: String = SAVE_PATH) -> bool:
 	file.close()
 	return true
 
-func load_game(path: String = SAVE_PATH) -> bool:
+## Приведение сохранения старой версии к текущей.
+func _migrate_save(data: Dictionary) -> Dictionary:
+	var v := int(data.get("version", 1))
+	# v1 -> v2: saved_at/pending_level_ups/last_astrologers_event читаются
+	# через .get() с дефолтами — явная миграция не требуется.
+	# v2 -> v3: campaign_difficulty/merchant_* тоже опциональны.
+	data["version"] = CURRENT_SAVE_VERSION
+	return data
+
+func _read_save_data(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
-		return false
+		return {}
 	var file = FileAccess.open(path, FileAccess.READ)
 	if not file:
-		return false
+		return {}
 	var text = file.get_as_text()
 	file.close()
-	
 	var json = JSON.new()
 	if json.parse(text) != OK:
-		return false
-	var data = json.data
-	if typeof(data) != TYPE_DICTIONARY:
-		return false
+		return {}
+	if typeof(json.data) != TYPE_DICTIONARY:
+		return {}
+	return json.data
+
+func load_game(path: String = SAVE_PATH) -> bool:
+	var data := _read_save_data(path)
+	if data.is_empty():
+		# Основной файл повреждён или отсутствует — пробуем резервную копию
+		var bak := path + ".bak"
+		if FileAccess.file_exists(bak):
+			data = _read_save_data(bak)
+		if data.is_empty():
+			return false
+	data = _migrate_save(data)
 		
 	hero_class_id = data.get("hero_class_id", "paladin")
 	hero_name = data.get("hero_name", hero_name)
@@ -749,7 +966,43 @@ func load_game(path: String = SAVE_PATH) -> bool:
 				revealed_cells[Vector2i(int(item[0]), int(item[1]))] = true
 				
 	dwelling_stock = data.get("dwelling_stock", dwelling_stock)
-	
+
+	# Незакрытые повышения уровня и недельное событие — чтобы выбор навыка
+	# не терялся при выходе между боем и выбором (регрессия ревью 0.1.1)
+	pending_level_ups.clear()
+	var raw_lv = data.get("pending_level_ups", [])
+	if raw_lv is Array:
+		for item in raw_lv:
+			if item is Dictionary:
+				var opts: Array[String] = []
+				var raw_opts = item.get("options", [])
+				if raw_opts is Array:
+					for o in raw_opts:
+						opts.append(str(o))
+				pending_level_ups.append({
+					"level": int(item.get("level", 1)),
+					"stat": str(item.get("stat", "")),
+					"options": opts
+				})
+	var raw_ev = data.get("last_astrologers_event", {})
+	if raw_ev is Dictionary:
+		last_astrologers_event = raw_ev
+
+	var mc = data.get("merchant_cell", [-99, -99])
+	if mc is Array and mc.size() >= 2:
+		merchant_cell = Vector2i(int(mc[0]), int(mc[1]))
+	merchant_offers.clear()
+	var raw_mo = data.get("merchant_offers", [])
+	if raw_mo is Array:
+		for item in raw_mo:
+			if item is Dictionary:
+				merchant_offers.append({
+					"kind": str(item.get("kind", "units")),
+					"id": str(item.get("id", "")),
+					"count": int(item.get("count", 1)),
+					"price": int(item.get("price", 0))
+				})
+
 	state_changed.emit()
 	return true
 
@@ -784,7 +1037,8 @@ func get_demo_player_preset_army(preset: String, diff: String = "normal") -> Arr
 			result = [
 				{"unit_id": "royal_griffin", "count": maxi(1, int(round(12 * mult)))},
 				{"unit_id": "griffin", "count": maxi(1, int(round(10 * mult)))},
-				{"unit_id": "fairy_archer", "count": maxi(1, int(round(18 * mult)))}
+				{"unit_id": "fairy_archer", "count": maxi(1, int(round(18 * mult)))},
+				{"unit_id": "royal_pegasus", "count": maxi(1, int(round(6 * mult)))}
 			]
 		"druids":
 			result = [
@@ -837,7 +1091,8 @@ func get_demo_enemy_preset_army(preset: String, diff: String = "normal") -> Arra
 			result = [
 				{"unit_id": "griffin", "count": maxi(1, int(round(10 * mult))), "hex": hexes[0]},
 				{"unit_id": "druid", "count": maxi(1, int(round(10 * mult))), "hex": hexes[1]},
-				{"unit_id": "fairy_archer", "count": maxi(1, int(round(22 * mult))), "hex": hexes[2]}
+				{"unit_id": "fairy_archer", "count": maxi(1, int(round(22 * mult))), "hex": hexes[2]},
+				{"unit_id": "royal_pegasus", "count": maxi(1, int(round(9 * mult))), "hex": hexes[3]}
 			]
 		_: # random
 			var enemy_units = [
