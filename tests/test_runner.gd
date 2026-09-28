@@ -1118,6 +1118,11 @@ func _ready() -> void:
 		assert(ResourceLoader.exists(nu.get("token_path", "")), "Token missing for %s" % uid)
 		assert(ResourceLoader.exists(nu.get("sprite_path", "")), "Sprite missing for %s" % uid)
 	assert(UnitData.get_unit("lich").get("is_caster", false), "Lich must be a caster")
+	# Болотный зомби — круглый медальон: углы прозрачные, а не квадратный фон жетона
+	var zombie_img: Image = load(str(UnitData.get_unit("swamp_zombie")["sprite_path"])).get_image()
+	var zw := zombie_img.get_width()
+	assert(zombie_img.get_pixel(0, 0).a < 0.05 and zombie_img.get_pixel(zw - 1, zw - 1).a < 0.05, "Swamp zombie sprite corners must be transparent")
+	assert(zombie_img.get_pixel(zw / 2, zw / 2).a > 0.95, "Swamp zombie medallion center must be opaque")
 	assert(float(UnitData.get_unit("stone_guardian").get("reflect", 0.0)) > 0.0, "Stone guardian must reflect")
 	assert(float(UnitData.get_unit("fox_shifter").get("dodge", 0.0)) > 0.0, "Fox must dodge")
 	for sid in ["inspiration", "shield_light", "retribution"]:

@@ -175,8 +175,10 @@ static var UNITS: Dictionary = {
 		"unlimited_retaliation": false,
 		"disease": true,
 		"natural_faces_left": true,
-		"token_path": "res://assets/art/ui/tokens/token_unit_swamp_zombie.png",
-		"sprite_path": "res://assets/art/ui/tokens/token_unit_swamp_zombie.png",
+		# Медальон вырезан из жетона карты: у жетона непрозрачный квадратный фон
+		"sprite_height": 1.6,
+		"token_path": "res://assets/art/units/medallion_swamp_zombie.png",
+		"sprite_path": "res://assets/art/units/medallion_swamp_zombie.png",
 		"description": "Тяжело ступающие мертвецы болот. Удары заражают врага трупным ядом (-25% к атаке)!"
 	},
 	"druid": {
