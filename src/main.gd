@@ -173,7 +173,8 @@ func _create_modal_dialog(dialog_name: String, panel_size: Vector2) -> Dictionar
 	# CenterContainer mathematically centers child regardless of screen resolution
 	var center = CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_PASS
+	# IGNORE, а не PASS: иначе контейнер на весь экран забирает тап, и затемнение его не получает
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(center)
 
 	# Parchment panel
@@ -717,16 +718,7 @@ func _setup_arena_dialog_ui() -> void:
 			vb.add_child(name_l)
 
 			var trait_l = Label.new()
-			var traits = []
-			if udata.get("is_ranged", false):
-				traits.append("Стрелок")
-			if udata.get("flying", false):
-				traits.append("Летун")
-			if udata.get("unlimited_retaliation", false):
-				traits.append("Бесконечный отпор")
-			if udata.get("double_shot", false):
-				traits.append("Двойной выстрел")
-			trait_l.text = " • ".join(traits) if traits.size() > 0 else "Пехота ближнего боя"
+			trait_l.text = UnitData.get_trait_string(item["unit_id"])
 			trait_l.add_theme_font_size_override("font_size", 12)
 			trait_l.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 			vb.add_child(trait_l)
@@ -761,14 +753,7 @@ func _setup_arena_dialog_ui() -> void:
 			vb.add_child(name_l)
 
 			var trait_l = Label.new()
-			var traits = []
-			if udata.get("is_ranged", false):
-				traits.append("Стрелок")
-			if udata.get("flying", false):
-				traits.append("Летун")
-			if udata.get("unlimited_retaliation", false):
-				traits.append("Бесконечный отпор")
-			trait_l.text = " • ".join(traits) if traits.size() > 0 else "Пехота ближнего боя"
+			trait_l.text = UnitData.get_trait_string(item["unit_id"])
 			trait_l.add_theme_font_size_override("font_size", 12)
 			trait_l.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 			vb.add_child(trait_l)
@@ -933,12 +918,16 @@ func _on_about() -> void:
 	SoundManager.play_sfx("page_turn")
 	about_dialog.show()
 
-# Android hardware back button & system navigation
+# Android hardware back button & system navigation.
+# Автовыход по «Назад» выключен (application/config/quit_on_go_back=false):
+# сначала закрываем открытое окно и только в пустом меню выходим из игры.
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		_handle_back_request()
+		if not _handle_back_request():
+			get_tree().quit()
 
-func _handle_back_request() -> void:
+## Закрывает верхнее открытое окно меню. false — закрывать было нечего.
+func _handle_back_request() -> bool:
 	if arena_dialog != null and arena_dialog.visible:
 		arena_dialog.hide()
 	elif chapter_dialog != null and chapter_dialog.visible:
@@ -949,6 +938,9 @@ func _handle_back_request() -> void:
 		music_dialog.hide()
 	elif about_dialog != null and about_dialog.visible:
 		about_dialog.hide()
+	else:
+		return false
+	return true
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:

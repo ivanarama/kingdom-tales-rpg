@@ -350,8 +350,8 @@ func _draw() -> void:
 		var txt = item.text
 		# High-contrast 4-way drop shadow for crisp arcade readability
 		for off in [Vector2(-2, 0), Vector2(2, 0), Vector2(0, -2), Vector2(0, 2), Vector2(2, 2)]:
-			draw_string(font, item.pos + off, txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 30, Color(0, 0, 0, c.a * 0.9))
-		draw_string(font, item.pos, txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 30, c)
+			_draw_centered_string(font, item.pos + off, txt, 30, Color(0, 0, 0, c.a * 0.9))
+		_draw_centered_string(font, item.pos, txt, 30, c)
 
 	# 7. Draw Special Effects (Lightning, Frost, Holy Halo, Stoneskin, Blind)
 	for fx in special_effects:
@@ -398,6 +398,13 @@ func _draw() -> void:
 					var p_ray = p + Vector2(cos(ang), sin(ang)) * (b_rad * 1.4)
 					draw_line(p, p_ray, Color(1.0, 1.0, 0.8, ratio), 2.5)
 
+## draw_string выравнивает текст только внутри заданной ширины: при width = -1
+## HORIZONTAL_ALIGNMENT_CENTER игнорируется и строка рисуется от точки вправо.
+## Поэтому центрируем сами — сдвигом на половину ширины строки.
+func _draw_centered_string(font: Font, center: Vector2, text: String, font_size: int, color: Color) -> void:
+	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	draw_string(font, center - Vector2(w / 2.0, 0.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+
 func _draw_hp_bar(pos: Vector2, cur_hp: int, max_hp: int) -> void:
 	var hp_ratio = clampf(float(cur_hp) / float(max_hp), 0.0, 1.0)
 	var hp_bar_w = 58.0
@@ -416,7 +423,7 @@ func _draw_hp_bar(pos: Vector2, cur_hp: int, max_hp: int) -> void:
 	# HP text
 	var font = ThemeDB.fallback_font
 	var hp_str = "%d/%d" % [cur_hp, max_hp]
-	draw_string(font, pos + Vector2(0, -6), hp_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 11, Color(1, 1, 0.95))
+	_draw_centered_string(font, pos + Vector2(0, -6), hp_str, 11, Color(1, 1, 0.95))
 
 func _draw_stack_badge(pos: Vector2, text: String, team: int) -> void:
 	var badge_w = 64.0
@@ -442,7 +449,7 @@ func _draw_broken_arrow(pos: Vector2) -> void:
 	draw_circle(pos, 3.0, Color(1.0, 0.9, 0.2))
 	
 	var font = ThemeDB.fallback_font
-	draw_string(font, pos + Vector2(0, -6), "ШТРАФ 50%", HORIZONTAL_ALIGNMENT_CENTER, -1, 10, Color(1.0, 0.3, 0.2))
+	_draw_centered_string(font, pos + Vector2(0, -6), "ШТРАФ 50%", 10, Color(1.0, 0.3, 0.2))
 
 func _draw_forecast_box(pos: Vector2, forecast: Dictionary) -> void:
 	var font = ThemeDB.fallback_font
@@ -456,4 +463,4 @@ func _draw_forecast_box(pos: Vector2, forecast: Dictionary) -> void:
 	
 	draw_rect(r, Color(0.12, 0.08, 0.04, 0.92), true)
 	draw_rect(r, Color(0.95, 0.82, 0.35, 0.9), false, 1.5)
-	draw_string(font, pos + Vector2(0, 4), txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(1, 0.95, 0.75))
+	_draw_centered_string(font, pos + Vector2(0, 4), txt, 12, Color(1, 0.95, 0.75))

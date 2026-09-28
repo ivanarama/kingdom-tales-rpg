@@ -1045,6 +1045,7 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
 [node name="BackpackVBox" type="VBoxContainer" parent="CanvasLayer/HeroProfileDialog/Parchment/ContentHBox/MidCol/BackpackScroll"]
 layout_mode = 2
@@ -1190,12 +1191,14 @@ custom_minimum_size = Vector2(0, 105)
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "Навык 1"
+autowrap_mode = 3
 
 [node name="SkillBtn2" type="Button" parent="CanvasLayer/LevelUpDialog/Parchment/VBox"]
 custom_minimum_size = Vector2(0, 105)
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "Навык 2"
+autowrap_mode = 3
 
 [node name="ConfirmEndDayDialog" type="Control" parent="CanvasLayer"]
 visible = false

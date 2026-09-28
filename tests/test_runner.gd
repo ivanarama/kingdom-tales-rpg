@@ -56,7 +56,7 @@ func _finish(timed_out: bool = false) -> void:
 		get_tree().quit(1)
 		return
 	print("\n==========================================")
-	print("   ALL 40 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 41 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	get_tree().quit(0)
 
@@ -1180,8 +1180,90 @@ func _ready() -> void:
 	await _check_regressions()
 	print("  -> Reward dupes, unbounded restoration, save order, gates, weekly events and auto-battle verified!")
 
+	# 41. Mobile & UI: Android back, modal backdrops, retreat confirmation, layout fits
+	print("[TEST] 41. Testing Android Back, Modal Backdrops, Retreat Confirmation & Layout Fit...")
+	await _check_mobile_ui()
+	print("  -> Back button, backdrop taps, two-step retreat, tap-side attacks and dialog layouts verified!")
+
 	await get_tree().process_frame
 	_finish()
+
+func _tap(pos: Vector2) -> void:
+	for pressed in [true, false]:
+		var ev := InputEventMouseButton.new()
+		ev.button_index = MOUSE_BUTTON_LEFT
+		ev.pressed = pressed
+		ev.position = pos
+		ev.global_position = pos
+		get_viewport().push_input(ev)
+		await get_tree().process_frame
+
+func _check_mobile_ui() -> void:
+	_check(ProjectSettings.get_setting("application/config/quit_on_go_back", true) == false, "Android Back must not quit the game on its own")
+
+	var mm = load("res://src/main.tscn").instantiate()
+	add_child(mm)
+	await get_tree().process_frame
+	_check(mm._handle_back_request() == false, "Back in an empty main menu must report nothing to close (the game then quits)")
+	mm._open_chapter_dialog()
+	await get_tree().process_frame
+	await _tap(Vector2(20, 20))
+	_check(not mm.chapter_dialog.visible, "Tapping the dark backdrop must close a main menu dialog")
+	mm.queue_free()
+	await get_tree().process_frame
+
+	GameState.reset()
+	GameState.start_chapter(1)
+	var wm = load("res://src/world/world_map.tscn").instantiate()
+	add_child(wm)
+	await get_tree().process_frame
+	wm.popup_dialog.hide()
+	wm._handle_back()
+	_check(wm.pause_dialog.visible, "Back on the map with no dialogs must open the camp menu")
+	wm._handle_back()
+	_check(not wm.pause_dialog.visible, "Back must close the camp menu")
+	var pause_parch: Control = null
+	for ch in wm.pause_dialog.get_children():
+		if ch is CenterContainer:
+			pause_parch = ch.get_child(0)
+	var pause_vbox: Control = pause_parch.get_child(0).get_child(0)
+	_check(pause_parch.custom_minimum_size.y >= pause_vbox.get_combined_minimum_size().y, "Camp menu parchment must fit all its rows")
+	wm.queue_free()
+	await get_tree().process_frame
+
+	GameState.pending_battle_id = "patrol_wolves"
+	var ba = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(ba)
+	await get_tree().process_frame
+	ba._on_retreat_pressed()
+	_check(not ba.victory_dialog.visible, "First retreat press must only ask for confirmation")
+	ba._on_retreat_pressed()
+	_check(ba.victory_dialog.visible, "Second retreat press must leave the battle")
+	ba.queue_free()
+	await get_tree().process_frame
+
+	var ba2 = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(ba2)
+	await get_tree().process_frame
+	var grid: Control = ba2.get_node("CanvasLayer/SpellbookDialog/Parchment/SpellGrid")
+	ba2._setup_spell_buttons()
+	await get_tree().process_frame
+	_check(grid.get_combined_minimum_size().x <= grid.size.x + 1.0, "Battle spell icons must fit inside the spellbook (%d > %d)" % [grid.get_combined_minimum_size().x, grid.size.x])
+	# Атака с той стороны, куда тапнули: тап правее цели — клетка справа от неё
+	var target = null
+	for s in ba2.all_stacks:
+		if s.team == 1:
+			target = s
+	var actor = ba2.current_actor
+	actor.hex = target.hex + Vector2i(-3, 0)
+	ba2._update_reachable_hexes()
+	var t_px = HexGrid.hex_to_pixel(target.hex.x, target.hex.y, ba2.HEX_SIZE, ba2.grid_origin)
+	var from_left: Vector2i = ba2._pick_attack_hex(target, t_px + Vector2(-60, 0))
+	var from_top: Vector2i = ba2._pick_attack_hex(target, t_px + Vector2(0, -80))
+	_check(from_left == target.hex + Vector2i(-1, 0), "Tap on the left of the enemy must attack from the left hex (got %s)" % str(from_left))
+	_check(from_top != from_left and HexGrid.distance(from_top, target.hex) == 1, "Tap above the enemy must pick another adjacent hex")
+	ba2.queue_free()
+	await get_tree().process_frame
 
 func _check_regressions() -> void:
 	GameState.reset()

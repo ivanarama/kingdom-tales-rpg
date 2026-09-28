@@ -40,6 +40,7 @@ var selected_army_slot: int = -1
 var _army_panel_sig: String = ""
 var _minimap_redraw_accum: float = 0.0
 var chronicle_dialog: Control
+var bestiary_dialog: Control
 
 # Quest HUD
 @onready var quest_label: Label = $CanvasLayer/QuestHUD/QuestLabel
@@ -322,24 +323,42 @@ func _unhandled_input(event: InputEvent) -> void:
 				else:
 					_open_spellbook()
 			KEY_ESCAPE:
-				if planned_path.size() > 0 and not world_view.is_moving:
-					_clear_planned_route()
-				elif level_dialog.visible:
-					pass # Must pick a skill
-				elif hero_dialog.visible:
-					hero_dialog.hide()
-				elif victory_dialog.visible:
-					victory_dialog.hide()
-				elif popup_dialog.visible:
-					popup_dialog.hide()
-				elif split_dialog.visible:
-					split_dialog.hide()
-				elif $CanvasLayer/SpellbookDialog.visible:
-					$CanvasLayer/SpellbookDialog.hide()
-				elif pause_dialog != null and pause_dialog.visible:
-					pause_dialog.hide()
-				else:
-					_toggle_pause_menu()
+				_handle_back()
+
+# Системная кнопка «Назад» на Android ведёт себя как Esc
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		_handle_back()
+
+## «Назад» (Esc или кнопка Android): закрыть верхнее окно, а если окон нет — открыть меню лагеря.
+func _handle_back() -> void:
+	if confirm_end_day_dialog and confirm_end_day_dialog.visible:
+		confirm_end_day_dialog.hide()
+	elif _is_dialog_open(bestiary_dialog):
+		bestiary_dialog.hide()
+	elif _is_dialog_open(chronicle_dialog):
+		chronicle_dialog.hide()
+	elif planned_path.size() > 0 and not world_view.is_moving:
+		_clear_planned_route()
+	elif level_dialog.visible:
+		pass # Must pick a skill
+	elif hero_dialog.visible:
+		hero_dialog.hide()
+	elif victory_dialog.visible:
+		victory_dialog.hide()
+	elif popup_dialog.visible:
+		popup_dialog.hide()
+	elif split_dialog.visible:
+		split_dialog.hide()
+	elif $CanvasLayer/SpellbookDialog.visible:
+		$CanvasLayer/SpellbookDialog.hide()
+	elif pause_dialog != null and pause_dialog.visible:
+		pause_dialog.hide()
+	else:
+		_toggle_pause_menu()
+
+func _is_dialog_open(dialog: Control) -> bool:
+	return dialog != null and is_instance_valid(dialog) and dialog.visible
 
 func _on_cell_clicked(target_cell: Vector2i) -> void:
 	# Block clicks while any modal popup is open
@@ -1285,7 +1304,8 @@ func _update_hud() -> void:
 	var portrait_node = $CanvasLayer/TopHUD/Portrait as TextureRect
 	if portrait_node and ResourceLoader.exists(GameState.hero_portrait):
 		portrait_node.texture = load(GameState.hero_portrait)
-	gold_label.text = tr("🪙 %d") % GameState.gold
+	# 🪙 (Emoji 13) нет в эмодзи-шрифте Windows 10 — там он рисовался пустым квадратом
+	gold_label.text = tr("💰 %d") % GameState.gold
 	mana_label.text = tr("🔮 %d/%d") % [GameState.current_mana, GameState.max_mana]
 	day_label.text = tr("Гл. %d • День %d") % [GameState.current_chapter, GameState.day]
 	mp_label.text = tr("Ход: %d/%d") % [GameState.move_points, GameState.max_move_points]
@@ -1587,7 +1607,12 @@ func _open_spellbook() -> void:
 	if rest_btn:
 		rest_btn.disabled = GameState.current_mana < 15
 		rest_btn.text = "🌿 Сотворить: Благодать (15 🔮)" if not rest_btn.disabled else "❌ Мало маны (нужно 15 🔮)"
-		
+
+	for card_path in ["Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox/ScryCard", "Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox/RestCard"]:
+		var card = book.get_node_or_null(card_path)
+		if card:
+			card.add_theme_stylebox_override("panel", _parchment_card_style())
+
 	var combat_grid = book.get_node_or_null("Parchment/Margin/MainVBox/Scroll/ContentVBox/CombatGrid")
 	if combat_grid:
 		for c in combat_grid.get_children():
@@ -1600,6 +1625,7 @@ func _open_spellbook() -> void:
 				continue
 			var p = PanelContainer.new()
 			p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			p.add_theme_stylebox_override("panel", _parchment_card_style())
 			var pv = VBoxContainer.new()
 			pv.add_theme_constant_override("separation", 2)
 			p.add_child(pv)
@@ -1621,6 +1647,20 @@ func _open_spellbook() -> void:
 			
 	book.move_to_front()
 	book.show()
+
+## Светлая «пергаментная» подложка карточек книги: на тёмной панели темы
+## коричневый текст описаний почти не читался.
+func _parchment_card_style() -> StyleBoxFlat:
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color(1.0, 0.95, 0.82, 0.6)
+	st.border_color = Color(0.55, 0.4, 0.25, 0.7)
+	st.set_border_width_all(1)
+	st.set_corner_radius_all(6)
+	st.content_margin_left = 8
+	st.content_margin_right = 8
+	st.content_margin_top = 6
+	st.content_margin_bottom = 6
+	return st
 
 func _cast_scrying() -> void:
 	if not GameState.spend_mana(10):
@@ -1783,7 +1823,7 @@ func _update_hero_profile() -> void:
 	var tot_def = GameState.get_total_defense() if GameState.has_method("get_total_defense") else GameState.defense
 	var def_bonus = tot_def - GameState.defense
 	var def_str = (tr(" (+%d от снаряжения)") % def_bonus) if def_bonus > 0 else ""
-	hero_def_lbl.text = tr("🛡️ Защита: %d (-%d%% урон)%s") % [tot_def, tot_def * 3, def_str]
+	hero_def_lbl.text = tr("🛡️ Защита: %d (-%d%% урон)%s") % [tot_def, tot_def * 5, def_str]
 	
 	var tot_sp = GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower
 	var sp_bonus = tot_sp - GameState.spellpower
@@ -1860,6 +1900,9 @@ func _update_hero_profile() -> void:
 				]
 				btn.tooltip_text = "%s\n%s\n\n(Клик — надеть на героя)" % [art.get("name", ""), art.get("description", "")]
 				btn.custom_minimum_size = Vector2(0, 30)
+				# Длинные названия не распирают колонку, а обрезаются многоточием (полное — в подсказке)
+				btn.clip_text = true
+				btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 				var target_art = a_id
 				btn.pressed.connect(func():
 					SoundManager.play_sfx("coin")
@@ -2293,6 +2336,15 @@ func _setup_pause_dialog() -> void:
 	)
 	vbox.add_child(chron_btn)
 
+	var bestiary_btn = Button.new()
+	bestiary_btn.text = tr("📖 Кодекс существ")
+	bestiary_btn.custom_minimum_size = Vector2(0, 42)
+	bestiary_btn.pressed.connect(func():
+		SoundManager.play_sfx("page_turn")
+		_show_bestiary_dialog()
+	)
+	vbox.add_child(bestiary_btn)
+
 	# Audio Settings
 	var vol_title = Label.new()
 	vol_title.text = "Настройки звука:"
@@ -2382,7 +2434,9 @@ func _setup_pause_dialog() -> void:
 	var anim_chk := CheckButton.new()
 	anim_chk.text = tr("Упрощённые анимации (для слабых устройств)")
 	anim_chk.button_pressed = SettingsManager.reduced_animations
-	anim_chk.add_theme_color_override("font_color", Color(0.3, 0.18, 0.08))
+	# У CheckButton тёмная «деревянная» подложка темы — тёмно-коричневый текст на ней не виден
+	for color_name in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
+		anim_chk.add_theme_color_override(color_name, Color(1.0, 0.92, 0.7))
 	anim_chk.toggled.connect(func(on: bool):
 		SettingsManager.reduced_animations = on
 		SettingsManager.save_settings()
@@ -2398,6 +2452,10 @@ func _setup_pause_dialog() -> void:
 		get_tree().change_scene_to_file("res://src/main.tscn")
 	)
 	vbox.add_child(menu_btn)
+
+	# NinePatchRect не растягивается под содержимое сам: без этого нижние строки
+	# (звуки, язык, анимации, выход) вылезали за пергамент на тёмный фон
+	parch.custom_minimum_size.y = maxf(parch.custom_minimum_size.y, vbox.get_combined_minimum_size().y + 52.0)
 
 ## Короткий совет дня (каждый 2-й день, если нет недельного события)
 const DAY_TIPS: Array[String] = [
@@ -2452,6 +2510,8 @@ func _show_chronicle_dialog() -> void:
 
 	var center = CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# Пропускает тапы мимо пергамента к затемнению — иначе окно не закрыть тапом по фону
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	chronicle_dialog.add_child(center)
 
 	var parch = NinePatchRect.new()
@@ -2595,7 +2655,10 @@ func _open_dwelling_popup(obj_id: String) -> void:
 
 ## Кодекс существ: все юниты с характеристиками и способностями.
 func _show_bestiary_dialog() -> void:
+	if bestiary_dialog != null and is_instance_valid(bestiary_dialog):
+		bestiary_dialog.queue_free()
 	var bd = Control.new()
+	bestiary_dialog = bd
 	bd.visible = false
 	bd.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	$CanvasLayer.add_child(bd)
@@ -2611,6 +2674,7 @@ func _show_bestiary_dialog() -> void:
 
 	var center = CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bd.add_child(center)
 
 	var parch = NinePatchRect.new()

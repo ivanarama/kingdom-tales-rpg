@@ -95,7 +95,7 @@ func _ready() -> void:
 	# Retreat / Exit to Menu button
 	retreat_btn = Button.new()
 	retreat_btn.name = "RetreatBtn"
-	retreat_btn.text = "↩️ В Меню" if GameState.is_demo_battle else "🏳️ Отступить"
+	retreat_btn.text = _retreat_label()
 	retreat_btn.offset_left = 24.0
 	retreat_btn.offset_top = 20.0
 	retreat_btn.offset_right = 150.0
@@ -115,8 +115,27 @@ func _ready() -> void:
 	_update_ui()
 	_start_round()
 
+const RETREAT_CONFIRM_MS := 3000
+var _retreat_confirm_until_ms: int = 0
+
+func _retreat_label() -> String:
+	return "↩️ В Меню" if GameState.is_demo_battle else "🏳️ Отступить"
+
+## Отступление — по второму нажатию в течение 3 с: кнопку в углу и клавишу R
+## легко задеть случайно, а бой при этом теряется.
 func _on_retreat_pressed() -> void:
+	if victory_dialog.visible:
+		return
 	SoundManager.play_sfx("click")
+	var now := Time.get_ticks_msec()
+	if now > _retreat_confirm_until_ms:
+		_retreat_confirm_until_ms = now + RETREAT_CONFIRM_MS
+		retreat_btn.text = "❓ Точно?"
+		log_combat("Нажмите ещё раз, чтобы %s." % ("вернуться в меню" if GameState.is_demo_battle else "отступить: уцелевшие отряды вернутся с героем"))
+		get_tree().create_timer(RETREAT_CONFIRM_MS / 1000.0).timeout.connect(_reset_retreat_button)
+		return
+	_retreat_confirm_until_ms = 0
+	_reset_retreat_button()
 	if GameState.is_demo_battle:
 		GameState.is_demo_battle = false
 		# Арена возвращает в меню; следующий бой кампании должен вернуть на карту
@@ -127,6 +146,32 @@ func _on_retreat_pressed() -> void:
 		get_tree().change_scene_to_file("res://src/main.tscn")
 	else:
 		_show_victory(false)
+
+func _reset_retreat_button() -> void:
+	if Time.get_ticks_msec() < _retreat_confirm_until_ms:
+		return # кнопку успели нажать снова — подтверждение ещё ждёт
+	if is_instance_valid(retreat_btn):
+		retreat_btn.text = _retreat_label()
+
+# Системная кнопка «Назад» на Android ведёт себя как Esc
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		_handle_back()
+
+## «Назад»: закрыть окно или отменить заклинание, иначе — отступление (с подтверждением).
+func _handle_back() -> void:
+	if victory_dialog.visible:
+		_on_victory_continue()
+	elif pending_spell_id != "":
+		pending_spell_id = ""
+		log_combat("Сотворение заклинания отменено.")
+		arena_viewport.queue_redraw()
+	elif spellbook_dialog.visible:
+		spellbook_dialog.hide()
+	elif unit_info_dialog.visible:
+		unit_info_dialog.hide()
+	else:
+		_on_retreat_pressed()
 
 func _init_battle() -> void:
 	all_stacks.clear()
@@ -1053,28 +1098,51 @@ func _on_spellbook_btn_pressed() -> void:
 	if is_ai_turn or is_animating:
 		return
 	SoundManager.play_sfx("page_turn")
+	if not spellbook_dialog.visible:
+		_setup_spell_buttons() # обновить доступность по текущей мане
 	spellbook_dialog.visible = not spellbook_dialog.visible
 
 func _setup_spell_buttons() -> void:
 	var container = $CanvasLayer/SpellbookDialog/Parchment/SpellGrid
 	for child in container.get_children():
 		child.queue_free()
-		
+
 	for spell_id in GameState.learned_spells:
 		if not SpellData.has_spell(spell_id):
 			continue
 		var sdata = SpellData.get_spell(spell_id)
 		if sdata.get("category", "combat") != "combat":
 			continue
+		# Иконка + подпись: на телефоне всплывающих подсказок нет, а иконки
+		# у разных заклинаний повторяются — без подписи их не различить
+		var cell = VBoxContainer.new()
+		cell.add_theme_constant_override("separation", 2)
+		if GameState.current_mana < sdata.mana_cost:
+			cell.modulate = Color(1, 1, 1, 0.45)
 		var btn = TextureButton.new()
-		btn.custom_minimum_size = Vector2(80, 80)
+		btn.custom_minimum_size = Vector2(64, 64)
+		btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		btn.ignore_texture_size = true
 		btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 		if ResourceLoader.exists(sdata.icon_path):
 			btn.texture_normal = load(sdata.icon_path)
 		btn.tooltip_text = "%s (%d маны)\n%s" % [sdata.name, sdata.mana_cost, sdata.description]
 		btn.pressed.connect(func(): _on_spell_selected(spell_id))
-		container.add_child(btn)
+		cell.add_child(btn)
+		var lbl = Label.new()
+		lbl.text = "%s\n%d маны" % [sdata.name, sdata.mana_cost]
+		lbl.custom_minimum_size = Vector2(88, 0)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lbl.add_theme_font_size_override("font_size", 11)
+		lbl.add_theme_color_override("font_color", Color(0.28, 0.16, 0.08))
+		lbl.gui_input.connect(func(ev: InputEvent):
+			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+				_on_spell_selected(spell_id)
+		)
+		lbl.mouse_filter = Control.MOUSE_FILTER_STOP
+		cell.add_child(lbl)
+		container.add_child(cell)
 
 func _on_spell_selected(spell_id: String) -> void:
 	var sdata = SpellData.get_spell(spell_id)
@@ -1108,14 +1176,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_R:
 				_on_retreat_pressed()
 			KEY_ESCAPE:
-				if pending_spell_id != "":
-					pending_spell_id = ""
-					log_combat("Сотворение заклинания отменено.")
-					arena_viewport.queue_redraw()
-				elif spellbook_dialog.visible:
-					spellbook_dialog.hide()
-				elif unit_info_dialog.visible:
-					unit_info_dialog.hide()
+				_handle_back()
 
 func _gui_input(event: InputEvent) -> void:
 	if is_ai_turn or is_animating or current_actor == null or current_actor.team != 0:
@@ -1168,7 +1229,7 @@ func _gui_input(event: InputEvent) -> void:
 				var clicked_stack = _find_stack_at_position(event.position)
 				if clicked_stack != null:
 					if attackable_targets.has(clicked_stack):
-						_handle_player_attack(clicked_stack)
+						_handle_player_attack(clicked_stack, event.position)
 						return
 					else:
 						# Direct tap on non-attackable stack (ally or distant enemy) opens Unit Inspector
@@ -1178,7 +1239,7 @@ func _gui_input(event: InputEvent) -> void:
 				var hex = HexGrid.pixel_to_hex(event.position, HEX_SIZE, grid_origin)
 				for target in attackable_targets:
 					if target.hex == hex:
-						_handle_player_attack(target)
+						_handle_player_attack(target, event.position)
 						return
 						
 				# 3. Move Detection (Clicking on empty reachable hex)
@@ -1311,11 +1372,21 @@ func _show_unit_info(stack: BattleStack) -> void:
 	if stack.is_defending:
 		buffs.append("Глухая оборона (+30% защ.)")
 	var buffs_str = ", ".join(buffs) if buffs.size() > 0 else "Нет"
-	
-	unit_info_stats.text = "%s (%s)\nЧисленность: %d воинов\nЗдоровье верхнего воина: %d / %d HP\nВсего здоровья отряда: %d HP\n\nАтака: %d | Защита: %d\nУрон: %d-%d\nСкорость: %d | Инициатива: %d\n\nОсобенности: %s\nАктивные эффекты: %s" % [
+
+	# Отрядам героя в бою прибавляются его Атака и Защита — показываем итог, как в расчёте урона
+	var base_att: int = int(stack.data.get("attack", 4))
+	var att_text := str(base_att)
+	var def_text := str(stack.get_defense())
+	if stack.team == 0:
+		var hero_att := GameState.get_total_attack()
+		var hero_def := GameState.get_total_defense()
+		att_text = "%d (%d + %d героя)" % [base_att + hero_att, base_att, hero_att]
+		def_text = "%d (%d + %d героя)" % [stack.get_defense() + hero_def, stack.get_defense(), hero_def]
+
+	unit_info_stats.text = "%s (%s)\nЧисленность: %d воинов\nЗдоровье верхнего воина: %d / %d HP\nВсего здоровья отряда: %d HP\n\nАтака: %s\nЗащита: %s\nУрон: %d-%d\nСкорость: %d | Инициатива: %d\n\nОсобенности: %s\nАктивные эффекты: %s" % [
 		stack.data.name, team_name, stack.count,
 		stack.current_hp, max_hp, total_pool,
-		stack.data.get("attack", 4), stack.get_defense(),
+		att_text, def_text,
 		stack.data.get("min_dmg", 3), stack.data.get("max_dmg", 6),
 		stack.get_speed(), stack.get_initiative(),
 		", ".join(traits), buffs_str
@@ -1323,7 +1394,7 @@ func _show_unit_info(stack: BattleStack) -> void:
 	
 	unit_info_dialog.show()
 
-func _handle_player_attack(target: BattleStack) -> void:
+func _handle_player_attack(target: BattleStack, tap_pos: Vector2 = Vector2.INF) -> void:
 	var is_shooter = current_actor.data.get("is_ranged", false)
 	var is_blocked = is_shooter and current_actor.is_blocked_by_enemy(all_stacks)
 	var dist = HexGrid.distance(current_actor.hex, target.hex)
@@ -1333,11 +1404,27 @@ func _handle_player_attack(target: BattleStack) -> void:
 	else:
 		# Melee: move adjacent if not already adjacent
 		if HexGrid.distance(current_actor.hex, target.hex) > 1:
-			for r_hex in reachable_hexes:
-				if HexGrid.distance(r_hex, target.hex) == 1:
-					current_actor.hex = r_hex
-					break
+			var attack_hex := _pick_attack_hex(target, tap_pos)
+			if attack_hex.x >= 0:
+				current_actor.hex = attack_hex
 		_execute_attack(current_actor, target, true)
+
+## Клетка рядом с целью, откуда бить: ближайшая к точке тапа (с какой стороны
+## нажали — оттуда и атакуем), при равенстве — ближайшая к самому отряду.
+func _pick_attack_hex(target: BattleStack, tap_pos: Vector2) -> Vector2i:
+	var actor_px := HexGrid.hex_to_pixel(current_actor.hex.x, current_actor.hex.y, HEX_SIZE, grid_origin)
+	var aim: Vector2 = tap_pos if tap_pos != Vector2.INF else actor_px
+	var best := Vector2i(-1, -1)
+	var best_score := INF
+	for r_hex in reachable_hexes:
+		if HexGrid.distance(r_hex, target.hex) != 1:
+			continue
+		var px := HexGrid.hex_to_pixel(r_hex.x, r_hex.y, HEX_SIZE, grid_origin)
+		var score := px.distance_to(aim) + px.distance_to(actor_px) * 0.01
+		if score < best_score:
+			best_score = score
+			best = r_hex
+	return best
 
 func _update_initiative_bar() -> void:
 	for child in initiative_container.get_children():
