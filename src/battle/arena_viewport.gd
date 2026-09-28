@@ -217,7 +217,18 @@ func _draw() -> void:
 			var points = HexGrid.get_hex_points(center, hex_size - 3.0)
 			draw_colored_polygon(points, arena.COLOR_ATTACK_TARGET)
 			draw_polyline(points, Color(1.0, 0.2, 0.1, 0.9), 3.0, true)
-		
+		# Тап по врагу на телефоне: цель и клетка, откуда отряд ударит после второго тапа
+		if arena.armed_target != null and arena.armed_target.is_alive():
+			var tc = HexGrid.hex_to_pixel(arena.armed_target.hex.x, arena.armed_target.hex.y, hex_size, origin)
+			var pulse = 0.6 + 0.4 * sin(anim_timer * 6.0)
+			draw_arc(tc, hex_size * 0.9, 0.0, TAU, 32, Color(1.0, 0.85, 0.25, pulse), 4.0)
+		if arena.armed_attack_hex.x >= 0:
+			var ac = HexGrid.hex_to_pixel(arena.armed_attack_hex.x, arena.armed_attack_hex.y, hex_size, origin)
+			var apts = HexGrid.get_hex_points(ac, hex_size - 4.0)
+			apts.append(apts[0])
+			draw_colored_polygon(apts, Color(1.0, 0.85, 0.25, 0.35))
+			draw_polyline(apts, Color(1.0, 0.85, 0.25, 0.95), 4.0, true)
+
 	# 3. Draw Living Stacks with Animated Sprites, Badges, and HP Bars
 	for stack in arena.all_stacks:
 		if not stack.is_alive():

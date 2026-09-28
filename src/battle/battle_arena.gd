@@ -111,6 +111,9 @@ func _ready() -> void:
 	$CanvasLayer/UnitInfoDialog/Parchment/CloseBtn.pressed.connect(func(): unit_info_dialog.hide())
 	$CanvasLayer/VictoryDialog/Parchment/ContinueBtn.pressed.connect(_on_victory_continue)
 	
+	# Длинные строки лога обрезаются многоточием, а не вылезают за рамку панели
+	log_label.clip_text = true
+	log_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_setup_spell_buttons()
 	_update_ui()
 	_start_round()
@@ -266,6 +269,7 @@ func _next_turn() -> void:
 	hovered_target = null
 	hovered_is_broken = false
 	hovered_forecast.clear()
+	_disarm_attack()
 	
 	if _check_battle_end():
 		return
@@ -1229,17 +1233,19 @@ func _gui_input(event: InputEvent) -> void:
 				var clicked_stack = _find_stack_at_position(event.position)
 				if clicked_stack != null:
 					if attackable_targets.has(clicked_stack):
-						_handle_player_attack(clicked_stack, event.position)
+						_tap_attack(clicked_stack, event)
 						return
 					else:
 						# Direct tap on non-attackable stack (ally or distant enemy) opens Unit Inspector
+						if clicked_stack.team == 1:
+							_update_mouse_hover(event.position) # на телефоне — зона угрозы врага
 						_show_unit_info(clicked_stack)
 						return
-					
+
 				var hex = HexGrid.pixel_to_hex(event.position, HEX_SIZE, grid_origin)
 				for target in attackable_targets:
 					if target.hex == hex:
-						_handle_player_attack(target, event.position)
+						_tap_attack(target, event)
 						return
 						
 				# 3. Move Detection (Clicking on empty reachable hex)
@@ -1254,6 +1260,45 @@ func _gui_input(event: InputEvent) -> void:
 						current_actor.hex = hex
 						current_actor.has_acted = true
 						_next_turn()
+
+## Атака по тапу. У мыши прогноз урона виден при наведении — бьём сразу.
+## На телефоне наведения нет: первый тап по врагу показывает прогноз, зону его
+## угрозы и клетку, откуда пойдёт удар, а атакует второй тап по той же цели.
+const ATTACK_CONFIRM_MS := 4000
+var armed_target: BattleStack = null
+var armed_attack_hex := Vector2i(-1, -1)
+var _armed_tap_pos := Vector2.ZERO
+var _armed_until_ms: int = 0
+
+func _tap_attack(target: BattleStack, event: InputEventMouseButton) -> void:
+	if event.device != InputEvent.DEVICE_ID_EMULATION:
+		_handle_player_attack(target, event.position)
+		return
+	if armed_target == target and Time.get_ticks_msec() <= _armed_until_ms:
+		var pos := _armed_tap_pos
+		_disarm_attack()
+		_handle_player_attack(target, pos)
+		return
+	armed_target = target
+	_armed_tap_pos = event.position
+	_armed_until_ms = Time.get_ticks_msec() + ATTACK_CONFIRM_MS
+	_update_mouse_hover(event.position)
+	var is_shooter: bool = current_actor.data.get("is_ranged", false)
+	var is_melee := not is_shooter or current_actor.is_blocked_by_enemy(all_stacks)
+	var adjacent := HexGrid.distance(current_actor.hex, target.hex) == 1
+	armed_attack_hex = _pick_attack_hex(target, event.position) if is_melee and not adjacent else Vector2i(-1, -1)
+	SoundManager.play_sfx("click")
+	var f: Dictionary = hovered_forecast
+	var answers: bool = is_melee and (not target.has_retaliated or target.data.get("unlimited_retaliation", false))
+	log_combat("⚔ %s: урон %d–%d, потери %d–%d%s. Тапните ещё раз — атака" % [
+		target.data.name, f.get("min_dmg", 0), f.get("max_dmg", 0), f.get("min_cas", 0), f.get("max_cas", 0),
+		", враг ответит" if answers else ""
+	])
+	arena_viewport.queue_redraw()
+
+func _disarm_attack() -> void:
+	armed_target = null
+	armed_attack_hex = Vector2i(-1, -1)
 
 func _update_mouse_hover(pos: Vector2) -> void:
 	if current_actor == null or current_actor.team != 0:
