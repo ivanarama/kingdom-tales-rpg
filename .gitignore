@@ -17,3 +17,6 @@ AGENTS.local.md
 
 # портативный ffmpeg для конверсии аудио (локальный инструмент)
 tools/ffmpeg/
+
+# python-кэш инструментов
+tools/__pycache__/

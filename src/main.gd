@@ -304,6 +304,7 @@ func _setup_chapter_selection_ui() -> void:
 		GameState.reset()
 		GameState.campaign_difficulty = chapter_diff["v"]
 		GameState.level = 3
+		GameState.next_level_xp = int(1000 * pow(1.5, 2))
 		GameState.attack = 6
 		GameState.defense = 5
 		GameState.player_army = [
@@ -325,6 +326,7 @@ func _setup_chapter_selection_ui() -> void:
 		GameState.reset()
 		GameState.campaign_difficulty = chapter_diff["v"]
 		GameState.level = 5
+		GameState.next_level_xp = int(1000 * pow(1.5, 4))
 		GameState.attack = 8
 		GameState.defense = 7
 		GameState.player_army = [

@@ -41,6 +41,8 @@ var leadership: int = 350
 
 var current_mana: int = 40
 var max_mana: int = 40
+var week_valor_bonus: int = 0 # +2 атаки на неделю (Неделя Доблести)
+var week_mana_bonus: int = 0 # +20 предела маны на неделю (Неделя Магии)
 
 var gold: int = 1500
 var day: int = 1
@@ -71,6 +73,7 @@ const ALL_SKILLS: Dictionary = {
 	"pathfinding": {
 		"name": "Поиск пути",
 		"icon": "🌿",
+		"max_level": 1,
 		"desc": "Снижает штраф за бездорожье: трава стоит 1 очко хода вместо 2."
 	},
 	"leadership": {
@@ -89,6 +92,17 @@ const ALL_SKILLS: Dictionary = {
 		"desc": "Восстанавливает герою дополнительно +10 маны каждый новый день."
 	}
 }
+
+# Бонусы навыков растут с уровнем (PR #4): [нет, базовый, продвинутый, эксперт]
+const SKILL_BONUS: Dictionary = {
+	"offense": [0.0, 0.15, 0.25, 0.35],
+	"archery": [0.0, 0.20, 0.35, 0.50],
+	"sorcery": [0.0, 0.25, 0.40, 0.55]
+}
+
+func skill_bonus(skill_id: String) -> float:
+	var table: Array = SKILL_BONUS.get(skill_id, [0.0])
+	return float(table[clampi(get_skill_level(skill_id), 0, table.size() - 1)])
 
 var pending_level_ups: Array[Dictionary] = []
 
@@ -138,7 +152,7 @@ func get_total_knowledge() -> int:
 	return total
 
 func get_total_max_mana() -> int:
-	var total = 40 + (knowledge - 4) * 10
+	var total = 40 + (knowledge - 4) * 10 + week_mana_bonus
 	for slot in equipped_artifacts.keys():
 		var art = ArtifactData.get_artifact(equipped_artifacts[slot])
 		total += art.get("mana_bonus", 0)
@@ -234,7 +248,7 @@ func add_xp(amount: int) -> void:
 		var options: Array[String] = []
 		var pool: Array[String] = []
 		for s in ALL_SKILLS.keys():
-			if not skills.has(s) or skills[s] < 3:
+			if int(skills.get(s, 0)) < int(ALL_SKILLS[s].get("max_level", 3)):
 				pool.append(s)
 		pool.shuffle()
 		if pool.size() > 0:
@@ -309,6 +323,13 @@ func spend_mana(cost: int) -> bool:
 		state_changed.emit()
 		return true
 	return false
+
+## Можно ли принять юнитов: есть стек того же вида или свободный слот.
+func can_add_units(unit_id: String) -> bool:
+	for slot in player_army:
+		if slot["unit_id"] == unit_id:
+			return true
+	return player_army.size() < 5
 
 func add_units_to_army(unit_id: String, count: int) -> void:
 	for slot in player_army:
@@ -450,6 +471,11 @@ func next_day() -> void:
 	move_points = max_move_points
 	var mana_regen = 15 + (10 * get_skill_level("mysticism"))
 	max_mana = get_total_max_mana()
+	if day % 7 == 1:
+		# Недельные бонусы истекают ровно через неделю (PR #2)
+		attack -= week_valor_bonus
+		week_valor_bonus = 0
+		week_mana_bonus = 0
 	current_mana = mini(max_mana, current_mana + mana_regen)
 	if day % 7 == 1:
 		flags["watermill"] = false
@@ -493,10 +519,12 @@ func next_day() -> void:
 				"week_of_gold":
 					add_gold(1000)
 				"week_of_magic":
-					max_mana = get_total_max_mana() + 20
+					week_mana_bonus = 20
+					max_mana = get_total_max_mana() + week_mana_bonus
 					current_mana = max_mana
 				"week_of_valor":
 					attack += 2
+					week_valor_bonus = 2
 			last_astrologers_event = ev
 		else:
 			last_astrologers_event.clear()
@@ -525,6 +553,10 @@ func start_chapter(chapter_num: int) -> void:
 	quest_forester_started = false
 	quest_completed = false
 	dwelling_stock.clear()
+	merchant_cell = Vector2i(-99, -99)
+	merchant_offers.clear()
+	merchant_offers.clear()
+	pending_battle.clear()
 	
 	match chapter_num:
 		1:

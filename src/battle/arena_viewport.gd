@@ -351,10 +351,13 @@ func _draw() -> void:
 		var c = item.color
 		c.a = item.alpha
 		var txt = item.text
+		# draw_string с CENTER не центрирует при width = -1 (PR #3) — центрируем вручную
+		var txt_size: Vector2 = font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 30)
+		var base: Vector2 = item.pos - Vector2(txt_size.x / 2.0, 0.0)
 		# High-contrast 4-way drop shadow for crisp arcade readability
 		for off in [Vector2(-2, 0), Vector2(2, 0), Vector2(0, -2), Vector2(0, 2), Vector2(2, 2)]:
-			draw_string(font, item.pos + off, txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 30, Color(0, 0, 0, c.a * 0.9))
-		draw_string(font, item.pos, txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 30, c)
+			draw_string(font, base + off, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, Color(0, 0, 0, c.a * 0.9))
+		draw_string(font, base, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, c)
 
 	# 7. Draw Special Effects (Lightning, Frost, Holy Halo, Stoneskin, Blind)
 	for fx in special_effects:

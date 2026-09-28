@@ -479,6 +479,29 @@ func is_passable(cell: Vector2i) -> bool:
 		return false
 	return true
 
+## Блокирующий объект: живые патрули/боссы и запертые врата (PR #2).
+static func is_blocking_object(obj: Dictionary) -> bool:
+	var id: String = obj.get("id", "")
+	match obj.get("type", ""):
+		"encounter", "bandit_boss", "lich_boss", "dragon_boss":
+			return not GameState.flags.get(id, false)
+		"gate":
+			return not GameState.flags.get("iron_gate_opened", false)
+		"bone_gate":
+			return not GameState.flags.get("bone_gate_opened", false)
+		"dragon_gate":
+			return not GameState.flags.get("dragon_gate_opened", false)
+	return false
+
+## Непроходимые клетки для маршрута к target: лес и блокирующие объекты.
+## Сама цель не входит — маршрут к патрулю/вратам обрывается перед ними.
+func get_path_obstacles(target: Vector2i) -> Array[Vector2i]:
+	var result: Array[Vector2i] = forest_cells.duplicate()
+	for c in objects.keys():
+		if c != target and is_blocking_object(objects[c]):
+			result.append(c)
+	return result
+
 func _reveal_fog(center: Vector2i, radius: int) -> void:
 	var bounds := Rect2i(0, 0, MAP_COLS, MAP_ROWS)
 	for dy in range(-radius, radius + 1):
@@ -521,7 +544,7 @@ func _update_preview_path() -> void:
 		return
 	var bounds = Rect2i(0, 0, MAP_COLS, MAP_ROWS)
 	var has_pf = GameState.has_skill("pathfinding") if GameState.has_method("has_skill") else false
-	preview_path = WorldNavigator.find_path(hero_cell, hovered_cell, forest_cells, bounds, road_cells, has_pf)
+	preview_path = WorldNavigator.find_path(hero_cell, hovered_cell, get_path_obstacles(hovered_cell), bounds, road_cells, has_pf)
 
 var _reduced_accum: float = 0.0
 

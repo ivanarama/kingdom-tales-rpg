@@ -867,8 +867,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 				arena_viewport.flash_stack(target_stack)
 				var cur_sp = GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower
 				var dmg = 50 + cur_sp * 14
-				if GameState.has_skill("sorcery"):
-					dmg = int(dmg * 1.25)
+				dmg = int(dmg * (1.0 + GameState.skill_bonus("sorcery")))
 				var res = target_stack.take_damage(dmg)
 				if target_stack.team == 1:
 					battle_stats["dealt"] += int(res["damage"]) + int(res.get("absorbed", 0))
@@ -922,8 +921,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 				arena_viewport.flash_stack(target_stack)
 				var cur_sp = GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower
 				var dmg = 65 + cur_sp * 18
-				if GameState.has_skill("sorcery"):
-					dmg = int(dmg * 1.25)
+				dmg = int(dmg * (1.0 + GameState.skill_bonus("sorcery")))
 				var res = target_stack.take_damage(dmg)
 				if target_stack.team == 1:
 					battle_stats["dealt"] += int(res["damage"]) + int(res.get("absorbed", 0))

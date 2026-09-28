@@ -406,7 +406,7 @@ func _on_cell_clicked(target_cell: Vector2i) -> void:
 	# CLICK 1 (Plot Route): Target is a new destination
 	var bounds = Rect2i(0, 0, world_view.MAP_COLS, world_view.MAP_ROWS)
 	var has_pf = GameState.has_skill("pathfinding") if GameState.has_method("has_skill") else false
-	var path = WorldNavigator.find_path(world_view.hero_cell, target_cell, world_view.forest_cells, bounds, world_view.road_cells, has_pf)
+	var path = WorldNavigator.find_path(world_view.hero_cell, target_cell, world_view.get_path_obstacles(target_cell), bounds, world_view.road_cells, has_pf)
 	if path.is_empty():
 		SoundManager.play_sfx("click")
 		_clear_planned_route()
@@ -431,6 +431,13 @@ func _move_hero_along_path(path: Array[Vector2i]) -> void:
 			cancel_movement = false
 			break
 			
+		# Патруль, босс или запертые врата: в клетку не входим, взаимодействуем с соседней (PR #2)
+		if world_view.objects.has(next_cell) and WorldView.is_blocking_object(world_view.objects[next_cell]):
+			world_view.is_moving = false
+			cancel_movement = false
+			world_view.queue_redraw()
+			_trigger_object(world_view.objects[next_cell])
+			return
 		var has_pf = GameState.has_skill("pathfinding") if GameState.has_method("has_skill") else false
 		var step_cost = WorldNavigator.move_step_cost(next_cell, world_view.road_cells, has_pf)
 		if GameState.move_points < step_cost:
@@ -545,11 +552,8 @@ func _trigger_object(obj: Dictionary) -> void:
 	popup_btn1.visible = true
 	popup_btn2.visible = false
 	
-	for conn in popup_btn1.pressed.get_connections():
-		popup_btn1.pressed.disconnect(conn.callable)
-	for conn in popup_btn2.pressed.get_connections():
-		popup_btn2.pressed.disconnect(conn.callable)
-		
+	_reset_popup_buttons()
+
 	var obj_type = obj.get("type", "")
 	var obj_id = obj.get("id", "")
 	
@@ -592,6 +596,9 @@ func _trigger_object(obj: Dictionary) -> void:
 					btn.text = label
 					btn.visible = true
 					btn.pressed.connect(func():
+						if m_offer["kind"] != "artifact" and not GameState.can_add_units(str(m_offer["id"])):
+							_show_army_full_popup()
+							return
 						if GameState.buy_merchant_offer(offer_idx):
 							SoundManager.play_sfx("coin")
 							_update_hud()
@@ -670,7 +677,9 @@ func _trigger_object(obj: Dictionary) -> void:
 			popup_btn1.text = "Испить из источника"
 			popup_btn1.pressed.connect(func():
 				SoundManager.play_sfx("spell_cast")
-				GameState.restore_mana()
+				if int(GameState.flags.get("mana_fountain_day", 0)) != GameState.day:
+					GameState.restore_mana()
+					GameState.flags["mana_fountain_day"] = GameState.day
 				if not GameState.flags.get(obj_id, false):
 					GameState.spellpower += 1
 					GameState.flags[obj_id] = true
@@ -1126,31 +1135,11 @@ func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable())
 	var qc_log: String = tr(qc_enc["log"])
 	battle_name = qc_log.split("!")[0] if "!" in qc_log else qc_log
 
-	# 2. Calculate combat power
-	var hero_att = GameState.get_total_attack() if GameState.has_method("get_total_attack") else GameState.attack
-	var hero_def = GameState.get_total_defense() if GameState.has_method("get_total_defense") else GameState.defense
-	var hero_sp = GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower
-	
-	var player_power: float = 0.0
-	for stack in GameState.player_army:
-		var u = UnitData.get_unit(stack["unit_id"])
-		if not u.is_empty():
-			var u_att: int = u.get("attack", 0)
-			var u_def: int = u.get("defense", 0)
-			var u_hp: int = u.get("max_hp", 10)
-			var eff_att = u_att + hero_att
-			var eff_def = u_def + hero_def
-			player_power += stack["count"] * u_hp * (1.0 + eff_att * 0.05) * (1.0 + eff_def * 0.05)
-	player_power += hero_sp * 80.0
-
-	var enemy_power: float = 0.0
-	for stack in enemy_army:
-		var u = UnitData.get_unit(stack["unit_id"])
-		if not u.is_empty():
-			var u_att: int = u.get("attack", 0)
-			var u_def: int = u.get("defense", 0)
-			var u_hp: int = u.get("max_hp", 10)
-			enemy_power += stack["count"] * u_hp * (1.0 + u_att * 0.05) * (1.0 + u_def * 0.05)
+	# 2. Calculate combat power — квадратичный закон Ланчестера (PR #4):
+	# сила = sqrt(sum(HP) * sum(урона за раунд)); атака/защита +-5% за очко,
+	# стрелки без ответа x1.3, двойной выстрел x2, Сила Магии героя +3% за очко
+	var player_power: float = _army_power(GameState.player_army, true)
+	var enemy_power: float = _army_power(enemy_army, false)
 
 	# 3. Resolve Outcome
 	popup_dialog.hide()
@@ -1159,15 +1148,17 @@ func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable())
 	for conn in popup_btn2.pressed.get_connections():
 		popup_btn2.pressed.disconnect(conn.callable)
 
-	if player_power >= enemy_power * 0.70:
+	if player_power >= enemy_power:
 		SoundManager.play_sfx("victory")
-		var loss_ratio = clampf(enemy_power / (player_power * 2.2), 0.02, 0.35)
+		# Потери победителя: 1 - sqrt(1 - (сила врага / своя сила)^2), поровну по отрядам
+		var power_ratio: float = enemy_power / maxf(player_power, 1.0)
+		var loss_ratio: float = clampf(1.0 - sqrt(maxf(0.0, 1.0 - power_ratio * power_ratio)), 0.02, 0.9)
 		var casualties_desc = ""
 		
 		# Apply losses
 		for idx in range(GameState.player_army.size()):
 			var st = GameState.player_army[idx]
-			var lost = int(ceil(float(st["count"]) * loss_ratio * (0.8 if idx == 0 else 0.2)))
+			var lost = int(round(float(st["count"]) * loss_ratio))
 			lost = mini(lost, max(0, st["count"] - 1))
 			st["count"] -= lost
 			if lost > 0:
@@ -1247,6 +1238,43 @@ func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable())
 		popup_btn1.pressed.connect(func(): popup_dialog.hide())
 		popup_btn2.visible = false
 		_show_popup_dialog()
+
+## Сброс обработчиков кнопок попапа: награды не должны выдаваться повторно (PR #2).
+func _reset_popup_buttons() -> void:
+	for btn in [popup_btn1, popup_btn2]:
+		for conn in btn.pressed.get_connections():
+			btn.pressed.disconnect(conn.callable)
+		popup_btn2.visible = false
+
+func _show_army_full_popup() -> void:
+	SoundManager.play_sfx("click")
+	popup_title.text = tr("Войско полно")
+	popup_text.text = tr("В войске нет свободных слотов. Объедините или разделите отряды в панели «Войско Героя».")
+	popup_btn1.text = tr("Понятно")
+	_reset_popup_buttons()
+	popup_btn1.pressed.connect(func(): popup_dialog.hide())
+	popup_btn2.visible = false
+	_show_popup_dialog()
+
+## Сила армии для быстрого боя по квадратичному закону Ланчестера (PR #4).
+func _army_power(army: Array, is_player: bool) -> float:
+	var hero_att: int = GameState.get_total_attack() if is_player else 0
+	var hero_def: int = GameState.get_total_defense() if is_player else 0
+	var hp_total := 0.0
+	var dmg_total := 0.0
+	for stack in army:
+		var u: Dictionary = UnitData.get_unit(stack["unit_id"])
+		if u.is_empty():
+			continue
+		var count := float(stack["count"])
+		hp_total += count * float(u.get("max_hp", 10)) * (1.0 + (int(u.get("defense", 0)) + hero_def) * 0.05)
+		var dmg := count * (float(u.get("min_dmg", 1)) + float(u.get("max_dmg", 1))) / 2.0 * (1.0 + (int(u.get("attack", 4)) + hero_att) * 0.05)
+		if u.get("is_ranged", false):
+			dmg *= 1.3
+		if u.get("double_shot", false):
+			dmg *= 2.0
+		dmg_total += dmg
+	return sqrt(hp_total * dmg_total)
 
 func _is_any_modal_open() -> bool:
 	if world_view.is_moving:

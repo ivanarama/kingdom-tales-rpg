@@ -9,6 +9,7 @@ config_version=5
 config/name="Сказки Королевства"
 config/description="Ламповая тактическая RPG в духе King's Bounty и HoMM3 без замков"
 run/main_scene="res://src/main.tscn"
+config/quit_on_go_back=false
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]

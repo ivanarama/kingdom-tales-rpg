@@ -349,6 +349,15 @@ func _ready() -> void:
 	
 	var pre_gold = GameState.gold
 	var pre_xp = GameState.xp
+	# По Ланчестеру (PR #4) слабое войско честно проигрывает — даём заведомо сильное
+	GameState.player_army = [
+		{"unit_id": "griffin", "count": 60},
+		{"unit_id": "fairy_archer", "count": 80},
+		{"unit_id": "druid", "count": 40}
+	]
+	GameState.attack = 20
+	GameState.defense = 20
+	GameState.spellpower = 10
 	wmap_node4._execute_quick_combat("test_encounter")
 	assert(GameState.flags.get("test_encounter", false) == true, "Encounter flag must be set to true")
 	assert(GameState.gold > pre_gold, "Gold must be awarded for quick victory")

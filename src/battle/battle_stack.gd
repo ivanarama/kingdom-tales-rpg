@@ -136,10 +136,10 @@ func calculate_attack_damage(target: BattleStack, is_melee: bool, is_broken_arro
 	
 	# Secondary Skills Modifiers
 	if team == 0:
-		if is_melee and GameState.has_skill("offense"):
-			mult *= 1.15
-		elif not is_melee and GameState.has_skill("archery"):
-			mult *= 1.20
+		if is_melee:
+			mult *= 1.0 + GameState.skill_bonus("offense")
+		else:
+			mult *= 1.0 + GameState.skill_bonus("archery")
 		if GameState.has_skill("leadership") and randf() < 0.15:
 			mult *= 1.30
 	
@@ -174,10 +174,10 @@ func get_damage_range(target: BattleStack, is_melee: bool, is_broken_arrow: bool
 	mult = clampf(mult, 0.35, 2.5)
 	
 	if team == 0:
-		if is_melee and GameState.has_skill("offense"):
-			mult *= 1.15
-		elif not is_melee and GameState.has_skill("archery"):
-			mult *= 1.20
+		if is_melee:
+			mult *= 1.0 + GameState.skill_bonus("offense")
+		else:
+			mult *= 1.0 + GameState.skill_bonus("archery")
 	
 	if is_melee and data.get("is_ranged", false):
 		mult *= 0.5
