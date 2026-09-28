@@ -75,7 +75,7 @@ func _ready() -> void:
 			var chap = summary.get("chapter", 1)
 			var d = summary.get("day", 1)
 			var lvl = summary.get("level", 1)
-			continue_btn.text = "📜 Продолжить поход  [%s • Гл. %d, День %d • Ур. %d]" % [h_name, chap, d, lvl]
+			continue_btn.text = tr("📜 Продолжить поход  [%s • Гл. %d, День %d • Ур. %d]") % [tr(h_name), chap, d, lvl]
 		else:
 			continue_btn.text = "📜 Продолжить поход"
 		continue_btn.pressed.connect(_on_continue_adventure)
@@ -162,7 +162,7 @@ func _ready() -> void:
 
 func _update_mini_player_text() -> void:
 	if mini_player_btn != null and current_theme_idx >= 0 and current_theme_idx < MENU_THEMES.size():
-		mini_player_btn.text = "🎵 %s" % MENU_THEMES[current_theme_idx]["name"]
+		mini_player_btn.text = "🎵 %s" % tr(MENU_THEMES[current_theme_idx]["name"])
 
 func _on_continue_adventure() -> void:
 	SoundManager.play_sfx("click")
@@ -435,7 +435,7 @@ func _setup_hero_select_ui() -> void:
 		card_vbox.add_child(port_center)
 
 		var hdr = Label.new()
-		hdr.text = "%s %s" % [cls["icon"], cls["name"]]
+		hdr.text = "%s %s" % [cls["icon"], tr(cls["name"])]
 		hdr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		hdr.add_theme_font_size_override("font_size", 18)
 		hdr.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
@@ -456,7 +456,7 @@ func _setup_hero_select_ui() -> void:
 		card_vbox.add_child(dlbl)
 
 		var pick_btn = Button.new()
-		pick_btn.text = "Выбрать: %s" % cls["name"].split(" ")[0]
+		pick_btn.text = tr("Выбрать: %s") % tr(cls["name"]).split(" ")[0]
 		pick_btn.custom_minimum_size = Vector2(0, 52)
 		pick_btn.add_theme_font_size_override("font_size", 16)
 		var cid = cls["id"]
@@ -768,7 +768,7 @@ func _setup_arena_dialog_ui() -> void:
 			var vb = VBoxContainer.new()
 			vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			var name_l = Label.new()
-			name_l.text = "%s: %d воинов" % [udata.get("name", item["unit_id"]), item["count"]]
+			name_l.text = tr("%s: %d воинов") % [tr(udata.get("name", item["unit_id"])), item["count"]]
 			name_l.add_theme_font_size_override("font_size", 15)
 			name_l.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
 			vb.add_child(name_l)
@@ -812,7 +812,7 @@ func _setup_arena_dialog_ui() -> void:
 			var vb = VBoxContainer.new()
 			vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			var name_l = Label.new()
-			name_l.text = "%s: %d воинов" % [udata.get("name", item["unit_id"]), item["count"]]
+			name_l.text = tr("%s: %d воинов") % [tr(udata.get("name", item["unit_id"])), item["count"]]
 			name_l.add_theme_font_size_override("font_size", 15)
 			name_l.add_theme_color_override("font_color", Color(1.0, 0.6, 0.5))
 			vb.add_child(name_l)
@@ -1201,7 +1201,7 @@ func _build_bestiary_dialog() -> Control:
 		hb.add_child(info)
 
 		var name_l = Label.new()
-		name_l.text = "%s — %s тир %d" % [tr(str(u.get("name", uid))), tr("тир"), int(u.get("tier", 1))]
+		name_l.text = "%s — %s %d" % [tr(str(u.get("name", uid))), tr("тир"), int(u.get("tier", 1))]
 		name_l.add_theme_font_size_override("font_size", 15)
 		name_l.add_theme_color_override("font_color", Color(0.6, 0.42, 0.1))
 		info.add_child(name_l)

@@ -691,7 +691,7 @@ func _draw() -> void:
 					draw_circle(sm_p, 2.2 + sm_t * 3.0, Color(0.85, 0.85, 0.9, (1.0 - sm_t) * 0.6))
 				if not GameState.quest_forester_started:
 					var f_y = pos.y - 32.0 + sin(anim_timer * 4.0) * 3.0
-					draw_string(ThemeDB.fallback_font, Vector2(pos.x - 28, f_y), "📜 КВЕСТ", HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(1.0, 0.9, 0.2))
+					draw_string(ThemeDB.fallback_font, Vector2(pos.x - 28, f_y), tr("📜 КВЕСТ"), HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(1.0, 0.9, 0.2))
 
 			"witch_hut":
 				# Swamp Witch Hut: bubbling green cauldron and purple chimney fumes
@@ -705,7 +705,7 @@ func _draw() -> void:
 				draw_circle(cauld_pos + Vector2(0, -2), 4.5, Color(0.35, 0.95, 0.25, 0.9))
 				if not GameState.quest_forester_started:
 					var f_y = pos.y - 32.0 + sin(anim_timer * 4.0) * 3.0
-					draw_string(ThemeDB.fallback_font, Vector2(pos.x - 28, f_y), "📜 ВЕДЬМА", HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(0.8, 1.0, 0.4))
+					draw_string(ThemeDB.fallback_font, Vector2(pos.x - 28, f_y), tr("📜 ВЕДЬМА"), HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(0.8, 1.0, 0.4))
 
 			"crypt":
 				# Sunken Crypt: eerie emerald glow and floating spectral wisps
@@ -743,7 +743,7 @@ func _draw() -> void:
 					draw_circle(spk_pos, 2.0 * (1.0 - st), Color(1.0, 0.7, 0.1, 1.0 - st))
 				if (GameState.flags.get("iron_gate_opened", false) or GameState.flags.get("bone_gate_opened", false) or GameState.flags.get("dragon_gate_opened", false)):
 					var bb_y = pos.y - 34.0 + sin(anim_timer * 4.0) * 3.0
-					draw_string(ThemeDB.fallback_font, Vector2(pos.x - 30, bb_y), "⚔ БОСС", HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(1.0, 0.35, 0.3))
+					draw_string(ThemeDB.fallback_font, Vector2(pos.x - 30, bb_y), tr("⚔ БОСС"), HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(1.0, 0.35, 0.3))
 
 			"fairy_shrine", "druid_altar", "dragon_altar":
 				# Shimmering golden-emerald halo and orbiting fairy motes
@@ -762,7 +762,7 @@ func _draw() -> void:
 					var wave_alpha = (1.0 - beacon_wave) * 0.85
 					draw_arc(pos, wave_rad, 0.0, TAU, 32, Color(1.0, 0.85, 0.1, wave_alpha), 3.5)
 					var b_y = pos.y - 36.0 + sin(anim_timer * 5.0) * 4.0
-					draw_string(ThemeDB.fallback_font, Vector2(pos.x - 30, b_y), "👑 СЮДА!", HORIZONTAL_ALIGNMENT_CENTER, -1, 14, Color(1.0, 0.95, 0.3))
+					draw_string(ThemeDB.fallback_font, Vector2(pos.x - 30, b_y), tr("👑 СЮДА!"), HORIZONTAL_ALIGNMENT_CENTER, -1, 14, Color(1.0, 0.95, 0.3))
 
 			"bone_gate":
 				# Bone Archway with spectral green torches
@@ -778,7 +778,7 @@ func _draw() -> void:
 					draw_arc(pos, 22.0, PI, TAU, 16, Color(0.3, 0.95, 0.4, 0.85), 3.0)
 				elif GameState.has_gate_key:
 					var g_y = pos.y - 32.0 + sin(anim_timer * 4.5) * 3.0
-					draw_string(ThemeDB.fallback_font, Vector2(pos.x - 26, g_y), "🗝 ВРАТА!", HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(0.4, 1.0, 0.6))
+					draw_string(ThemeDB.fallback_font, Vector2(pos.x - 26, g_y), tr("🗝 ВРАТА!"), HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(0.4, 1.0, 0.6))
 
 			"gate", "dragon_gate":
 				# Torches on gate posts
@@ -794,7 +794,7 @@ func _draw() -> void:
 					draw_arc(pos, 22.0, PI, TAU, 16, Color(0.4, 0.95, 0.4, 0.8), 3.0)
 				elif GameState.has_gate_key:
 					var g_y = pos.y - 32.0 + sin(anim_timer * 4.5) * 3.0
-					draw_string(ThemeDB.fallback_font, Vector2(pos.x - 26, g_y), "🗝 ВРАТА!", HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(1.0, 0.85, 0.2))
+					draw_string(ThemeDB.fallback_font, Vector2(pos.x - 26, g_y), tr("🗝 ВРАТА!"), HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(1.0, 0.85, 0.2))
 
 			"upgrade_altar":
 				# Radiant altar with spinning stars
@@ -944,13 +944,13 @@ func _draw() -> void:
 					obj_hint = "Святилище (+1 Магия, мана)" if not GameState.flags.get(obj.get("id", ""), false) else "Святилище (Мана)"
 				"fairy_dwelling":
 					var av = GameState.dwelling_stock.get("fairy_camp", 0)
-					obj_hint = "Роща Фей (Доступно: %d)" % av
+					obj_hint = tr("Роща Фей (Доступно: %d)") % av
 				"druid_camp":
 					var av2 = GameState.dwelling_stock.get("druid_camp", 0)
-					obj_hint = "Круг Друидов (Доступно: %d)" % av2
+					obj_hint = tr("Круг Друидов (Доступно: %d)") % av2
 				"griffin_roost":
 					var av3 = GameState.dwelling_stock.get("griffin_nest", 0)
-					obj_hint = "Гнездовье (Доступно: %d)" % av3
+					obj_hint = tr("Гнездовье (Доступно: %d)") % av3
 				"encounter":
 					obj_hint = "Вражеский Дозор (Орда)" if not GameState.flags.get(obj.get("id", ""), false) else "Дозор (Разбит)"
 				"bandit_boss":
@@ -974,8 +974,9 @@ func _draw() -> void:
 			var font = ThemeDB.fallback_font
 			var f_size_name = 13
 			var f_size_hint = 11
-			var line1 = obj_name
-			var line2 = obj_hint
+			# draw_string не переводит сам, в отличие от Label
+			var line1 = tr(obj_name)
+			var line2 = tr(obj_hint)
 			var w1 = font.get_string_size(line1, HORIZONTAL_ALIGNMENT_LEFT, -1, f_size_name).x
 			var w2 = font.get_string_size(line2, HORIZONTAL_ALIGNMENT_LEFT, -1, f_size_hint).x if line2 != "" else 0.0
 			var box_w = maxf(w1, w2) + 24.0

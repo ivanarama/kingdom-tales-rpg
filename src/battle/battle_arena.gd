@@ -1472,7 +1472,7 @@ func _gui_input(event: InputEvent) -> void:
 							# Первый тап: прогноз урона и подсветка, второй — удар
 							pending_attack_target = clicked_stack
 							_show_attack_forecast(clicked_stack)
-							log_forecast("⚔ %s: %d-%d урона (потери %d-%d). Тапните ещё раз для атаки!" % [
+							log_forecast(tr("⚔ %s: %d-%d урона (потери %d-%d). Тапните ещё раз для атаки!") % [
 								tr(clicked_stack.data.name),
 								int(hovered_forecast.get("min_dmg", 0)), int(hovered_forecast.get("max_dmg", 0)),
 								int(hovered_forecast.get("min_cas", 0)), int(hovered_forecast.get("max_cas", 0))
@@ -1748,8 +1748,10 @@ func _update_ui() -> void:
 	hero_mana_bar.max_value = GameState.max_mana
 	hero_mana_bar.value = GameState.current_mana
 
+## Лог склеивается из нескольких строк, поэтому Label его сам не переведёт — переводим здесь.
+## Уже переведённые шаблоны (tr("...") % ...) ключами не являются и проходят без изменений.
 func log_combat(msg: String) -> void:
-	log_history.append(msg)
+	log_history.append(tr(msg))
 	while log_history.size() > 3:
 		log_history.pop_front()
 	_live_log_line = ""
@@ -1757,7 +1759,7 @@ func log_combat(msg: String) -> void:
 
 func log_forecast(msg: String) -> void:
 	# Живой прогноз урона при наведении: не засоряет историю
-	_live_log_line = msg
+	_live_log_line = tr(msg)
 	_refresh_log_label()
 
 func _refresh_log_label() -> void:
@@ -1770,7 +1772,7 @@ func _spawn_floating_text(hex: Vector2i, text: String, color: Color, custom_offs
 	var pos = HexGrid.hex_to_pixel(hex.x, hex.y, HEX_SIZE, grid_origin)
 	floating_texts.append({
 		"pos": pos + Vector2(0, -30) + custom_offset,
-		"text": text,
+		"text": tr(text), # рисуется draw_string — сам не переводится
 		"color": color,
 		"alpha": 1.0,
 		"time": 0.0

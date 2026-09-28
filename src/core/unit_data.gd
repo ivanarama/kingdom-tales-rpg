@@ -299,32 +299,38 @@ static var UNITS: Dictionary = {
 	}
 }
 
+## Черты переводятся по одной: вызывающие делали tr() от склеенной строки,
+## а такого ключа в CSV нет — в EN-версии кодекс показывал черты по-русски.
+## UnitData — не узел, поэтому переводим через TranslationServer.
+static func _t(text: String) -> String:
+	return String(TranslationServer.translate(text))
+
 static func get_trait_string(id: String) -> String:
 	var u := get_unit(id)
 	var traits: Array[String] = []
 	if u.get("is_ranged", false):
-		traits.append("Стрелок")
+		traits.append(_t("Стрелок"))
 	if u.get("flying", false):
-		traits.append("Летун")
+		traits.append(_t("Летун"))
 	if u.get("unlimited_retaliation", false):
-		traits.append("Бесконечный отпор")
+		traits.append(_t("Бесконечный отпор"))
 	if u.get("double_shot", false):
-		traits.append("Двойной выстрел")
+		traits.append(_t("Двойной выстрел"))
 	if u.get("breath_attack", false):
-		traits.append("Огненное дыхание")
+		traits.append(_t("Огненное дыхание"))
 	if u.get("disease", false):
-		traits.append("Трупный яд")
+		traits.append(_t("Трупный яд"))
 	if int(u.get("regeneration", 0)) > 0:
-		traits.append("Регенерация +%d" % int(u["regeneration"]))
+		traits.append(_t("Регенерация +%d") % int(u["regeneration"]))
 	if u.get("entangle", false):
-		traits.append("Оплетающие корни")
+		traits.append(_t("Оплетающие корни"))
 	if float(u.get("reflect", 0.0)) > 0.0:
-		traits.append("Отражение %d%%" % int(round(100.0 * float(u["reflect"]))))
+		traits.append(_t("Отражение %d%%") % int(round(100.0 * float(u["reflect"]))))
 	if float(u.get("dodge", 0.0)) > 0.0:
-		traits.append("Уклонение %d%%" % int(round(100.0 * float(u["dodge"]))))
+		traits.append(_t("Уклонение %d%%") % int(round(100.0 * float(u["dodge"]))))
 	if u.get("is_caster", false):
-		traits.append("Колдун")
-	return " • ".join(traits) if traits.size() > 0 else "Пехота ближнего боя"
+		traits.append(_t("Колдун"))
+	return " • ".join(traits) if traits.size() > 0 else _t("Пехота ближнего боя")
 static func get_unit(id: String) -> Dictionary:
 	return UNITS.get(id, {})
 

@@ -484,11 +484,11 @@ func _draw_broken_arrow(pos: Vector2) -> void:
 	draw_circle(pos, 3.0, Color(1.0, 0.9, 0.2))
 	
 	var font = ThemeDB.fallback_font
-	draw_string(font, pos + Vector2(0, -6), "ШТРАФ 50%", HORIZONTAL_ALIGNMENT_CENTER, -1, 10, Color(1.0, 0.3, 0.2))
+	draw_string(font, pos + Vector2(0, -6), tr("ШТРАФ 50%"), HORIZONTAL_ALIGNMENT_CENTER, -1, 10, Color(1.0, 0.3, 0.2))
 
 func _draw_forecast_box(pos: Vector2, forecast: Dictionary) -> void:
 	var font = ThemeDB.fallback_font
-	var txt = "Урон: %d-%d (Потери: %d-%d)" % [
+	var txt = tr("Урон: %d-%d (Потери: %d-%d)") % [
 		forecast.min_dmg, forecast.max_dmg, forecast.min_cas, forecast.max_cas
 	]
 	var sz = font.get_string_size(txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 12)

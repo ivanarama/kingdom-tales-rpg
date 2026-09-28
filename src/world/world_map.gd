@@ -1289,7 +1289,7 @@ func _is_any_modal_open() -> bool:
 
 func _update_hud() -> void:
 	if name_label:
-		name_label.text = tr("%s (ур. %d)") % [GameState.hero_name, GameState.level]
+		name_label.text = tr("%s (ур. %d)") % [tr(GameState.hero_name), GameState.level]
 	var portrait_node = $CanvasLayer/TopHUD/Portrait as TextureRect
 	if portrait_node and ResourceLoader.exists(GameState.hero_portrait):
 		portrait_node.texture = load(GameState.hero_portrait)
@@ -1772,7 +1772,7 @@ func _open_hero_profile() -> void:
 	hero_dialog.show()
 
 func _update_hero_profile() -> void:
-	hero_dialog.get_node("Parchment/Title").text = tr("Герой: %s (%s)") % [GameState.hero_name, GameState.hero_title]
+	hero_dialog.get_node("Parchment/Title").text = tr("Герой: %s (%s)") % [tr(GameState.hero_name), tr(GameState.hero_title)]
 	if hero_name_lbl:
 		hero_name_lbl.text = GameState.hero_name
 	hero_level_lbl.text = tr("Уровень: %d (Глава %d)") % [GameState.level, GameState.current_chapter]
