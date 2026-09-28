@@ -9,7 +9,7 @@ static var SPELLS: Dictionary = {
 		"type": "target_enemy",
 		"category": "combat",
 		"icon_path": "res://assets/art/spells/spell_fireball.png",
-		"description": "Обрушивает пылающую сферу на вражеский отряд, нанося 40-60 ед. магического урона."
+		"description": "Обрушивает пылающую сферу на вражеский отряд: 50 + 14 × Сила Магии ед. урона (+25% с навыком Волшебство)."
 	},
 	"heal": {
 		"id": "heal",
@@ -18,7 +18,7 @@ static var SPELLS: Dictionary = {
 		"type": "target_ally",
 		"category": "combat",
 		"icon_path": "res://assets/art/spells/spell_heal.png",
-		"description": "Восстанавливает до 65 ед. здоровья павшим и раненым воинам дружественного отряда."
+		"description": "Лечит раненых и поднимает павших воинов союзного отряда: 60 + 16 × Сила Магии ед. здоровья, но не больше численности отряда на начало боя."
 	},
 	"bless": {
 		"id": "bless",
@@ -45,7 +45,7 @@ static var SPELLS: Dictionary = {
 		"type": "adventure",
 		"category": "adventure",
 		"icon_path": "res://assets/art/spells/spell_haste.png",
-		"description": "Походное заклинание: рассеивает туман войны на обширной территории вокруг героя (радиус 8)!"
+		"description": "Походное заклинание: рассеивает туман войны на обширной территории вокруг героя (радиус 9)!"
 	},
 	"restoration": {
 		"id": "restoration",
@@ -54,7 +54,7 @@ static var SPELLS: Dictionary = {
 		"type": "adventure",
 		"category": "adventure",
 		"icon_path": "res://assets/art/spells/spell_heal.png",
-		"description": "Походное заклинание: исцеляет раненых в походе и возвращает в строй до 3 павших воинов!"
+		"description": "Походное заклинание: возвращает в строй павших в боях — до (3 + Сила Магии) воинов каждого вида."
 	},
 	"lightning": {
 		"id": "lightning",
@@ -63,7 +63,7 @@ static var SPELLS: Dictionary = {
 		"type": "target_enemy",
 		"category": "combat",
 		"icon_path": "res://assets/art/spells/spell_fireball.png",
-		"description": "Призывает с небес ослепительную молнию, наносящую 55 ед. урона (+15 за каждую Силу Магии)."
+		"description": "Призывает с небес ослепительную молнию: 65 + 18 × Сила Магии ед. урона (+25% с навыком Волшебство)."
 	},
 	"slow": {
 		"id": "slow",

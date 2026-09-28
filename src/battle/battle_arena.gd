@@ -61,6 +61,7 @@ var touch_candidate: BattleStack = null
 @onready var victory_desc: Label = $CanvasLayer/VictoryDialog/Parchment/Description
 
 var floating_texts: Array[Dictionary] = []
+var army_before_battle: Array = [] # войско героя до боя — для учёта павших
 var is_auto_battling: bool = false
 var auto_battle_btn: Button
 var defend_btn: Button
@@ -118,6 +119,8 @@ func _on_retreat_pressed() -> void:
 	SoundManager.play_sfx("click")
 	if GameState.is_demo_battle:
 		GameState.is_demo_battle = false
+		# Арена возвращает в меню; следующий бой кампании должен вернуть на карту
+		GameState.battle_return_scene = GameState.WORLD_MAP_SCENE
 		var pref = SoundManager.load_music_preference()
 		var theme_to_play = pref if pref != "" else "res://assets/audio/music/themes/homm2_01_sorceress_garden.wav"
 		SoundManager.play_music(theme_to_play)
@@ -164,6 +167,7 @@ func _init_battle() -> void:
 	
 	# 1. Setup Player Stacks (support up to 5 stacks from army / split slots)
 	var player_army = GameState.player_army
+	army_before_battle = player_army.duplicate(true)
 	var player_hexes = [
 		Vector2i(0, 1),
 		Vector2i(0, 2),
@@ -176,166 +180,10 @@ func _init_battle() -> void:
 		if item["count"] > 0:
 			_spawn_stack(item["unit_id"], item["count"], 0, player_hexes[i])
 		
-	# 2. Setup Enemy Stacks (based on chapter & encounter type)
-	var enemy_configs = []
-	if GameState.pending_battle_id == "bandit_boss":
-		enemy_configs = [
-			{"unit_id": "goblin", "count": 35, "hex": Vector2i(10, 1)},
-			{"unit_id": "wolf", "count": 18, "hex": Vector2i(10, 3)},
-			{"unit_id": "treant", "count": 5, "hex": Vector2i(10, 5)}
-		]
-		log_combat("Логово Главаря Разбойников! Атаман и его приспешники идут в атаку!")
-	elif GameState.pending_battle_id == "lich_boss":
-		enemy_configs = [
-			{"unit_id": "skeleton_archer", "count": 32, "hex": Vector2i(10, 1)},
-			{"unit_id": "swamp_zombie", "count": 22, "hex": Vector2i(10, 3)},
-			{"unit_id": "lich", "count": 8, "hex": Vector2i(10, 5)}
-		]
-		log_combat("Цитадель Тьмы! Древний Лич поднимает нежить из болотных могил!")
-	elif GameState.pending_battle_id == "dragon_boss":
-		enemy_configs = [
-			{"unit_id": "wolf", "count": 25, "hex": Vector2i(10, 1)},
-			{"unit_id": "red_dragon", "count": 3, "hex": Vector2i(10, 3)},
-			{"unit_id": "treant", "count": 8, "hex": Vector2i(10, 5)}
-		]
-		log_combat("Гнездо Владыки Огня! Красный Дракон расправляет пылающие крылья!")
-	# Chapter 1 Specific Encounters
-	elif GameState.pending_battle_id == "patrol_1":
-		enemy_configs = [
-			{"unit_id": "goblin", "count": 25, "hex": Vector2i(10, 2)},
-			{"unit_id": "wolf", "count": 12, "hex": Vector2i(10, 4)}
-		]
-		log_combat("Авангард разбойников преграждает дорогу за Железными Вратами!")
-	elif GameState.pending_battle_id == "patrol_wolves":
-		enemy_configs = [
-			{"unit_id": "wolf", "count": 16, "hex": Vector2i(10, 3)}
-		]
-		log_combat("Стая голодных лесных волков скалит клыки и идет на перехват!")
-	elif GameState.pending_battle_id == "patrol_goblins":
-		enemy_configs = [
-			{"unit_id": "goblin", "count": 24, "hex": Vector2i(10, 2)},
-			{"unit_id": "wolf", "count": 6, "hex": Vector2i(10, 4)}
-		]
-		log_combat("Шайка гоблинов-грабителей бросается в атаку!")
-	elif GameState.pending_battle_id == "patrol_forester":
-		enemy_configs = [
-			{"unit_id": "goblin", "count": 18, "hex": Vector2i(10, 1)},
-			{"unit_id": "wolf", "count": 8, "hex": Vector2i(10, 4)}
-		]
-		log_combat("Засада разбойников на южном тракте атакует из кустов!")
-	elif GameState.pending_battle_id == "patrol_grove":
-		enemy_configs = [
-			{"unit_id": "treant", "count": 3, "hex": Vector2i(10, 2)},
-			{"unit_id": "wolf", "count": 10, "hex": Vector2i(10, 4)}
-		]
-		log_combat("Страж Рощи — могучий Древень и его свита пробудились!")
-	elif GameState.pending_battle_id == "patrol_rogues":
-		enemy_configs = [
-			{"unit_id": "goblin", "count": 26, "hex": Vector2i(10, 2)},
-			{"unit_id": "wolf", "count": 14, "hex": Vector2i(10, 4)}
-		]
-		log_combat("Стрелки разбойников преграждают путь к Роще Фей!")
-	elif GameState.pending_battle_id == "patrol_obelisk":
-		enemy_configs = [
-			{"unit_id": "treant", "count": 3, "hex": Vector2i(10, 1)},
-			{"unit_id": "goblin", "count": 20, "hex": Vector2i(10, 3)},
-			{"unit_id": "wolf", "count": 10, "hex": Vector2i(10, 5)}
-		]
-		log_combat("Элитная стража Обелиска защищает древние сокровища!")
-	# Chapter 2 Specific Encounters
-	elif GameState.pending_battle_id == "swamp_patrol_road":
-		enemy_configs = [
-			{"unit_id": "swamp_zombie", "count": 18, "hex": Vector2i(10, 3)}
-		]
-		log_combat("Орда болотных зомби медленно поднимается из тины!")
-	elif GameState.pending_battle_id == "swamp_patrol_fens":
-		enemy_configs = [
-			{"unit_id": "skeleton_archer", "count": 20, "hex": Vector2i(10, 2)}
-		]
-		log_combat("Скелеты-лучники натягивают тетиву среди камышей!")
-	elif GameState.pending_battle_id == "swamp_patrol_gate":
-		enemy_configs = [
-			{"unit_id": "skeleton_archer", "count": 22, "hex": Vector2i(10, 1)},
-			{"unit_id": "swamp_zombie", "count": 14, "hex": Vector2i(10, 4)}
-		]
-		log_combat("Костяная стража охраняет подступы к Некрополю!")
-	elif GameState.pending_battle_id == "swamp_patrol_east":
-		enemy_configs = [
-			{"unit_id": "skeleton_archer", "count": 24, "hex": Vector2i(10, 2)},
-			{"unit_id": "swamp_zombie", "count": 18, "hex": Vector2i(10, 4)}
-		]
-		log_combat("Легион Смерти преграждает дорогу к Алтарю Друидов!")
-	elif GameState.pending_battle_id == "swamp_patrol_ruins":
-		enemy_configs = [
-			{"unit_id": "lich", "count": 4, "hex": Vector2i(10, 1)},
-			{"unit_id": "skeleton_archer", "count": 20, "hex": Vector2i(10, 3)},
-			{"unit_id": "swamp_zombie", "count": 12, "hex": Vector2i(10, 5)}
-		]
-		log_combat("Осквернители древних гробниц обрушивают темную магию!")
-	# Chapter 3 Specific Encounters
-	elif GameState.pending_battle_id in ["dragon_patrol_pass", "dragon_patrol", "patrol_dragon"]:
-		enemy_configs = [
-			{"unit_id": "skeleton_archer", "count": 20, "hex": Vector2i(10, 1)},
-			{"unit_id": "griffin", "count": 8, "hex": Vector2i(10, 4)}
-		]
-		log_combat("Огненная стража перевала атакует!")
-	elif GameState.pending_battle_id == "dragon_patrol_gate":
-		enemy_configs = [
-			{"unit_id": "skeleton_archer", "count": 22, "hex": Vector2i(10, 1)},
-			{"unit_id": "goblin", "count": 25, "hex": Vector2i(10, 3)},
-			{"unit_id": "wolf", "count": 14, "hex": Vector2i(10, 5)}
-		]
-		log_combat("Стража Огненных Врат идет на таран!")
-	elif GameState.pending_battle_id == "dragon_patrol_caldera":
-		enemy_configs = [
-			{"unit_id": "goblin", "count": 25, "hex": Vector2i(10, 1)},
-			{"unit_id": "wolf", "count": 16, "hex": Vector2i(10, 3)},
-			{"unit_id": "treant", "count": 4, "hex": Vector2i(10, 5)}
-		]
-		log_combat("Слуги дракона перекрывают путь к жерлу вулкана!")
-	elif GameState.pending_battle_id == "dragon_patrol_citadel":
-		enemy_configs = [
-			{"unit_id": "griffin", "count": 12, "hex": Vector2i(10, 2)},
-			{"unit_id": "goblin", "count": 22, "hex": Vector2i(10, 4)}
-		]
-		log_combat("Лавовые хищники бросаются на защиту цитадели!")
-	elif GameState.pending_battle_id in ["swamp_patrol", "patrol_swamp"]:
-		enemy_configs = [
-			{"unit_id": "skeleton_archer", "count": 18, "hex": Vector2i(10, 2)},
-			{"unit_id": "swamp_zombie", "count": 14, "hex": Vector2i(10, 4)}
-		]
-		log_combat("Болотная нежить преграждает путь сквозь трясину!")
-	elif GameState.pending_battle_id == "patrol_2":
-		enemy_configs = [
-			{"unit_id": "goblin", "count": 22, "hex": Vector2i(10, 2)},
-			{"unit_id": "wolf", "count": 12, "hex": Vector2i(10, 4)}
-		]
-		log_combat("Вражеский дозор пытается перерезать дорогу!")
-	else:
-		# Chapter-scaled standard encounter
-		if GameState.current_chapter == 2:
-			enemy_configs = [
-				{"unit_id": "skeleton_archer", "count": 16, "hex": Vector2i(10, 1)},
-				{"unit_id": "swamp_zombie", "count": 12, "hex": Vector2i(10, 3)},
-				{"unit_id": "wolf", "count": 10, "hex": Vector2i(10, 5)}
-			]
-			log_combat("Орда нежити восстает из могил болот!")
-		elif GameState.current_chapter == 3:
-			enemy_configs = [
-				{"unit_id": "goblin", "count": 25, "hex": Vector2i(10, 1)},
-				{"unit_id": "wolf", "count": 16, "hex": Vector2i(10, 3)},
-				{"unit_id": "treant", "count": 4, "hex": Vector2i(10, 5)}
-			]
-			log_combat("Стражи вулканического ущелья бросаются в бой!")
-		else:
-			enemy_configs = [
-				{"unit_id": "goblin", "count": 18, "hex": Vector2i(10, 1)},
-				{"unit_id": "wolf", "count": 9, "hex": Vector2i(10, 3)},
-				{"unit_id": "treant", "count": 2, "hex": Vector2i(10, 5)}
-			]
-			log_combat("Лесные разбойники преграждают путь! Битва началась!")
-
-	for cfg in enemy_configs:
+	# 2. Setup Enemy Stacks: состав из EncounterData — общий с быстрым боем на карте
+	var encounter: Dictionary = EncounterData.get_encounter(GameState.pending_battle_id, GameState.current_chapter)
+	log_combat(encounter["intro"])
+	for cfg in EncounterData.get_army(GameState.pending_battle_id, GameState.current_chapter):
 		_spawn_stack(cfg["unit_id"], cfg["count"], 1, cfg["hex"])
 
 ## Выставляет отряд на поле. Существо без записи в UnitData не выставляется:
@@ -413,15 +261,8 @@ func _next_turn() -> void:
 	else:
 		# Player Turn
 		is_ai_turn = false
-		
-		# Start of turn Morale check for living units
-		if not current_actor.had_morale_this_round and not current_actor.has_waited and not (current_actor.unit_id in ["skeleton_archer", "swamp_zombie", "lich"]):
-			var m_chance = 0.12 + 0.05 * GameState.get_skill_level("leadership")
-			if randf() < m_chance:
-				SoundManager.play_sfx("spell_cast")
-				_spawn_floating_text(current_actor.hex, "🌟 БОДРОСТЬ!", Color(1.0, 0.88, 0.2))
-				log_combat("🌟 [БОЕВОЙ ДУХ]: Воодушевленный отряд %s полон решимости сокрушать врагов!" % current_actor.data.name)
-				
+		# Боевой дух (доп. ход) проверяется после атаки — см. _grant_morale_turn()
+
 		if wait_btn:
 			wait_btn.disabled = current_actor.has_waited
 			if current_actor.has_waited:
@@ -668,18 +509,8 @@ func _execute_attack(attacker: BattleStack, defender: BattleStack, is_melee: boo
 			return
 			
 		# Morale check for shooters (only if battle still has active enemies)
-		if attacker.is_alive() and attacker.team == 0 and not attacker.had_morale_this_round and _has_living_enemies():
-			var m_chance = 0.05 + 0.10 * GameState.get_skill_level("leadership")
-			if randf() < m_chance:
-				attacker.had_morale_this_round = true
-				attacker.has_acted = false
-				SoundManager.play_sfx("spell_cast")
-				_spawn_floating_text(attacker.hex, "🌟 БОЕВОЙ ДУХ! (+1 ХОД)", Color(1.0, 0.88, 0.2))
-				log_combat("🌟 [БОЕВОЙ ДУХ]: Воодушевленный отряд %s получает дополнительный ход!" % attacker.data.name)
-				_update_initiative_bar()
-				_update_reachable_hexes()
-				arena_viewport.queue_redraw()
-				return
+		if _grant_morale_turn(attacker):
+			return
 		_next_turn()
 		return
 
@@ -730,11 +561,11 @@ func _execute_attack(attacker: BattleStack, defender: BattleStack, is_melee: boo
 		# Creature Passives: Zombie Disease & Treant Entangle
 		if defender.is_alive():
 			if attacker.data.get("disease", false) or attacker.unit_id == "swamp_zombie":
-				defender.debuff_disease_turns = 2
+				defender.debuff_disease_turns = _debuff_duration(2, defender)
 				_spawn_floating_text(defender.hex, "☣ БОЛЕЗНЬ! (-25% АТАКИ)", Color(0.5, 0.9, 0.2), Vector2(0, -48))
 				log_combat("☣ Трупный яд заражает %s: атака снижена на 25%% на 2 раунда!" % defender.data.name)
 			elif (attacker.data.get("entangle", false) or attacker.unit_id == "treant") and randf() < 0.35:
-				defender.debuff_entangle_turns = 1
+				defender.debuff_entangle_turns = _debuff_duration(1, defender)
 				_spawn_floating_text(defender.hex, "🌿 КОРНИ (0 ХОДОВ)", Color(0.2, 0.85, 0.3), Vector2(0, -48))
 				log_combat("🌿 Корни древня оплетают %s, лишая возможности двигаться на 1 раунд!" % defender.data.name)
 		
@@ -784,21 +615,37 @@ func _execute_attack(attacker: BattleStack, defender: BattleStack, is_melee: boo
 		return
 		
 	# Morale check for melee fighters (only if battle still has active enemies)
-	if attacker.is_alive() and attacker.team == 0 and not attacker.had_morale_this_round and _has_living_enemies():
-		var m_chance = 0.05 + 0.10 * GameState.get_skill_level("leadership")
-		if randf() < m_chance:
-			attacker.had_morale_this_round = true
-			attacker.has_acted = false
-			SoundManager.play_sfx("spell_cast")
-			_spawn_floating_text(attacker.hex, "🌟 БОЕВОЙ ДУХ! (+1 ХОД)", Color(1.0, 0.88, 0.2))
-			log_combat("🌟 [БОЕВОЙ ДУХ]: Воодушевленный отряд %s получает дополнительный ход!" % attacker.data.name)
-			_update_initiative_bar()
-			_update_reachable_hexes()
-			arena_viewport.queue_redraw()
-			return
+	if _grant_morale_turn(attacker):
+		return
 			
 	await get_tree().create_timer(0.3).timeout
 	_next_turn()
+
+## Длительность эффекта в раундах. Счётчики тикают в начале раунда, поэтому если цель
+## в этом раунде уже ходила, добавляем раунд — иначе эффект не доживёт до её хода.
+func _debuff_duration(rounds: int, target: BattleStack) -> int:
+	return rounds + (1 if target.has_acted else 0)
+
+## Боевой дух после атаки: шанс 5% + 10% за уровень Лидерства на дополнительный ход.
+## true — ход выдан (текущий отряд ходит снова, _next_turn() звать не нужно).
+func _grant_morale_turn(attacker: BattleStack) -> bool:
+	if not (attacker.is_alive() and attacker.team == 0 and not attacker.had_morale_this_round and _has_living_enemies()):
+		return false
+	var m_chance = 0.05 + 0.10 * GameState.get_skill_level("leadership")
+	if randf() >= m_chance:
+		return false
+	attacker.had_morale_this_round = true
+	attacker.has_acted = false
+	SoundManager.play_sfx("spell_cast")
+	_spawn_floating_text(attacker.hex, "🌟 БОЕВОЙ ДУХ! (+1 ХОД)", Color(1.0, 0.88, 0.2))
+	log_combat("🌟 [БОЕВОЙ ДУХ]: Воодушевленный отряд %s получает дополнительный ход!" % attacker.data.name)
+	_update_initiative_bar()
+	_update_reachable_hexes()
+	arena_viewport.queue_redraw()
+	# Автобой сам не узнает о дополнительном ходе — продолжаем за него
+	if is_auto_battling:
+		_execute_auto_turn_for_player()
+	return true
 
 func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 	var spell = SpellData.get_spell(spell_id)
@@ -838,8 +685,8 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 					dmg = int(dmg * 1.25)
 				var res = target_stack.take_damage(dmg)
 				_spawn_floating_text(target_stack.hex, "ОГОНЬ -%d" % res.damage, Color(1.0, 0.4, 0.1))
-				log_combat("Аларик сокрушает %s Огненным Шаром! Урон: %d (Потери: %d)" % [
-					target_stack.data.name, res.damage, res.casualties
+				log_combat("%s сокрушает %s Огненным Шаром! Урон: %d (Потери: %d)" % [
+					GameState.hero_name, target_stack.data.name, res.damage, res.casualties
 				])
 				arena_viewport.queue_redraw()
 				fb_hit = true
@@ -856,10 +703,12 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 			arena_viewport.flash_stack(target_stack)
 			var cur_sp = GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower
 			var heal_amount = 60 + cur_sp * 16
-			target_stack.heal(heal_amount)
-			_spawn_floating_text(target_stack.hex, "+%d HP" % heal_amount, Color(0.3, 1.0, 0.4))
-			log_combat("Исцеление: отряд %s восстанавливает %d ед. здоровья!" % [
-				target_stack.data.name, heal_amount
+			var heal_res: Dictionary = target_stack.heal(heal_amount)
+			_spawn_floating_text(target_stack.hex, "+%d HP" % heal_res.healed, Color(0.3, 1.0, 0.4))
+			if heal_res.revived > 0:
+				_spawn_floating_text(target_stack.hex, "Поднято: +%d" % heal_res.revived, Color(0.6, 1.0, 0.6), Vector2(0, -28))
+			log_combat("Исцеление: отряд %s восстанавливает %d ед. здоровья (поднято павших: %d)!" % [
+				target_stack.data.name, heal_res.healed, heal_res.revived
 			])
 		"bless":
 			SoundManager.play_sfx("spell_cast")
@@ -994,6 +843,7 @@ func _show_victory(won: bool) -> void:
 	if won:
 		SoundManager.play_sfx("victory")
 		victory_title.text = "СЛАВНАЯ ПОБЕДА!"
+		_unlock_victory_feats()
 		if GameState.is_demo_battle:
 			victory_desc.text = "🏆 Тренировочный поединок на Арене успешно завершен!\nСложность: %s\nПротивник: %s\n\nВы продемонстрировали выдающееся тактическое мастерство полководца!" % [
 				GameState.demo_difficulty_title, GameState.demo_encounter_title
@@ -1032,10 +882,10 @@ func _show_victory(won: bool) -> void:
 		if GameState.pending_battle_id != "":
 			GameState.flags[GameState.pending_battle_id] = true
 			GameState.pending_battle_id = ""
-		GameState.save_game()
-			
-		# Sync remaining stacks back to player_army
+		# Сначала уцелевшие возвращаются в войско, потом сохранение —
+		# иначе на диск уходит армия до боя и потери пропадают
 		_sync_army_after_battle()
+		GameState.save_game()
 	else:
 		SoundManager.play_sfx("click")
 		victory_title.text = "ПОРАЖЕНИЕ..."
@@ -1046,17 +896,42 @@ func _show_victory(won: bool) -> void:
 		# Do NOT clear enemy flag on map!
 		GameState.pending_battle_id = ""
 		
-		# Give minimal reinforcements so player is not stuck with 0 units
+		# Уцелевшие отступают вместе с героем — потери боя сохраняются.
+		# Если не уцелел никто, даём минимальное подкрепление, чтобы не застрять с пустым войском.
 		var total_alive = 0
 		for s in all_stacks:
 			if s.team == 0 and s.is_alive():
 				total_alive += s.count
 		if total_alive == 0:
+			GameState.record_battle_losses(army_before_battle, [])
 			GameState.player_army = [
 				{"unit_id": "fairy_archer", "count": 6},
 				{"unit_id": "griffin", "count": 2}
 			]
 			GameState.state_changed.emit()
+		else:
+			_sync_army_after_battle()
+		GameState.save_game()
+
+## Подвиги Летописи за победу в бою (кампания и Арена).
+func _unlock_victory_feats() -> void:
+	GameState.unlock_feat("first_blood")
+	var lost_any := false
+	for s in all_stacks:
+		if s.team == 0 and s.count < s.initial_count:
+			lost_any = true
+			break
+	if not lost_any:
+		GameState.unlock_feat("flawless")
+	if GameState.is_demo_battle:
+		return
+	match GameState.pending_battle_id:
+		"bandit_boss":
+			GameState.unlock_feat("boss_bandit")
+		"lich_boss":
+			GameState.unlock_feat("boss_lich")
+		"dragon_boss":
+			GameState.unlock_feat("boss_dragon")
 
 func _sync_army_after_battle() -> void:
 	if GameState.is_demo_battle:
@@ -1065,6 +940,7 @@ func _sync_army_after_battle() -> void:
 	for s in all_stacks:
 		if s.team == 0 and s.is_alive() and s.count > 0:
 			updated_army.append({"unit_id": s.unit_id, "count": s.count})
+	GameState.record_battle_losses(army_before_battle, updated_army)
 	if updated_army.size() > 0:
 		GameState.player_army = updated_army
 		GameState.state_changed.emit()
@@ -1072,7 +948,9 @@ func _sync_army_after_battle() -> void:
 func _on_victory_continue() -> void:
 	SoundManager.play_sfx("click")
 	var is_demo = GameState.is_demo_battle
-	var target = GameState.battle_return_scene if GameState.battle_return_scene != "" else "res://src/world/world_map.tscn"
+	var target = GameState.battle_return_scene if GameState.battle_return_scene != "" else GameState.WORLD_MAP_SCENE
+	# Точка возврата одноразовая: после Арены следующий бой кампании снова вернёт на карту
+	GameState.battle_return_scene = GameState.WORLD_MAP_SCENE
 	if is_demo or target == "res://src/main.tscn":
 		GameState.is_demo_battle = false
 		var pref = SoundManager.load_music_preference()

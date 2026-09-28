@@ -248,6 +248,7 @@ func _setup_chapter_selection_ui() -> void:
 		SoundManager.play_sfx("click")
 		GameState.reset()
 		GameState.level = 3
+		GameState.next_level_xp = GameState.xp_to_next_level(3)
 		GameState.attack = 6
 		GameState.defense = 5
 		GameState.player_army = [
@@ -268,6 +269,7 @@ func _setup_chapter_selection_ui() -> void:
 		SoundManager.play_sfx("click")
 		GameState.reset()
 		GameState.level = 5
+		GameState.next_level_xp = GameState.xp_to_next_level(5)
 		GameState.attack = 8
 		GameState.defense = 7
 		GameState.player_army = [

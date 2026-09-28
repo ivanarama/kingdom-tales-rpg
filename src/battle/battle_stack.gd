@@ -9,6 +9,7 @@ var data: Dictionary
 var team: int # 0: Player, 1: Enemy
 var hex: Vector2i
 var count: int
+var initial_count: int # численность на начало боя: больше неё «Исцеление» не поднимает
 var current_hp: int
 
 var has_retaliated: bool = false
@@ -30,6 +31,7 @@ func setup(p_unit_id: String, p_count: int, p_team: int, p_hex: Vector2i) -> voi
 	data = UnitData.get_unit(unit_id)
 	team = p_team
 	count = p_count
+	initial_count = p_count
 	hex = p_hex
 	current_hp = data.get("max_hp", 20)
 	had_morale_this_round = false
@@ -69,7 +71,7 @@ func reset_round() -> void:
 	# Creature passive regeneration (e.g. Treants)
 	var regen: int = data.get("regeneration", 0)
 	if regen > 0 and count > 0:
-		heal(regen)
+		regenerate(regen)
 
 func get_initiative() -> int:
 	return data.get("initiative", 10)
@@ -229,12 +231,26 @@ func is_entangled() -> bool:
 func has_stoneskin() -> bool:
 	return buff_stoneskin_turns > 0
 
-func heal(amount: int) -> Dictionary:
+## Регенерация: подлечивает только раненое верхнее существо, павших не поднимает.
+func regenerate(amount: int) -> void:
 	var max_hp: int = data.get("max_hp", 20)
-	var missing_hp := max_hp - current_hp
 	current_hp = mini(max_hp, current_hp + amount)
+
+## Исцеление: сначала лечит раненое верхнее существо, затем поднимает павших,
+## но не больше численности на начало боя. Возвращает реально восстановленное.
+func heal(amount: int) -> Dictionary:
+	if count <= 0:
+		return {"healed": 0, "revived": 0, "current_hp": 0}
+	var max_hp: int = data.get("max_hp", 20)
+	var pool := (count - 1) * max_hp + current_hp
+	var max_pool := maxi(initial_count, count) * max_hp
+	var new_pool := mini(max_pool, pool + maxi(0, amount))
+	var old_count := count
+	count = int(ceil(float(new_pool) / float(max_hp)))
+	current_hp = new_pool - (count - 1) * max_hp
 	return {
-		"healed": amount,
+		"healed": new_pool - pool,
+		"revived": count - old_count,
 		"current_hp": current_hp
 	}
 

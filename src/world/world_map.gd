@@ -193,11 +193,15 @@ func _ready() -> void:
 					world_view.objects.erase(c)
 		world_view.queue_redraw()
 	
-	# Восстановить бродячего торговца из сохранения
+	# Восстановить бродячего торговца из сохранения. Если его клетка занята объектом
+	# (старые сохранения переносили торговца в новую главу) — переселяем, а не затираем объект.
 	if GameState.merchant_cell.x >= 0:
-		world_view.objects[GameState.merchant_cell] = {"type": "merchant", "name": "Бродячий торговец", "id": "wandering_merchant"}
-		if GameState.merchant_offers.is_empty():
-			GameState.spawn_merchant_offers()
+		if world_view.objects.has(GameState.merchant_cell) or not world_view.is_passable(GameState.merchant_cell):
+			_spawn_merchant()
+		else:
+			world_view.objects[GameState.merchant_cell] = {"type": "merchant", "name": "Бродячий торговец", "id": "wandering_merchant"}
+			if GameState.merchant_offers.is_empty():
+				GameState.spawn_merchant_offers()
 
 	# Initial camera centering on hero
 	await get_tree().process_frame
@@ -371,7 +375,11 @@ func _on_cell_clicked(target_cell: Vector2i) -> void:
 			_clear_planned_route()
 			var has_pf = GameState.has_skill("pathfinding") if GameState.has_method("has_skill") else false
 			var step_cost = WorldNavigator.move_step_cost(target_cell, world_view.road_cells, has_pf)
-			if GameState.move_points >= step_cost and world_view.is_passable(target_cell):
+			# Без очков хода к сундуку не подойти — раньше он открывался «через клетку» бесплатно
+			if GameState.move_points < step_cost:
+				_show_no_mp_hint()
+				return
+			if world_view.is_passable(target_cell):
 				GameState.move_points -= step_cost
 				world_view.hero_cell = target_cell
 				world_view.hero_pixel_pos = world_view.cell_to_pixel(target_cell)
@@ -395,7 +403,7 @@ func _on_cell_clicked(target_cell: Vector2i) -> void:
 	# CLICK 1 (Plot Route): Target is a new destination
 	var bounds = Rect2i(0, 0, world_view.MAP_COLS, world_view.MAP_ROWS)
 	var has_pf = GameState.has_skill("pathfinding") if GameState.has_method("has_skill") else false
-	var path = WorldNavigator.find_path(world_view.hero_cell, target_cell, world_view.forest_cells, bounds, world_view.road_cells, has_pf)
+	var path = WorldNavigator.find_path(world_view.hero_cell, target_cell, world_view.get_path_obstacles(target_cell), bounds, world_view.road_cells, has_pf)
 	if path.is_empty():
 		SoundManager.play_sfx("click")
 		_clear_planned_route()
@@ -419,7 +427,16 @@ func _move_hero_along_path(path: Array[Vector2i]) -> void:
 		if cancel_movement:
 			cancel_movement = false
 			break
-			
+
+		# Патруль, босс или запертые врата: в клетку не входим, взаимодействуем с соседней.
+		# Иначе, закрыв попап крестиком, можно было пройти сквозь врата без ключа и мимо врагов.
+		if world_view.objects.has(next_cell) and WorldView.is_blocking_object(world_view.objects[next_cell]):
+			world_view.is_moving = false
+			cancel_movement = false
+			world_view.queue_redraw()
+			_trigger_object(world_view.objects[next_cell])
+			return
+
 		var has_pf = GameState.has_skill("pathfinding") if GameState.has_method("has_skill") else false
 		var step_cost = WorldNavigator.move_step_cost(next_cell, world_view.road_cells, has_pf)
 		if GameState.move_points < step_cost:
@@ -513,11 +530,7 @@ func _trigger_guarded_chest(guard: Dictionary, chest: Dictionary) -> void:
 	popup_text.text = "Этот сундук охраняет %s!\n\nВраги замечают ваше приближение, обнажают оружие и нападают на вас!\nСначала одолейте охрану, чтобы забрать сокровища!" % guard_name
 	
 	popup_btn1.text = "⚔ В БОЙ С ОХРАНОЙ!"
-	popup_btn1.pressed.connect(func():
-		SoundManager.play_sfx("sword_hit")
-		GameState.pending_battle_id = guard_id
-		get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
-	)
+	popup_btn1.pressed.connect(func(): _start_battle(guard_id))
 	
 	popup_btn2.visible = true
 	popup_btn2.text = "⚡ Быстрый бой"
@@ -534,10 +547,7 @@ func _trigger_object(obj: Dictionary) -> void:
 	popup_btn1.visible = true
 	popup_btn2.visible = false
 	
-	for conn in popup_btn1.pressed.get_connections():
-		popup_btn1.pressed.disconnect(conn.callable)
-	for conn in popup_btn2.pressed.get_connections():
-		popup_btn2.pressed.disconnect(conn.callable)
+	_reset_popup_buttons()
 		
 	var obj_type = obj.get("type", "")
 	var obj_id = obj.get("id", "")
@@ -581,6 +591,9 @@ func _trigger_object(obj: Dictionary) -> void:
 					btn.text = label
 					btn.visible = true
 					btn.pressed.connect(func():
+						if m_offer["kind"] != "artifact" and not GameState.can_add_units(str(m_offer["id"])):
+							_show_army_full_popup(str(m_offer["id"]))
+							return
 						if GameState.buy_merchant_offer(offer_idx):
 							SoundManager.play_sfx("coin")
 							_update_hud()
@@ -655,16 +668,27 @@ func _trigger_object(obj: Dictionary) -> void:
 				
 		"fountain":
 			popup_title.text = "Святилище Маны"
-			popup_text.text = "Волшебный фонтан освещает поляну мягким лазурным сиянием.\n\nГерой восполняет всю ману и ощущает прилив колдовских сил (+1 к Силе Магии)!"
-			popup_btn1.text = "Испить из источника"
-			popup_btn1.pressed.connect(func():
-				SoundManager.play_sfx("spell_cast")
-				GameState.restore_mana()
-				if not GameState.flags.get(obj_id, false):
-					GameState.spellpower += 1
-					GameState.flags[obj_id] = true
-				popup_dialog.hide()
-			)
+			# Источник восполняет ману раз в день (как Колодец в HoMM), +1 к Силе Магии — однажды
+			var used_key: String = "fountain_day_" + str(obj_id)
+			if int(GameState.flags.get(used_key, 0)) == GameState.day:
+				popup_text.text = "Источник уже отдал вам свою силу сегодня. Его воды наполнятся вновь к завтрашнему дню."
+				popup_btn1.text = "Продолжить путь"
+				popup_btn1.pressed.connect(func(): popup_dialog.hide())
+			else:
+				var first_visit: bool = not GameState.flags.get(obj_id, false)
+				popup_text.text = "Волшебный фонтан освещает поляну мягким лазурным сиянием.\n\nГерой восполняет всю ману%s" % (
+					" и ощущает прилив колдовских сил (+1 к Силе Магии)!" if first_visit else "."
+				)
+				popup_btn1.text = "Испить из источника"
+				popup_btn1.pressed.connect(func():
+					SoundManager.play_sfx("spell_cast")
+					GameState.restore_mana()
+					GameState.flags[used_key] = GameState.day
+					if not GameState.flags.get(obj_id, false):
+						GameState.spellpower += 1
+						GameState.flags[obj_id] = true
+					popup_dialog.hide()
+				)
 			
 		"fairy_dwelling", "druid_camp", "griffin_roost":
 			_open_dwelling_popup(obj_id)
@@ -672,7 +696,7 @@ func _trigger_object(obj: Dictionary) -> void:
 		"forester":
 			popup_title.text = "Хижина Старого Лесника"
 			if GameState.quest_completed:
-				popup_text.text = "«Слава сэру Аларику! Лес снова полон света и птичьего пения. Вы избавили нас от напасти!»"
+				popup_text.text = "«Слава %s! Лес снова полон света и птичьего пения. Вы избавили нас от напасти!»" % GameState.hero_form("dat")
 				popup_btn1.text = "Поклониться"
 				for conn in popup_btn1.pressed.get_connections():
 					popup_btn1.pressed.disconnect(conn.callable)
@@ -686,6 +710,9 @@ func _trigger_object(obj: Dictionary) -> void:
 					for conn in popup_btn2.pressed.get_connections():
 						popup_btn2.pressed.disconnect(conn.callable)
 					popup_btn2.pressed.connect(func():
+						if not GameState.can_add_units("fox_shifter"):
+							_show_army_full_popup("fox_shifter")
+							return
 						if GameState.spend_gold(avail_fx * fx_cost):
 							SoundManager.play_sfx("coin")
 							GameState.dwelling_stock["forester_fox"] -= avail_fx
@@ -695,12 +722,12 @@ func _trigger_object(obj: Dictionary) -> void:
 				else:
 					popup_btn2.visible = false
 			elif GameState.quest_forester_started:
-				popup_text.text = "«Врата открыты, паладин! Спешите на восток — разбейте атамана в его логове и верните Венец Королеве Фей!»"
+				popup_text.text = "«Врата открыты, %s! Спешите на восток — разбейте атамана в его логове и верните Венец Королеве Фей!»" % GameState.hero_form("title")
 				popup_btn1.text = "Я выполню долг!"
 				popup_btn1.pressed.connect(func(): popup_dialog.hide())
 			else:
 				popup_title.text = "Квест: Похищенный Венец"
-				popup_text.text = "Старый лесничий взволнован:\n\n«Беда, сэр Аларик! Шайка разбойников из ущелья похитила древний Венец Королевы Фей! Без него гибнет вся магия нашего леса. Бандиты заперли ущелье Железными Вратами.\n\nВот кованый Ключ от Врат! Прогоните атамана и отнесите Венец в Рощу Фей на севере долины!»"
+				popup_text.text = "Старый лесничий взволнован:\n\n«Беда, %s! Шайка разбойников из ущелья похитила древний Венец Королевы Фей! Без него гибнет вся магия нашего леса. Бандиты заперли ущелье Железными Вратами.\n\nВот кованый Ключ от Врат! Прогоните атамана и отнесите Венец в Рощу Фей на севере долины!»" % GameState.hero_form("nom")
 				popup_btn1.text = "Принять ключ и отправиться в поход"
 				popup_btn1.pressed.connect(func():
 					SoundManager.play_sfx("victory")
@@ -726,13 +753,7 @@ func _trigger_object(obj: Dictionary) -> void:
 			else:
 				popup_text.text = "Массивные Железные Врата наглухо заперты стальным засовом. Из-за скал доносится вой лютых волков.\n\nВам нужен Ключ от Врат! (Посетите Хижину Лесника на юге)."
 				popup_btn1.text = "Отступить назад"
-				popup_btn1.pressed.connect(func():
-					world_view.hero_cell = Vector2i(13, 11)
-					world_view.hero_pixel_pos = world_view.cell_to_pixel(Vector2i(13, 11))
-					world_view.queue_redraw()
-					GameState.hero_cell = Vector2i(13, 11)
-					popup_dialog.hide()
-				)
+				popup_btn1.pressed.connect(func(): popup_dialog.hide())
 
 		"encounter":
 			if GameState.flags.get(obj_id, false):
@@ -743,11 +764,7 @@ func _trigger_object(obj: Dictionary) -> void:
 			popup_title.text = en_name
 			popup_text.text = _get_encounter_desc(obj_id, en_name)
 			popup_btn1.text = "⚔ В БОЙ! (Тактическая арена)"
-			popup_btn1.pressed.connect(func():
-				SoundManager.play_sfx("sword_hit")
-				GameState.pending_battle_id = obj_id
-				get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
-			)
+			popup_btn1.pressed.connect(func(): _start_battle(obj_id))
 			popup_btn2.visible = true
 			popup_btn2.text = "⚡ Быстрый бой (Авторасчет)"
 			popup_btn2.pressed.connect(func(): _execute_quick_combat(obj_id))
@@ -760,21 +777,25 @@ func _trigger_object(obj: Dictionary) -> void:
 			popup_title.text = "Логово Атамана Разбойников"
 			popup_text.text = "Перед вами главная цитадель разбойников!\nЗдесь засел свирепый Атаман со сворой волков и оскверненным древнем [Тьма (50+ врагов)]!\n\nОни охраняют похищенный Венец Королевы Фей!"
 			popup_btn1.text = "⚔ СОКРУШИТЬ АТАМАНА!"
-			popup_btn1.pressed.connect(func():
-				SoundManager.play_sfx("sword_hit")
-				GameState.pending_battle_id = "bandit_boss"
-				get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
-			)
+			popup_btn1.pressed.connect(func(): _start_battle("bandit_boss"))
 			popup_btn2.visible = true
 			popup_btn2.text = "⚡ Быстрый бой"
 			popup_btn2.pressed.connect(func(): _execute_quick_combat("bandit_boss"))
 
 		"obelisk":
 			popup_title.text = "Древний Обелиск Силы"
-			if GameState.flags.get(obj_id, false):
-				popup_text.text = "Древние письмена потускнели. Обелиск уже даровал вам свою благодать."
-				popup_btn1.text = "Отойти"
-				popup_btn1.pressed.connect(func(): popup_dialog.hide())
+			# Сначала благословение (один раз), затем — найм стражей, если их отряд разбит.
+			# Раньше ветки взаимно исключали друг друга: получив одно, второе было уже не получить.
+			if not GameState.flags.get(obj_id, false):
+				popup_text.text = "Прикоснувшись к руническому монолиту, вы чувствуете, как тело наполняется силой легендарных героев прошлого!\n\n+2 к Атаке, +2 к Защите!"
+				popup_btn1.text = "Принять силу предков"
+				popup_btn1.pressed.connect(func():
+					SoundManager.play_sfx("spell_cast")
+					GameState.attack += 2
+					GameState.defense += 2
+					GameState.flags[obj_id] = true
+					popup_dialog.hide()
+				)
 			elif GameState.flags.get("patrol_obelisk", false):
 				var avail_sg: int = GameState.dwelling_stock.get("obelisk_guard", 0)
 				var sg_cost := 200
@@ -783,6 +804,9 @@ func _trigger_object(obj: Dictionary) -> void:
 					popup_text.text += "\n\n" + tr("В наличии: %d страж(а) (по %d золота). Казна: %d.") % [avail_sg, sg_cost, GameState.gold]
 					popup_btn1.text = tr("Нанять Каменного Стража (%d зол.)") % sg_cost
 					popup_btn1.pressed.connect(func():
+						if not GameState.can_add_units("stone_guardian"):
+							_show_army_full_popup("stone_guardian")
+							return
 						if GameState.spend_gold(sg_cost):
 							SoundManager.play_sfx("coin")
 							GameState.dwelling_stock["obelisk_guard"] -= 1
@@ -794,20 +818,14 @@ func _trigger_object(obj: Dictionary) -> void:
 					popup_btn1.text = tr("Отойти")
 					popup_btn1.pressed.connect(func(): popup_dialog.hide())
 			else:
-				popup_text.text = "Прикоснувшись к руническому монолиту, вы чувствуете, как тело наполняется силой легендарных героев прошлого!\n\n+2 к Атаке, +2 к Защите!"
-				popup_btn1.text = "Принять силу предков"
-				popup_btn1.pressed.connect(func():
-					SoundManager.play_sfx("spell_cast")
-					GameState.attack += 2
-					GameState.defense += 2
-					GameState.flags[obj_id] = true
-					popup_dialog.hide()
-				)
+				popup_text.text = "Древние письмена потускнели. Обелиск уже даровал вам свою благодать."
+				popup_btn1.text = "Отойти"
+				popup_btn1.pressed.connect(func(): popup_dialog.hide())
 
 		"fairy_shrine":
 			if GameState.quest_completed:
 				popup_title.text = "Священная Роща Королевы Фей"
-				popup_text.text = "Королева Фей тепло улыбается вам:\n\n«Свет и гармония вернулись в сказочный лес. Спасибо за верность и отвагу, сэр Аларик! Вы навсегда наш великий герой и спаситель!»"
+				popup_text.text = "Королева Фей тепло улыбается вам:\n\n«Свет и гармония вернулись в сказочный лес. Спасибо за верность и отвагу, %s! Вы навсегда наш великий герой и спаситель!»" % GameState.hero_form("nom")
 				popup_btn1.text = "Благодарю вас!"
 				for conn in popup_btn1.pressed.get_connections():
 					popup_btn1.pressed.disconnect(conn.callable)
@@ -821,6 +839,9 @@ func _trigger_object(obj: Dictionary) -> void:
 					for conn in popup_btn2.pressed.get_connections():
 						popup_btn2.pressed.disconnect(conn.callable)
 					popup_btn2.pressed.connect(func():
+						if not GameState.can_add_units("royal_pegasus"):
+							_show_army_full_popup("royal_pegasus")
+							return
 						if GameState.spend_gold(avail_pg * pg_cost):
 							SoundManager.play_sfx("coin")
 							GameState.dwelling_stock["shrine_pegasus"] -= avail_pg
@@ -843,8 +864,8 @@ func _trigger_object(obj: Dictionary) -> void:
 				_update_quest_hud()
 				
 				victory_title.text = "👑 ПОБЕДА В ГЛАВЕ 1: ЗАЧАРОВАННЫЙ ЛЕС! 👑"
-				victory_text.text = "Королева Фей со слезами радости принимает священный Венец из рук сэра Аларика!\n\nИзумрудный свет озаряет древний лес, рассеивая последние чары тьмы. Но тревожные вести приходят из Топей Скорби: Древний Лич поднимает армии нежити!\n\n★ ИТОГИ ГЛАВЫ 1: ★\n• Дней в походе: %d\n• Золото в казне: %d монет\n• Уровень Героя: %d (%s)\n• Награда Королевы: 8 Королевских Грифонов!\n\nГотовы ли вы выступить во вторую главу кампании?" % [
-					GameState.day, GameState.gold, GameState.level, GameState.hero_title
+				victory_text.text = "Королева Фей со слезами радости принимает священный Венец из рук %s!\n\nИзумрудный свет озаряет древний лес, рассеивая последние чары тьмы. Но тревожные вести приходят из Топей Скорби: Древний Лич поднимает армии нежити!\n\n★ ИТОГИ ГЛАВЫ 1: ★\n• Дней в походе: %d\n• Золото в казне: %d монет\n• Уровень Героя: %d (%s)\n• Награда Королевы: 8 Грифонов и 4 Королевских Пегаса!\n\nГотовы ли вы выступить во вторую главу кампании?" % [
+					GameState.hero_form("gen"), GameState.day, GameState.gold, GameState.level, GameState.hero_title
 				]
 				victory_continue_btn.text = "⚔ В поход: Глава 2 (Проклятые Топи) ⚔"
 				victory_dialog.move_to_front()
@@ -861,16 +882,16 @@ func _trigger_object(obj: Dictionary) -> void:
 		"witch_hut":
 			popup_title.text = "Хижина Болотной Ведьмы"
 			if GameState.quest_completed:
-				popup_text.text = "«Слава паладину! Топи снова чисты от скверны нежити!»"
+				popup_text.text = "«Слава %s! Топи снова чисты от скверны нежити!»" % GameState.hero_form("title_dat")
 				popup_btn1.text = "Поклониться"
 				popup_btn1.pressed.connect(func(): popup_dialog.hide())
 			elif GameState.flags.get("witch_hut_visited", false):
-				popup_text.text = "«Костяные Врата ждут вас, паладин! Разрушьте цитадель Лича на востоке!»"
+				popup_text.text = "«Костяные Врата ждут вас, %s! Разрушьте цитадель Лича на востоке!»" % GameState.hero_form("title")
 				popup_btn1.text = "Я в пути!"
 				popup_btn1.pressed.connect(func(): popup_dialog.hide())
 			else:
 				popup_title.text = "Квест: Проклятые Топи"
-				popup_text.text = "Болотная ведунья мешает зелье в котле:\n\n«Приветствую, сэр Аларик! Древний Лич восстал из затонувших склепов и погрузил край в вечный туман. Он запер перевал Костяными Вратами.\n\nВозьмите этот Костяной Ключ! Пробейтесь через нежить, уничтожьте Лича и очистите древний Алтарь Друидов!»"
+				popup_text.text = "Болотная ведунья мешает зелье в котле:\n\n«Приветствую, %s! Древний Лич восстал из затонувших склепов и погрузил край в вечный туман. Он запер перевал Костяными Вратами.\n\nВозьмите этот Костяной Ключ! Пробейтесь через нежить, уничтожьте Лича и очистите древний Алтарь Друидов!»" % GameState.hero_form("nom")
 				popup_btn1.text = "Принять Костяной Ключ"
 				popup_btn1.pressed.connect(func():
 					SoundManager.play_sfx("victory")
@@ -896,13 +917,7 @@ func _trigger_object(obj: Dictionary) -> void:
 			else:
 				popup_text.text = "Зловещие Костяные Врата наглухо сомкнуты. От них веет смертельным холодом.\n\nВам нужен Костяной Ключ! (Посетите Хижину Болотной Ведьмы на юго-западе)."
 				popup_btn1.text = "Отступить"
-				popup_btn1.pressed.connect(func():
-					world_view.hero_cell = Vector2i(13, 11)
-					world_view.hero_pixel_pos = world_view.cell_to_pixel(Vector2i(13, 11))
-					world_view.queue_redraw()
-					GameState.hero_cell = Vector2i(13, 11)
-					popup_dialog.hide()
-				)
+				popup_btn1.pressed.connect(func(): popup_dialog.hide())
 
 		"dragon_gate":
 			popup_title.text = "Огненные Врата Ущелья"
@@ -942,7 +957,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				popup_btn1.text = "Поклониться"
 				popup_btn1.pressed.connect(func(): popup_dialog.hide())
 			else:
-				popup_text.text = "Алтарь позволяет обучить ваших воинов тайным боевым искусствам:\n\n• Феи получают Двойной Выстрел (стреляют дважды за раунд!)\n• Грифоны получают Бесконечный Отпор на все атаки врагов!\n\nКазна: %d золота" % GameState.gold
+				popup_text.text = "Алтарь позволяет обучить ваших воинов тайным боевым искусствам:\n\n• Феи получают Двойной Выстрел (стреляют дважды за раунд!)\n• Грифоны становятся Королевскими: быстрее, крепче и бьют сильнее!\n\nКазна: %d золота" % GameState.gold
 				if GameState.gold >= upgrade_cost:
 					popup_btn1.text = upgrade_name
 					var target_slot = upgrade_slot
@@ -987,7 +1002,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				popup_btn1.text = "Продолжить путь"
 				popup_btn1.pressed.connect(func(): popup_dialog.hide())
 			else:
-				popup_text.text = "Мастера кузнечного дела перековывают ваши доспехи и мечи!\n\n+2 к Атаке, +2 к Защите паладина!"
+				popup_text.text = "Мастера кузнечного дела перековывают ваши доспехи и мечи!\n\n+2 к Атаке, +2 к Защите %s!" % GameState.hero_form("title_gen")
 				popup_btn1.text = "Принять работу кузнецов"
 				popup_btn1.pressed.connect(func():
 					SoundManager.play_sfx("sword_hit")
@@ -1005,11 +1020,7 @@ func _trigger_object(obj: Dictionary) -> void:
 			popup_title.text = "Цитадель Древнего Лича"
 			popup_text.text = "Перед вами оплот черного колдовства!\nДревний Лич поднимает легион скелетов и болотных зомби!\n\nОни охраняют Перстень Архимага!"
 			popup_btn1.text = "⚔ СОКРУШИТЬ ЛИЧА!"
-			popup_btn1.pressed.connect(func():
-				SoundManager.play_sfx("sword_hit")
-				GameState.pending_battle_id = "lich_boss"
-				get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
-			)
+			popup_btn1.pressed.connect(func(): _start_battle("lich_boss"))
 			popup_btn2.visible = true
 			popup_btn2.text = "⚡ Быстрый бой"
 			popup_btn2.pressed.connect(func(): _execute_quick_combat("lich_boss"))
@@ -1022,11 +1033,7 @@ func _trigger_object(obj: Dictionary) -> void:
 			popup_title.text = "Пик Красного Дракона"
 			popup_text.text = "Перед вами владыка пламени — легендарный Красный Дракон!\nВоздух дрожит от нестерпимого жара!\n\nЭто финальная битва за судьбу Королевства!"
 			popup_btn1.text = "⚔ БРОСИТЬ ВЫЗОВ ДРАКОНУ!"
-			popup_btn1.pressed.connect(func():
-				SoundManager.play_sfx("sword_hit")
-				GameState.pending_battle_id = "dragon_boss"
-				get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
-			)
+			popup_btn1.pressed.connect(func(): _start_battle("dragon_boss"))
 			popup_btn2.visible = true
 			popup_btn2.text = "⚡ Быстрый бой"
 			popup_btn2.pressed.connect(func(): _execute_quick_combat("dragon_boss"))
@@ -1034,7 +1041,7 @@ func _trigger_object(obj: Dictionary) -> void:
 		"druid_altar":
 			if GameState.quest_completed:
 				popup_title.text = "Алтарь Очищения Топей"
-				popup_text.text = "Друиды благодарят сэра Аларика:\n\n«Спасибо за избавление, паладин! Проклятие снято навсегда!»"
+				popup_text.text = "Друиды благодарят %s:\n\n«Спасибо за избавление, %s! Проклятие снято навсегда!»" % [GameState.hero_form("acc"), GameState.hero_form("title")]
 				popup_btn1.text = "Слава Свету!"
 				popup_btn1.pressed.connect(func(): popup_dialog.hide())
 				_show_popup_dialog()
@@ -1053,6 +1060,7 @@ func _trigger_object(obj: Dictionary) -> void:
 					GameState.day, GameState.gold, GameState.level
 				]
 				victory_continue_btn.text = "⚔ В поход: Глава 3 (Пик Дракона) ⚔"
+				victory_dialog.move_to_front()
 				victory_dialog.show()
 				return
 			else:
@@ -1066,7 +1074,7 @@ func _trigger_object(obj: Dictionary) -> void:
 		"royal_citadel", "dragon_altar":
 			if GameState.quest_completed:
 				popup_title.text = "Королевская Цитадель"
-				popup_text.text = "«Да здравствует сэр Аларик, величайший защитник Королевства!»"
+				popup_text.text = "«Да здравствует %s, величайший защитник Королевства!»" % GameState.hero_form("nom")
 				popup_btn1.text = "Благодарю!"
 				popup_btn1.pressed.connect(func(): popup_dialog.hide())
 				_show_popup_dialog()
@@ -1080,8 +1088,8 @@ func _trigger_object(obj: Dictionary) -> void:
 				_update_hud()
 				_update_quest_hud()
 				victory_title.text = "👑 ВЕЛИКИЙ ТРИУМФ ВСЕЙ КАМПАНИИ! 👑"
-				victory_text.text = "Красный Дракон повержен! Владыка небес склонился перед доблестью паладина Аларика!\n\nВсе угрозы Королевству устранены, реликвии возвращены, а мир воцарился во всех землях на тысячу лет!\n\n★ ИТОГИ ВЕЛИКОЙ КАМПАНИИ: ★\n• Пройдено глав: 3 из 3\n• Дней в походе: %d\n• Золото в казне: %d\n• Уровень Героя: %d\n• Артефакты: Полный комплект реликвий Королевства!\n\nКороль жалует вам высший титул «Маршал Королевства»!" % [
-					GameState.day, GameState.gold, GameState.level
+				victory_text.text = "Красный Дракон повержен! Владыка небес склонился перед доблестью %s!\n\nВсе угрозы Королевству устранены, реликвии возвращены, а мир воцарился во всех землях на тысячу лет!\n\n★ ИТОГИ ВЕЛИКОЙ КАМПАНИИ: ★\n• Пройдено глав: 3 из 3\n• Дней в походе: %d\n• Золото в казне: %d\n• Уровень Героя: %d\n• Артефакты: Полный комплект реликвий Королевства!\n\nКороль жалует вам высший титул «Маршал Королевства»!" % [
+					GameState.hero_form("gen"), GameState.day, GameState.gold, GameState.level
 				]
 				victory_continue_btn.text = "Завершить кампанию"
 				victory_dialog.move_to_front()
@@ -1101,116 +1109,39 @@ func _show_popup_dialog() -> void:
 	popup_dialog.move_to_front()
 	popup_dialog.visible = true
 
+## Снимает обработчики с кнопок общего попапа. Вызывать перед каждой новой настройкой:
+## иначе обработчик прошлого объекта (сундук, мельница, обелиск) сработает повторно.
+func _reset_popup_buttons() -> void:
+	for btn in [popup_btn1, popup_btn2]:
+		for conn in btn.pressed.get_connections():
+			btn.pressed.disconnect(conn.callable)
+	popup_btn1.visible = true
+	popup_btn2.visible = false
+
+## Бой кампании: после него всегда возвращаемся на карту (флаги Арены сбрасываем).
+func _start_battle(battle_id: String) -> void:
+	SoundManager.play_sfx("sword_hit")
+	GameState.pending_battle_id = battle_id
+	GameState.is_demo_battle = false
+	GameState.battle_return_scene = GameState.WORLD_MAP_SCENE
+	get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
+
+## В войске нет места для отряда: сообщаем вместо того, чтобы молча брать золото.
+func _show_army_full_popup(unit_id: String) -> void:
+	_reset_popup_buttons()
+	popup_title.text = tr("Войско полно")
+	popup_text.text = tr("Отряд «%s» некуда поставить: в войске уже %d отрядов разных существ.\n\nОбъедините одинаковые отряды или освободите слот и возвращайтесь!") % [
+		tr(str(UnitData.get_unit(unit_id).get("name", unit_id))), GameState.MAX_ARMY_SLOTS
+	]
+	popup_btn1.text = tr("Понятно")
+	popup_btn1.pressed.connect(func(): popup_dialog.hide())
+	_show_popup_dialog()
+
 func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable()) -> void:
-	# 1. Determine enemy army for this encounter
-	var enemy_army: Array[Dictionary] = []
-	var battle_name = "Вражеский отряд"
-	# Chapter 1 Encounters
-	if battle_id == "patrol_wolves":
-		battle_name = "Стая Волков"
-		enemy_army = [{"unit_id": "wolf", "count": 16}]
-	elif battle_id == "patrol_goblins":
-		battle_name = "Шайка Гоблинов"
-		enemy_army = [{"unit_id": "goblin", "count": 24}, {"unit_id": "wolf", "count": 6}]
-	elif battle_id == "patrol_forester":
-		battle_name = "Засада Разбойников"
-		enemy_army = [{"unit_id": "goblin", "count": 18}, {"unit_id": "wolf", "count": 8}]
-	elif battle_id == "patrol_grove":
-		battle_name = "Страж Рощи"
-		enemy_army = [{"unit_id": "treant", "count": 3}, {"unit_id": "wolf", "count": 10}]
-	elif battle_id == "patrol_1":
-		battle_name = "Авангард Разбойников"
-		enemy_army = [{"unit_id": "goblin", "count": 25}, {"unit_id": "wolf", "count": 12}]
-	elif battle_id == "patrol_rogues":
-		battle_name = "Дозор Стрелков"
-		enemy_army = [{"unit_id": "goblin", "count": 26}, {"unit_id": "wolf", "count": 14}]
-	elif battle_id == "patrol_obelisk":
-		battle_name = "Стража Обелиска"
-		enemy_army = [{"unit_id": "treant", "count": 3}, {"unit_id": "goblin", "count": 20}, {"unit_id": "wolf", "count": 10}]
-	elif battle_id == "bandit_boss":
-		battle_name = "Атаман Разбойников"
-		enemy_army = [
-			{"unit_id": "goblin", "count": 35},
-			{"unit_id": "wolf", "count": 18},
-			{"unit_id": "treant", "count": 5}
-		]
-	# Chapter 2 Encounters
-	elif battle_id == "swamp_patrol_road":
-		battle_name = "Болотные Зомби"
-		enemy_army = [{"unit_id": "swamp_zombie", "count": 18}]
-	elif battle_id == "swamp_patrol_fens":
-		battle_name = "Скелеты Топей"
-		enemy_army = [{"unit_id": "skeleton_archer", "count": 20}]
-	elif battle_id == "swamp_patrol_gate":
-		battle_name = "Костяная Стража"
-		enemy_army = [{"unit_id": "skeleton_archer", "count": 22}, {"unit_id": "swamp_zombie", "count": 14}]
-	elif battle_id == "swamp_patrol_east":
-		battle_name = "Легион Смерти"
-		enemy_army = [{"unit_id": "skeleton_archer", "count": 24}, {"unit_id": "swamp_zombie", "count": 18}]
-	elif battle_id == "swamp_patrol_ruins":
-		battle_name = "Стражи Гробниц"
-		enemy_army = [{"unit_id": "lich", "count": 4}, {"unit_id": "skeleton_archer", "count": 20}, {"unit_id": "swamp_zombie", "count": 12}]
-	elif battle_id == "lich_boss":
-		battle_name = "Древний Лич"
-		enemy_army = [
-			{"unit_id": "skeleton_archer", "count": 32},
-			{"unit_id": "swamp_zombie", "count": 22},
-			{"unit_id": "lich", "count": 8}
-		]
-	# Chapter 3 Encounters
-	elif battle_id in ["dragon_patrol_pass", "dragon_patrol", "patrol_dragon"]:
-		battle_name = "Огненный Дозор"
-		enemy_army = [{"unit_id": "skeleton_archer", "count": 20}, {"unit_id": "griffin", "count": 8}]
-	elif battle_id == "dragon_patrol_gate":
-		battle_name = "Стража Врат"
-		enemy_army = [{"unit_id": "skeleton_archer", "count": 22}, {"unit_id": "goblin", "count": 25}, {"unit_id": "wolf", "count": 14}]
-	elif battle_id == "dragon_patrol_caldera":
-		battle_name = "Слуги Дракона"
-		enemy_army = [{"unit_id": "goblin", "count": 25}, {"unit_id": "wolf", "count": 16}, {"unit_id": "treant", "count": 4}]
-	elif battle_id == "dragon_patrol_citadel":
-		battle_name = "Лавовые Хищники"
-		enemy_army = [{"unit_id": "griffin", "count": 12}, {"unit_id": "goblin", "count": 22}]
-	elif battle_id == "dragon_boss":
-		battle_name = "Красный Дракон"
-		enemy_army = [
-			{"unit_id": "wolf", "count": 25},
-			{"unit_id": "red_dragon", "count": 3},
-			{"unit_id": "treant", "count": 8}
-		]
-	elif battle_id in ["swamp_patrol", "patrol_swamp"]:
-		battle_name = "Болотный дозор"
-		enemy_army = [
-			{"unit_id": "skeleton_archer", "count": 18},
-			{"unit_id": "swamp_zombie", "count": 14}
-		]
-	elif battle_id == "patrol_2":
-		battle_name = "Разбойничий дозор"
-		enemy_army = [
-			{"unit_id": "goblin", "count": 22},
-			{"unit_id": "wolf", "count": 12}
-		]
-	else:
-		if GameState.current_chapter == 2:
-			battle_name = "Болотная нежить"
-			enemy_army = [
-				{"unit_id": "skeleton_archer", "count": 16},
-				{"unit_id": "swamp_zombie", "count": 12},
-				{"unit_id": "wolf", "count": 10}
-			]
-		elif GameState.current_chapter == 3:
-			battle_name = "Стража ущелья"
-			enemy_army = [
-				{"unit_id": "goblin", "count": 25},
-				{"unit_id": "wolf", "count": 16},
-				{"unit_id": "treant", "count": 4}
-			]
-		else:
-			battle_name = "Лесные разбойники"
-			enemy_army = [
-				{"unit_id": "goblin", "count": 18},
-				{"unit_id": "wolf", "count": 9},
-				{"unit_id": "treant", "count": 2}
-			]
+	# 1. Состав вражеского отряда — из EncounterData, общего с тактическим боем
+	var encounter: Dictionary = EncounterData.get_encounter(battle_id, GameState.current_chapter)
+	var battle_name: String = encounter["name"]
+	var enemy_army: Array[Dictionary] = EncounterData.get_army(battle_id, GameState.current_chapter)
 
 	# 2. Calculate combat power
 	var hero_att = GameState.get_total_attack() if GameState.has_method("get_total_attack") else GameState.attack
@@ -1240,10 +1171,7 @@ func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable())
 
 	# 3. Resolve Outcome
 	popup_dialog.hide()
-	for conn in popup_btn1.pressed.get_connections():
-		popup_btn1.pressed.disconnect(conn.callable)
-	for conn in popup_btn2.pressed.get_connections():
-		popup_btn2.pressed.disconnect(conn.callable)
+	_reset_popup_buttons()
 
 	if player_power >= enemy_power * 0.70:
 		SoundManager.play_sfx("victory")
@@ -1251,6 +1179,7 @@ func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable())
 		var casualties_desc = ""
 		
 		# Apply losses
+		var army_before: Array = GameState.player_army.duplicate(true)
 		for idx in range(GameState.player_army.size()):
 			var st = GameState.player_army[idx]
 			var lost = int(ceil(float(st["count"]) * loss_ratio * (0.8 if idx == 0 else 0.2)))
@@ -1261,6 +1190,14 @@ func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable())
 				casualties_desc += "• %s: потеряно %d\n" % [u.get("name", "Воины"), lost]
 		if casualties_desc == "":
 			casualties_desc = "• Без потерь! Безупречная тактическая победа!\n"
+		GameState.record_battle_losses(army_before, GameState.player_army)
+		match battle_id:
+			"bandit_boss":
+				GameState.unlock_feat("boss_bandit")
+			"lich_boss":
+				GameState.unlock_feat("boss_lich")
+			"dragon_boss":
+				GameState.unlock_feat("boss_dragon")
 
 		var reward_gold = 750
 		var reward_xp = 550
@@ -1580,10 +1517,7 @@ func _show_astrologers_popup(ev: Dictionary) -> void:
 	SoundManager.play_sfx("victory")
 	popup_btn1.visible = true
 	popup_btn2.visible = false
-	for conn in popup_btn1.pressed.get_connections():
-		popup_btn1.pressed.disconnect(conn.callable)
-	for conn in popup_btn2.pressed.get_connections():
-		popup_btn2.pressed.disconnect(conn.callable)
+	_reset_popup_buttons()
 	popup_title.text = "📜 АСТРОЛОГИ ОБЪЯВЛЯЮТ... 📜"
 	popup_text.text = ev.get("description", "")
 	popup_btn1.text = "Да будет так!"
@@ -1594,10 +1528,7 @@ func _show_crown_recovered_popup() -> void:
 	SoundManager.play_sfx("victory")
 	popup_btn1.visible = true
 	popup_btn2.visible = false
-	for conn in popup_btn1.pressed.get_connections():
-		popup_btn1.pressed.disconnect(conn.callable)
-	for conn in popup_btn2.pressed.get_connections():
-		popup_btn2.pressed.disconnect(conn.callable)
+	_reset_popup_buttons()
 	popup_title.text = "★ ВЕНЕЦ КОРОЛЕВЫ ФЕЙ ДОБЫТ! ★"
 	popup_text.text = "Атаман разбойников повержен, и вся долина избавлена от зла!\n\nСвященный Венец озаряет ваши доспехи древним золотым светом!\n\nСкорее доставьте Венец Королеве Фей в Священную Рощу (27, 4) на северо-востоке для празднования великой победы и завершения кампании!"
 	popup_btn1.text = "В Священную Рощу!"
@@ -1608,10 +1539,7 @@ func _show_lich_defeated_popup() -> void:
 	SoundManager.play_sfx("victory")
 	popup_btn1.visible = true
 	popup_btn2.visible = false
-	for conn in popup_btn1.pressed.get_connections():
-		popup_btn1.pressed.disconnect(conn.callable)
-	for conn in popup_btn2.pressed.get_connections():
-		popup_btn2.pressed.disconnect(conn.callable)
+	_reset_popup_buttons()
 	popup_title.text = "★ ДРЕВНИЙ ЛИЧ СОКРУШЕН! ★"
 	popup_text.text = "Черный владыка топей обращен в прах! Перстень Архимага в ваших руках!\n\nСпешите к Алтарю Друидов (27, 4) на северо-востоке, чтобы завершить очищение края и получить благословение природы!"
 	popup_btn1.text = "К Алтарю Друидов!"
@@ -1622,10 +1550,7 @@ func _show_dragon_defeated_popup() -> void:
 	SoundManager.play_sfx("victory")
 	popup_btn1.visible = true
 	popup_btn2.visible = false
-	for conn in popup_btn1.pressed.get_connections():
-		popup_btn1.pressed.disconnect(conn.callable)
-	for conn in popup_btn2.pressed.get_connections():
-		popup_btn2.pressed.disconnect(conn.callable)
+	_reset_popup_buttons()
 	popup_title.text = "★ КРАСНЫЙ ДРАКОН ПОВЕРЖЕН! ★"
 	popup_text.text = "Легендарный владыка пламени повержен! Панцирь Древнего Стража сияет на ваших плечах!\n\nВступайте в Королевскую Цитадель (27, 4) для коронации и триумфального завершения Великой Кампании!"
 	popup_btn1.text = "В Королевскую Цитадель!"
@@ -1706,6 +1631,7 @@ func _cast_scrying() -> void:
 	world_view.queue_redraw()
 	_update_hud()
 	$CanvasLayer/SpellbookDialog.hide()
+	_reset_popup_buttons()
 	popup_title.text = "Око Орла"
 	popup_text.text = "Великий магический взор пронзает пелену тумана! Окрестные земли и тайные тропы открыты вашему взору!"
 	popup_btn1.text = "Превосходно!"
@@ -1713,19 +1639,36 @@ func _cast_scrying() -> void:
 	_show_popup_dialog()
 
 func _cast_restoration() -> void:
-	if not GameState.spend_mana(15):
+	if GameState.current_mana < 15:
 		SoundManager.play_sfx("click")
 		return
-	SoundManager.play_sfx("spell_cast")
-	for slot in GameState.player_army:
-		slot["count"] += maxi(1, int(slot["count"] * 0.2))
-	GameState.state_changed.emit()
-	_update_hud()
 	$CanvasLayer/SpellbookDialog.hide()
+	_reset_popup_buttons()
 	popup_title.text = "Благодать Похода"
-	popup_text.text = "Священная энергия наполняет лагерь рыцаря! Раненые воины исцелены, и ряды войска пополнены (+20% бойцов во всех отрядах)!"
-	popup_btn1.text = "Во славу Королевства!"
 	popup_btn1.pressed.connect(func(): popup_dialog.hide())
+	# Возвращает только павших в боях: раньше +20% к каждому отряду без ограничений
+	# вместе с источником маны давали бесконечную армию.
+	if GameState.fallen_units.is_empty():
+		SoundManager.play_sfx("click")
+		popup_text.text = "Все воины в строю — Благодати некого возвращать. Мана не потрачена."
+		popup_btn1.text = "Понятно"
+		_show_popup_dialog()
+		return
+	var restored: Dictionary = GameState.restore_fallen_units()
+	if restored.is_empty():
+		SoundManager.play_sfx("click")
+		popup_text.text = "Павшие готовы вернуться, но в войске нет места для их отряда. Мана не потрачена."
+		popup_btn1.text = "Понятно"
+		_show_popup_dialog()
+		return
+	GameState.spend_mana(15)
+	SoundManager.play_sfx("spell_cast")
+	var lines: Array[String] = []
+	for uid in restored.keys():
+		lines.append("• %s: +%d" % [tr(str(UnitData.get_unit(uid).get("name", uid))), int(restored[uid])])
+	_update_hud()
+	popup_text.text = "Священная энергия наполняет лагерь! Павшие в боях воины возвращаются в строй:\n\n" + "\n".join(lines)
+	popup_btn1.text = "Во славу Королевства!"
 	_show_popup_dialog()
 
 ## Клетка текущей сюжетной цели — для маркера на миникарте и стрелки у героя.
@@ -1954,7 +1897,7 @@ func _process_next_level_up() -> void:
 		
 	var info: Dictionary = GameState.pending_level_ups[0]
 	SoundManager.play_sfx("victory")
-	level_sub_lbl.text = tr("Рыцарь Аларик достигает %d уровня!") % info["level"]
+	level_sub_lbl.text = tr("%s достигает %d уровня!") % [GameState.hero_name, info["level"]]
 	level_stat_lbl.text = tr("✦ Основной атрибут: +1 к %s!") % info["stat"]
 	
 	var options: Array = info.get("options", [])
@@ -2473,8 +2416,7 @@ func _show_day_tip() -> void:
 		return
 	if not GameState.last_astrologers_event.is_empty():
 		return
-	for conn in popup_btn1.pressed.get_connections():
-		popup_btn1.pressed.disconnect(conn.callable)
+	_reset_popup_buttons()
 	popup_btn2.visible = false
 	popup_title.text = tr("💡 Совет дня")
 	popup_text.text = DAY_TIPS[randi() % DAY_TIPS.size()]
@@ -2483,8 +2425,7 @@ func _show_day_tip() -> void:
 	_show_popup_dialog()
 
 func _show_no_mp_hint() -> void:
-	for conn in popup_btn1.pressed.get_connections():
-		popup_btn1.pressed.disconnect(conn.callable)
+	_reset_popup_buttons()
 	popup_btn2.visible = false
 	popup_title.text = tr("Марш прерван")
 	popup_text.text = tr("Очки хода исчерпаны. Завершите день (клавиша E или кнопка \"Завершить день\"), чтобы выступить в новый путь!")
@@ -2632,14 +2573,16 @@ func _open_dwelling_popup(obj_id: String) -> void:
 		return
 	popup_text.text = tr(str(reg.get("intro", ""))) % [stock, cost, GameState.gold]
 	var max_can_buy: int = mini(stock, GameState.gold / cost)
-	for conn in popup_btn1.pressed.get_connections():
-		popup_btn1.pressed.disconnect(conn.callable)
+	_reset_popup_buttons()
 	if max_can_buy <= 0:
 		popup_btn1.text = tr("Недостаточно золота (нужно хотя бы %d зол.)") % cost
 		popup_btn1.pressed.connect(func(): popup_dialog.hide())
 	else:
 		popup_btn1.text = tr(str(reg.get("hire_btn", ""))) % [max_can_buy, max_can_buy * cost]
 		popup_btn1.pressed.connect(func():
+			if not GameState.can_add_units(str(reg.get("unit", ""))):
+				_show_army_full_popup(str(reg.get("unit", "")))
+				return
 			if GameState.spend_gold(max_can_buy * cost):
 				SoundManager.play_sfx("coin")
 				GameState.dwelling_stock[str(reg.get("stock_key", ""))] -= max_can_buy
@@ -2787,10 +2730,7 @@ func _toggle_pause_menu() -> void:
 			pause_dialog.hide()
 
 func _show_chapter_intro() -> void:
-	for conn in popup_btn1.pressed.get_connections():
-		popup_btn1.pressed.disconnect(conn.callable)
-	for conn in popup_btn2.pressed.get_connections():
-		popup_btn2.pressed.disconnect(conn.callable)
+	_reset_popup_buttons()
 	popup_btn2.visible = false
 
 	match GameState.current_chapter:
@@ -2837,7 +2777,7 @@ func _get_encounter_desc(obj_id: String, en_name: String) -> String:
 		"swamp_patrol_ruins":
 			return "Жуткие личи и скелеты охраняют проклятые сокровища древнего склепа!\nРазведка доносит: [Тьма (4 лича, 20 скелетов, 12 зомби)]."
 		"dragon_patrol_pass":
-			return "Огненный дозор ущелья преграждает путь по горной тропе!\nРазведка доносит: [Орда (24 гоблина, 16 волков)]."
+			return "Огненный дозор ущелья преграждает путь по горной тропе!\nРазведка доносит: [Отряд (20 скелетов-лучников, 8 грифонов)]."
 		"dragon_patrol_gate":
 			return "Стража Огненных Врат охраняет вход в цитадель перевала!\nРазведка доносит: [Орда (22 скелета, 25 гоблинов, 14 волков)]."
 		"dragon_patrol_caldera":

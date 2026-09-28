@@ -7,7 +7,7 @@ const BattleStack = preload("res://src/battle/battle_stack.gd")
 
 ## Сколько секунд даём всему прогону. Если скрипт упал посреди набора,
 ## _ready() обрывается и до _finish() не доходит — тогда прогон завершает сторож.
-const WATCHDOG_SEC := 300.0
+const WATCHDOG_SEC := 120.0
 
 ## Считает ошибки движка и скриптов (SCRIPT ERROR, push_error) во время прогона.
 ## Ошибка в коде игры не обрывает тест, поэтому без счётчика она осталась бы незамеченной.
@@ -56,7 +56,7 @@ func _finish(timed_out: bool = false) -> void:
 		get_tree().quit(1)
 		return
 	print("\n==========================================")
-	print("   ALL 39 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 40 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	get_tree().quit(0)
 
@@ -266,10 +266,15 @@ func _ready() -> void:
 	var post_scry_count = GameState.revealed_cells.size()
 	_check(post_scry_count >= pre_scry_count, "Scrying spell must reveal cells on world map")
 	GameState.current_mana = 30
+	# Благодать возвращает только павших в боях
+	GameState.fallen_units = {GameState.player_army[0]["unit_id"]: 4}
 	var prev_count = GameState.player_army[0]["count"]
 	wmap_node2._cast_restoration()
-	_check(GameState.player_army[0]["count"] > prev_count, "Restoration spell must replenish troops in army")
+	_check(GameState.player_army[0]["count"] == prev_count + 4, "Restoration spell must return fallen troops to the army")
 	_check(GameState.current_mana == 15, "Restoration must consume 15 mana")
+	var army_snapshot = str(GameState.player_army)
+	wmap_node2._cast_restoration()
+	_check(str(GameState.player_army) == army_snapshot and GameState.current_mana == 15, "Restoration without fallen troops must neither grow the army nor spend mana")
 	print("  -> Adventure spells (Scrying & Divine Restoration) cast and verified!")
 
 	# 14. Test Unit Upgrades
@@ -1170,8 +1175,169 @@ func _ready() -> void:
 	arena_39.queue_free()
 	print("  -> Army split/merge, forester quest chain and battle outcome flags verified!")
 
+	# 40. Regression: exploits and campaign flow bugs found in review
+	print("[TEST] 40. Testing Regressions: reward dupes, restoration, saves, gates, morale...")
+	await _check_regressions()
+	print("  -> Reward dupes, unbounded restoration, save order, gates, weekly events and auto-battle verified!")
+
 	await get_tree().process_frame
 	_finish()
+
+func _check_regressions() -> void:
+	GameState.reset()
+	GameState.start_chapter(1)
+	var wm = load("res://src/world/world_map.tscn").instantiate()
+	add_child(wm)
+	await get_tree().process_frame
+	wm.popup_dialog.hide()
+	var wv = wm.world_view
+
+	# Награда объекта не должна выдаваться повторно через «Око Орла»
+	var gold0 = GameState.gold
+	wm._trigger_object(wv.objects[Vector2i(10, 4)])
+	wm.popup_btn1.emit_signal("pressed")
+	GameState.current_mana = 100
+	wm._cast_scrying()
+	wm.popup_btn1.emit_signal("pressed")
+	_check(GameState.gold == gold0 + 500, "Mill reward must not repeat after casting Eagle Eye (gold %d)" % GameState.gold)
+	var att0 = GameState.attack
+	wm._trigger_object(wv.objects[Vector2i(27, 18)])
+	wm.popup_btn1.emit_signal("pressed")
+	wm._cast_scrying()
+	wm.popup_btn1.emit_signal("pressed")
+	_check(GameState.attack == att0 + 2, "Obelisk blessing must be granted exactly once (attack %d)" % GameState.attack)
+
+	# Источник маны — раз в день
+	var fountain = wv.objects[Vector2i(4, 4)]
+	GameState.current_mana = 0
+	wm._trigger_object(fountain)
+	wm.popup_btn1.emit_signal("pressed")
+	_check(GameState.current_mana == GameState.max_mana, "Fountain must restore mana")
+	GameState.current_mana = 0
+	wm._trigger_object(fountain)
+	wm.popup_btn1.emit_signal("pressed")
+	_check(GameState.current_mana == 0, "Fountain must restore mana only once per day")
+
+	# Обелиск: после благословения и победы над стражей можно нанять Каменного Стража
+	GameState.flags["patrol_obelisk"] = true
+	GameState.gold = 5000
+	wm._trigger_object(wv.objects[Vector2i(27, 18)])
+	wm.popup_btn1.emit_signal("pressed")
+	_check(GameState.player_army.any(func(s): return s["unit_id"] == "stone_guardian"), "Obelisk must offer Stone Guardians after its blessing")
+
+	# Покупка при полном войске не должна списывать золото
+	GameState.player_army = [
+		{"unit_id": "griffin", "count": 1}, {"unit_id": "fairy_archer", "count": 1},
+		{"unit_id": "treant", "count": 1}, {"unit_id": "druid", "count": 1},
+		{"unit_id": "royal_fairy", "count": 1}]
+	GameState.gold = 5000
+	GameState.merchant_offers = [{"kind": "units", "id": "wolf", "count": 5, "price": 400}]
+	_check(not GameState.buy_merchant_offer(0) and GameState.gold == 5000, "Merchant must not take gold when the army is full")
+
+	# Запертые врата не пропускают героя без ключа
+	GameState.player_army = [{"unit_id": "griffin", "count": 6}]
+	GameState.has_gate_key = false
+	wv.hero_cell = Vector2i(13, 11)
+	wv.hero_pixel_pos = wv.cell_to_pixel(Vector2i(13, 11))
+	GameState.move_points = 50
+	await wm._move_hero_along_path([Vector2i(14, 11), Vector2i(15, 11), Vector2i(16, 11)] as Array[Vector2i])
+	_check(wv.hero_cell == Vector2i(13, 11), "Locked gate must stop the hero in front of it (hero at %s)" % str(wv.hero_cell))
+	_check(wm.popup_dialog.visible and "Врата" in wm.popup_title.text, "Locked gate must open its dialog from the adjacent cell")
+	wm.popup_dialog.hide()
+	_check(WorldNavigator.find_path(Vector2i(13, 11), Vector2i(16, 11), wv.get_path_obstacles(Vector2i(16, 11)), Rect2i(0, 0, wv.MAP_COLS, wv.MAP_ROWS), wv.road_cells).is_empty(), "Route must not lead through a locked gate")
+
+	# Тексты обращаются к текущему герою
+	GameState.set_hero_class("archmage")
+	GameState.quest_forester_started = false
+	GameState.quest_completed = false
+	wm._trigger_object(wv.objects[Vector2i(7, 18)])
+	_check("Элеонора" in wm.popup_text.text and not "Аларик" in wm.popup_text.text, "Forester must address the current hero")
+	wm.queue_free()
+	await get_tree().process_frame
+
+	# «Неделя Доблести» и «Неделя Магии» действуют только неделю
+	GameState.reset()
+	GameState.day = 28
+	var base_att = GameState.get_total_attack()
+	GameState.next_day()
+	_check(GameState.get_total_attack() == base_att + 2, "Week of Valor must grant +2 attack")
+	for i in 7:
+		GameState.next_day()
+	_check(GameState.get_total_attack() == base_att, "Week of Valor bonus must expire after the week")
+	GameState.day = 21
+	var base_mana = GameState.get_total_max_mana()
+	GameState.next_day()
+	_check(GameState.max_mana == base_mana + 20, "Week of Magic must raise max mana by 20")
+	for i in 7:
+		GameState.next_day()
+	_check(GameState.max_mana == base_mana, "Week of Magic bonus must expire after the week")
+
+	# Бой: «Исцеление» поднимает павших, победа сохраняет войско уже с потерями
+	GameState.reset()
+	GameState.start_chapter(1)
+	GameState.current_mana = 100
+	GameState.pending_battle_id = "patrol_wolves"
+	var ba = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(ba)
+	await get_tree().process_frame
+	var fairy: BattleStack = null
+	var griffin: BattleStack = null
+	for s in ba.all_stacks:
+		if s.unit_id == "fairy_archer":
+			fairy = s
+		elif s.unit_id == "griffin":
+			griffin = s
+	fairy.take_damage(16 * 3 + 5)
+	var heal_res: Dictionary = fairy.heal(108)
+	_check(fairy.count == 18 and fairy.current_hp == 16, "Heal must revive fallen fairies up to the starting count")
+	_check(heal_res.healed == 53 and heal_res.revived == 3, "Heal must report what it actually restored")
+	var dmg_target: BattleStack = null
+	for s in ba.all_stacks:
+		if s.team == 1:
+			dmg_target = s
+	dmg_target.has_acted = true
+	dmg_target.debuff_entangle_turns = ba._debuff_duration(1, dmg_target)
+	dmg_target.reset_round()
+	_check(dmg_target.get_speed() == 0, "Entangle applied after the target acted must still hold on its next turn")
+	for s in ba.all_stacks:
+		if s.team == 1:
+			s.count = 0
+	griffin.count = 1
+	ba._show_victory(true)
+	var saved: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(GameState.SAVE_PATH))
+	var saved_griffins := 0
+	for slot in saved["player_army"]:
+		if slot["unit_id"] == "griffin":
+			saved_griffins = int(slot["count"])
+	_check(saved_griffins == 1, "Victory must save the army after losses (griffins on disk: %d)" % saved_griffins)
+	_check(int(GameState.fallen_units.get("griffin", 0)) == 5, "Fallen griffins must be remembered for restoration")
+	_check(GameState.is_feat_unlocked("first_blood"), "First victory must unlock the 'first_blood' feat")
+	ba.queue_free()
+	await get_tree().process_frame
+
+	# После Арены бой кампании снова возвращает на карту
+	GameState.setup_demo_battle("normal", "balanced", "forest_bandits")
+	var demo = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(demo)
+	await get_tree().process_frame
+	GameState.reset()
+	_check(GameState.battle_return_scene == GameState.WORLD_MAP_SCENE, "New campaign must return from battles to the world map")
+	demo.queue_free()
+	await get_tree().process_frame
+
+	# Автобой не должен вставать после дополнительного хода от боевого духа
+	GameState.reset()
+	GameState.start_chapter(1)
+	GameState.skills["leadership"] = 10
+	GameState.pending_battle_id = "patrol_wolves"
+	var auto_ba = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(auto_ba)
+	await get_tree().process_frame
+	auto_ba._toggle_auto_battle()
+	await get_tree().create_timer(6.0).timeout
+	_check(auto_ba.current_round > 1 or auto_ba.victory_dialog.visible, "Auto-battle must keep going after a morale extra turn (round %d)" % auto_ba.current_round)
+	auto_ba.queue_free()
+	await get_tree().process_frame
 
 ## Статическая сверка: конвейер не должен уметь закоммитить ссылку на юнит,
 ## заклинание или ресурс, которых нет в данных (так ломались пегасы и музыка карты).

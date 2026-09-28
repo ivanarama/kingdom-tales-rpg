@@ -585,7 +585,7 @@ text = "🌿 Благодать Похода (15 маны)"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.18, 0.1, 1)
 theme_override_font_sizes/font_size = 13
-text = "Восстанавливает +20% воинов во всех отрядах вашей армии прямо в походе."
+text = "Возвращает в строй павших в боях: до (3 + Сила Магии) воинов каждого вида. Мана тратится, только если есть кого вернуть."
 autowrap_mode = 2
 
 [node name="RestBtn" type="Button" parent="CanvasLayer/SpellbookDialog/Parchment/Margin/MainVBox/Scroll/ContentVBox/AdvCardsHBox/RestCard/CardVBox"]

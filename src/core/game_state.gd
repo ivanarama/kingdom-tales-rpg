@@ -16,7 +16,20 @@ var hero_name: String = "Рыцарь Аларик"
 var hero_title: String = "Паладин Королевства"
 var hero_portrait: String = "res://assets/art/portraits/hero_alaric.jpg"
 var hero_class_id: String = "paladin"
-var battle_return_scene: String = "res://src/world/world_map.tscn"
+const WORLD_MAP_SCENE := "res://src/world/world_map.tscn"
+var battle_return_scene: String = WORLD_MAP_SCENE
+
+# Как обращаться к герою в диалогах: падежные формы для каждого класса
+const HERO_FORMS: Dictionary = {
+	"paladin": {"nom": "сэр Аларик", "gen": "сэра Аларика", "dat": "сэру Аларику", "acc": "сэра Аларика", "title": "паладин", "title_gen": "паладина", "title_dat": "паладину"},
+	"archmage": {"nom": "госпожа Элеонора", "gen": "госпожи Элеоноры", "dat": "госпоже Элеоноре", "acc": "госпожу Элеонору", "title": "чародейка", "title_gen": "чародейки", "title_dat": "чародейке"},
+	"ranger": {"nom": "следопыт Торн", "gen": "следопыта Торна", "dat": "следопыту Торну", "acc": "следопыта Торна", "title": "следопыт", "title_gen": "следопыта", "title_dat": "следопыту"}
+}
+
+## Форма обращения к герою: nom/gen/dat/acc — имя, title/title_gen/title_dat — звание.
+func hero_form(key: String) -> String:
+	var forms: Dictionary = HERO_FORMS.get(hero_class_id, HERO_FORMS["paladin"])
+	return str(forms.get(key, forms["nom"]))
 
 # Demo Battle / Arena parameters
 var is_demo_battle: bool = false
@@ -41,6 +54,13 @@ var leadership: int = 350
 
 var current_mana: int = 40
 var max_mana: int = 40
+
+# Бонусы недельных событий астрологов: действуют до начала следующей недели
+var weekly_attack_bonus: int = 0
+var weekly_mana_bonus: int = 0
+
+# Павшие в боях воины: unit_id -> количество. Их возвращает «Благодать Похода».
+var fallen_units: Dictionary = {}
 
 var gold: int = 1500
 var day: int = 1
@@ -106,7 +126,7 @@ func get_set_bonuses() -> Dictionary:
 	return ArtifactData.get_active_set_bonuses(equipped_artifacts)
 
 func get_total_attack() -> int:
-	var total = attack
+	var total = attack + weekly_attack_bonus
 	for slot in equipped_artifacts.keys():
 		var art = ArtifactData.get_artifact(equipped_artifacts[slot])
 		total += art.get("attack_bonus", 0)
@@ -138,7 +158,7 @@ func get_total_knowledge() -> int:
 	return total
 
 func get_total_max_mana() -> int:
-	var total = 40 + (knowledge - 4) * 10
+	var total = 40 + (knowledge - 4) * 10 + weekly_mana_bonus
 	for slot in equipped_artifacts.keys():
 		var art = ArtifactData.get_artifact(equipped_artifacts[slot])
 		total += art.get("mana_bonus", 0)
@@ -253,6 +273,14 @@ func add_xp(amount: int) -> void:
 		unlock_feat("hero_level5")
 	state_changed.emit()
 
+## Сколько опыта нужно на следующий уровень, если герой сейчас на уровне lvl
+## (та же прогрессия, что в add_xp: 1000, затем ×1.5 за уровень).
+static func xp_to_next_level(lvl: int) -> int:
+	var need := 1000
+	for i in range(1, lvl):
+		need = int(need * 1.5)
+	return need
+
 # Army stacks (up to 5 slots)
 var player_army: Array[Dictionary] = [
 	{"unit_id": "griffin", "count": 6},
@@ -310,18 +338,58 @@ func spend_mana(cost: int) -> bool:
 		return true
 	return false
 
-func add_units_to_army(unit_id: String, count: int) -> void:
+const MAX_ARMY_SLOTS := 5
+
+## Есть ли в войске место для этого существа: свой отряд или свободный слот.
+func can_add_units(unit_id: String) -> bool:
+	for slot in player_army:
+		if slot["unit_id"] == unit_id:
+			return true
+	return player_army.size() < MAX_ARMY_SLOTS
+
+## Добавляет воинов в войско. false — если места нет (войско не изменилось).
+func add_units_to_army(unit_id: String, count: int) -> bool:
 	if not UnitData.has_unit(unit_id):
 		push_error("GameState: unknown unit_id '%s' not added to army" % unit_id)
-		return
+		return false
 	for slot in player_army:
 		if slot["unit_id"] == unit_id:
 			slot["count"] += count
 			state_changed.emit()
-			return
-	if player_army.size() < 5:
+			return true
+	if player_army.size() < MAX_ARMY_SLOTS:
 		player_army.append({"unit_id": unit_id, "count": count})
 		state_changed.emit()
+		return true
+	return false
+
+## Запоминает павших: разница между войском до боя и после.
+func record_battle_losses(before: Array, after: Array) -> void:
+	var after_counts := {}
+	for slot in after:
+		after_counts[slot["unit_id"]] = after_counts.get(slot["unit_id"], 0) + int(slot["count"])
+	var before_counts := {}
+	for slot in before:
+		before_counts[slot["unit_id"]] = before_counts.get(slot["unit_id"], 0) + int(slot["count"])
+	for uid in before_counts.keys():
+		var lost: int = before_counts[uid] - int(after_counts.get(uid, 0))
+		if lost > 0:
+			fallen_units[uid] = int(fallen_units.get(uid, 0)) + lost
+
+## «Благодать Похода»: возвращает павших — до (3 + Сила Магии) воинов каждого вида,
+## но не больше, чем погибло. Возвращает {unit_id: сколько вернулось}.
+func restore_fallen_units() -> Dictionary:
+	var per_kind: int = 3 + get_total_spellpower()
+	var restored := {}
+	for uid in fallen_units.keys():
+		var amount: int = mini(int(fallen_units[uid]), per_kind)
+		if amount <= 0 or not add_units_to_army(uid, amount):
+			continue
+		restored[uid] = amount
+		fallen_units[uid] = int(fallen_units[uid]) - amount
+		if fallen_units[uid] <= 0:
+			fallen_units.erase(uid)
+	return restored
 
 func upgrade_army_unit(slot_idx: int) -> bool:
 	if slot_idx < 0 or slot_idx >= player_army.size():
@@ -437,6 +505,9 @@ func buy_merchant_offer(idx: int) -> bool:
 	if idx < 0 or idx >= merchant_offers.size():
 		return false
 	var offer: Dictionary = merchant_offers[idx]
+	# Отряд некуда поставить — золото не списываем
+	if offer["kind"] != "artifact" and not can_add_units(str(offer["id"])):
+		return false
 	if not spend_gold(int(offer["price"])):
 		return false
 	if offer["kind"] == "artifact":
@@ -455,6 +526,11 @@ func next_day() -> void:
 	max_mana = get_total_max_mana()
 	current_mana = mini(max_mana, current_mana + mana_regen)
 	if day % 7 == 1:
+		# Бонусы прошлой недели заканчиваются вместе с ней
+		weekly_attack_bonus = 0
+		weekly_mana_bonus = 0
+		max_mana = get_total_max_mana()
+		current_mana = mini(max_mana, current_mana)
 		flags["watermill"] = false
 		dwelling_stock["fairy_camp"] = dwelling_stock.get("fairy_camp", 0) + 14
 		dwelling_stock["druid_camp"] = dwelling_stock.get("druid_camp", 0) + 8
@@ -479,12 +555,12 @@ func next_day() -> void:
 				{
 					"id": "week_of_magic",
 					"name": "Неделя Магии",
-					"description": "Астрологи объявляют Неделю Магии!\n\nЭфирные потоки насыщают разум героя. Запас маны полностью восстановлен, а предел маны увеличен на +20!"
+					"description": "Астрологи объявляют Неделю Магии!\n\nЭфирные потоки насыщают разум героя. Запас маны полностью восстановлен, а до конца недели предел маны увеличен на +20!"
 				},
 				{
 					"id": "week_of_valor",
 					"name": "Неделя Воинской Доблести",
-					"description": "Астрологи объявляют Неделю Воинской Доблести!\n\nВсе отряды королевства вдохновлены боевым духом (+2 к Атаке героя)!"
+					"description": "Астрологи объявляют Неделю Воинской Доблести!\n\nВсе отряды королевства вдохновлены боевым духом: +2 к Атаке героя до конца недели!"
 				}
 			]
 			var ev_idx = ((day / 7) - 1) % events.size()
@@ -496,10 +572,11 @@ func next_day() -> void:
 				"week_of_gold":
 					add_gold(1000)
 				"week_of_magic":
-					max_mana = get_total_max_mana() + 20
+					weekly_mana_bonus = 20
+					max_mana = get_total_max_mana()
 					current_mana = max_mana
 				"week_of_valor":
-					attack += 2
+					weekly_attack_bonus = 2
 			last_astrologers_event = ev
 		else:
 			last_astrologers_event.clear()
@@ -514,6 +591,12 @@ func next_day() -> void:
 func start_chapter(chapter_num: int) -> void:
 	current_chapter = chapter_num
 	day = 1
+	weekly_attack_bonus = 0
+	weekly_mana_bonus = 0
+	last_astrologers_event.clear()
+	# Торговец прошлой главы стоял на клетке её карты — в новой главе его место неизвестно
+	merchant_cell = Vector2i(-99, -99)
+	merchant_offers.clear()
 	max_move_points = get_total_max_mp()
 	move_points = max_move_points
 	max_mana = get_total_max_mana()
@@ -653,6 +736,11 @@ func reset() -> void:
 	leadership = 350
 	gold = 1500
 	day = 1
+	weekly_attack_bonus = 0
+	weekly_mana_bonus = 0
+	fallen_units.clear()
+	last_astrologers_event.clear()
+	battle_return_scene = WORLD_MAP_SCENE
 	skills = {
 		"leadership": 1
 	}
@@ -709,7 +797,7 @@ func reset() -> void:
 	state_changed.emit()
 
 const SAVE_PATH := "user://savegame.json"
-const CURRENT_SAVE_VERSION := 3
+const CURRENT_SAVE_VERSION := 4
 const SAVE_SLOTS: Array[String] = ["user://savegame.json", "user://save_slot_1.json", "user://save_slot_2.json", "user://save_slot_3.json"]
 
 func get_newest_save_path() -> String:
@@ -866,9 +954,12 @@ func save_game(path: String = SAVE_PATH) -> bool:
 		"revealed_cells": rev_arr,
 		"dwelling_stock": dwelling_stock,
 		"pending_level_ups": pending_level_ups,
-		"last_astrologers_event": last_astrologers_event
+		"last_astrologers_event": last_astrologers_event,
+		"weekly_attack_bonus": weekly_attack_bonus,
+		"weekly_mana_bonus": weekly_mana_bonus,
+		"fallen_units": fallen_units
 	}
-	
+
 	# Бэкап предыдущего сохранения перед записью
 	if FileAccess.file_exists(path):
 		var bak := path + ".bak"
@@ -889,6 +980,9 @@ func _migrate_save(data: Dictionary) -> Dictionary:
 	# v1 -> v2: saved_at/pending_level_ups/last_astrologers_event читаются
 	# через .get() с дефолтами — явная миграция не требуется.
 	# v2 -> v3: campaign_difficulty/merchant_* тоже опциональны.
+	# v3 -> v4: weekly_*_bonus и fallen_units опциональны (по умолчанию 0 / пусто).
+	# В сохранениях до v4 «Неделя Доблести» навсегда прибавляла +2 к атаке —
+	# вернуть это уже нельзя, прибавка остаётся в базовой атаке.
 	data["version"] = CURRENT_SAVE_VERSION
 	return data
 
@@ -917,7 +1011,18 @@ func load_game(path: String = SAVE_PATH) -> bool:
 		if data.is_empty():
 			return false
 	data = _migrate_save(data)
-		
+	# Загрузка всегда ведёт в кампанию: флаги Арены из этой сессии не должны пережить её
+	is_demo_battle = false
+	battle_return_scene = WORLD_MAP_SCENE
+	weekly_attack_bonus = int(data.get("weekly_attack_bonus", 0))
+	weekly_mana_bonus = int(data.get("weekly_mana_bonus", 0))
+	fallen_units.clear()
+	var raw_fallen = data.get("fallen_units", {})
+	if raw_fallen is Dictionary:
+		for uid in raw_fallen.keys():
+			if UnitData.has_unit(str(uid)) and int(raw_fallen[uid]) > 0:
+				fallen_units[str(uid)] = int(raw_fallen[uid])
+
 	hero_class_id = data.get("hero_class_id", "paladin")
 	hero_name = data.get("hero_name", hero_name)
 	hero_title = data.get("hero_title", hero_title)
