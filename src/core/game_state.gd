@@ -412,6 +412,48 @@ var dwelling_stock: Dictionary = {
 	"fairy_camp": 14
 }
 
+# Павшие в боях: возвращаются «Благодатью Похода» (до 3 + Сила Магии каждого вида)
+var fallen_units: Array[Dictionary] = []
+
+func add_fallen_units(unit_id: String, count: int) -> void:
+	if count <= 0:
+		return
+	for f in fallen_units:
+		if f["unit_id"] == unit_id:
+			f["count"] += count
+			return
+	fallen_units.append({"unit_id": unit_id, "count": count})
+
+## «Благодать Похода»: возвращает павших, не больше (3 + Сила Магии) воинов
+## каждого вида. Возвращает сводку для попапа.
+func restore_fallen_units() -> Dictionary:
+	var cap := 3 + get_total_spellpower()
+	var total := 0
+	var per_stack: Array[String] = []
+	for slot in player_army:
+		var cap_left := cap
+		for f in fallen_units:
+			if f["unit_id"] == slot["unit_id"] and int(f["count"]) > 0 and cap_left > 0:
+				var take: int = mini(int(f["count"]), cap_left)
+				slot["count"] += take
+				f["count"] -= take
+				cap_left -= take
+				total += take
+		if total > 0 and cap_left < cap:
+			pass
+	fallen_units = fallen_units.filter(func(f): return int(f["count"]) > 0)
+	return {"restored": total}
+
+## Форма обращения к герою в диалогах (падежи/род зависят от класса).
+func hero_form() -> String:
+	match hero_class_id:
+		"archmage":
+			return "леди Элеонора"
+		"ranger":
+			return "мастер Торн"
+		_:
+			return "сэр Аларик"
+
 # Бродячий торговец: 2 предложения в неделю (артефакт + подкрепление)
 var merchant_cell := Vector2i(-99, -99)
 var merchant_offers: Array[Dictionary] = []
@@ -555,7 +597,7 @@ func start_chapter(chapter_num: int) -> void:
 	dwelling_stock.clear()
 	merchant_cell = Vector2i(-99, -99)
 	merchant_offers.clear()
-	merchant_offers.clear()
+	fallen_units.clear()
 	pending_battle.clear()
 	
 	match chapter_num:
@@ -734,6 +776,8 @@ func reset() -> void:
 	campaign_difficulty = "normal"
 	merchant_cell = Vector2i(-99, -99)
 	merchant_offers.clear()
+	fallen_units.clear()
+	battle_return_scene = "res://src/world/world_map.tscn"
 	dwelling_stock = {"fairy_camp": 14, "shrine_pegasus": 2, "forester_fox": 6, "obelisk_guard": 1}
 	state_changed.emit()
 
@@ -894,6 +938,7 @@ func save_game(path: String = SAVE_PATH) -> bool:
 		"hero_cell": [hero_cell.x, hero_cell.y],
 		"revealed_cells": rev_arr,
 		"dwelling_stock": dwelling_stock,
+		"fallen_units": fallen_units,
 		"pending_level_ups": pending_level_ups,
 		"last_astrologers_event": last_astrologers_event
 	}
@@ -1019,6 +1064,12 @@ func load_game(path: String = SAVE_PATH) -> bool:
 	var raw_ev = data.get("last_astrologers_event", {})
 	if raw_ev is Dictionary:
 		last_astrologers_event = raw_ev
+	fallen_units.clear()
+	var raw_fu = data.get("fallen_units", [])
+	if raw_fu is Array:
+		for item in raw_fu:
+			if item is Dictionary:
+				fallen_units.append({"unit_id": str(item.get("unit_id", "")), "count": int(item.get("count", 0))})
 
 	var mc = data.get("merchant_cell", [-99, -99])
 	if mc is Array and mc.size() >= 2:

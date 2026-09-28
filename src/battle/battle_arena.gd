@@ -66,6 +66,7 @@ var is_auto_battling: bool = false
 var is_fast_forward: bool = false
 var speed_btn: Button
 var enemy_spell_charges: int = 0 # сколько раз Лич может колдовать за бой
+var army_start_snapshot: Array[Dictionary] = [] # численность на начало боя (для fallen_units)
 var battle_stats: Dictionary = {}
 
 # Rewards scale with defeated enemy strength (computed at battle start)
@@ -293,6 +294,10 @@ func _init_battle() -> void:
 		Vector2i(0, 4),
 		Vector2i(0, 5)
 	]
+	army_start_snapshot.clear()
+	for item in player_army:
+		if item["count"] > 0:
+			army_start_snapshot.append({"unit_id": str(item["unit_id"]), "count": int(item["count"])})
 	var diff := GameState.get_difficulty_multipliers(GameState.campaign_difficulty)
 	for i in range(min(player_army.size(), player_hexes.size())):
 		var item = player_army[i]
@@ -762,10 +767,14 @@ func _execute_attack(attacker: BattleStack, defender: BattleStack, is_melee: boo
 		if defender.is_alive():
 			if attacker.data.get("disease", false) or attacker.unit_id == "swamp_zombie":
 				defender.debuff_disease_turns = 2
+				if defender.has_acted:
+					defender.debuff_disease_turns += 1 # цель походила: эффект продлевается
 				_spawn_floating_text(defender.hex, "☣ БОЛЕЗНЬ! (-25% АТАКИ)", Color(0.5, 0.9, 0.2), Vector2(0, -48))
 				log_combat(tr("☣ Трупный яд заражает %s: атака снижена на 25%% на 2 раунда!") % tr(defender.data.name))
 			elif (attacker.data.get("entangle", false) or attacker.unit_id == "treant") and randf() < 0.35:
 				defender.debuff_entangle_turns = 1
+				if defender.has_acted:
+					defender.debuff_entangle_turns += 1 # цель походила: эффект продлевается
 				_spawn_floating_text(defender.hex, "🌿 КОРНИ (0 ХОДОВ)", Color(0.2, 0.85, 0.3), Vector2(0, -48))
 				log_combat(tr("🌿 Корни древня оплетают %s, лишая возможности двигаться на 1 раунд!") % tr(defender.data.name))
 		
@@ -891,10 +900,11 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 			arena_viewport.flash_stack(target_stack)
 			var cur_sp = GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower
 			var heal_amount = 60 + cur_sp * 16
-			target_stack.heal(heal_amount)
-			_spawn_floating_text(target_stack.hex, tr("+%d HP") % heal_amount, Color(0.3, 1.0, 0.4))
+			var heal_res: Dictionary = target_stack.heal(heal_amount)
+			var healed: int = int(heal_res["healed"])
+			_spawn_floating_text(target_stack.hex, tr("+%d HP") % healed, Color(0.3, 1.0, 0.4))
 			log_combat(tr("Исцеление: отряд %s восстанавливает %d ед. здоровья!") % [
-				tr(target_stack.data.name), heal_amount
+				tr(target_stack.data.name), healed
 			])
 		"bless":
 			SoundManager.play_sfx("spell_cast")
@@ -1165,6 +1175,16 @@ func _show_victory(won: bool) -> void:
 			int(battle_stats.get("enemy_losses", 0)), int(battle_stats.get("player_losses", 0))
 		]
 
+		# Павшие в победном бою попадают в Летопись павших — их вернёт «Благодать»
+		for snap in army_start_snapshot:
+			var surviving := 0
+			for st in all_stacks:
+				if st.team == 0 and st.unit_id == str(snap["unit_id"]):
+					surviving += st.count
+			var fallen: int = maxi(0, int(snap["count"]) - surviving)
+			if fallen > 0:
+				GameState.add_fallen_units(str(snap["unit_id"]), fallen)
+
 		# Save that enemy on the map is defeated
 		if GameState.pending_battle_id != "":
 			GameState.flags[GameState.pending_battle_id] = true
@@ -1210,6 +1230,7 @@ func _on_victory_continue() -> void:
 	SoundManager.play_sfx("click")
 	var is_demo = GameState.is_demo_battle
 	var target = GameState.battle_return_scene if GameState.battle_return_scene != "" else "res://src/world/world_map.tscn"
+	GameState.battle_return_scene = "" # точка возврата одноразовая (PR #2)
 	if is_demo or target == "res://src/main.tscn":
 		GameState.is_demo_battle = false
 		var pref = SoundManager.load_music_preference()
@@ -1331,15 +1352,27 @@ func _setup_spell_buttons() -> void:
 		var sdata = SpellData.get_spell(spell_id)
 		if sdata.get("category", "combat") != "combat":
 			continue
+		# Иконка с подписью (PR #3): на телефоне подсказок нет
+		var cell = VBoxContainer.new()
+		cell.add_theme_constant_override("separation", 2)
 		var btn = TextureButton.new()
-		btn.custom_minimum_size = Vector2(80, 80)
+		btn.custom_minimum_size = Vector2(72, 72)
 		btn.ignore_texture_size = true
 		btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 		if ResourceLoader.exists(sdata.icon_path):
 			btn.texture_normal = load(sdata.icon_path)
 		btn.tooltip_text = "%s (%d маны)\n%s" % [tr(sdata.name), sdata.mana_cost, sdata.description]
 		btn.pressed.connect(func(): _on_spell_selected(spell_id))
-		container.add_child(btn)
+		cell.add_child(btn)
+		var lbl = Label.new()
+		lbl.text = tr(str(sdata.name))
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override("font_size", 11)
+		lbl.add_theme_color_override("font_color", Color(0.95, 0.9, 0.7))
+		lbl.custom_minimum_size = Vector2(76, 0)
+		lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		cell.add_child(lbl)
+		container.add_child(cell)
 
 func _on_spell_selected(spell_id: String) -> void:
 	var sdata = SpellData.get_spell(spell_id)
@@ -1446,7 +1479,7 @@ func _gui_input(event: InputEvent) -> void:
 							])
 							return
 						pending_attack_target = null
-						_handle_player_attack(clicked_stack)
+						_handle_player_attack(clicked_stack, event.position)
 						return
 					else:
 						# Direct tap on non-attackable stack (ally or distant enemy) opens Unit Inspector
@@ -1619,7 +1652,7 @@ func _show_attack_forecast(target: BattleStack) -> void:
 	hovered_forecast = current_actor.get_damage_range(target, is_melee_attack, hovered_is_broken)
 	arena_viewport.queue_redraw()
 
-func _handle_player_attack(target: BattleStack) -> void:
+func _handle_player_attack(target: BattleStack, tap_pos: Vector2 = Vector2.INF) -> void:
 	var is_shooter = current_actor.data.get("is_ranged", false)
 	var is_blocked = is_shooter and current_actor.is_blocked_by_enemy(all_stacks)
 	var dist = HexGrid.distance(current_actor.hex, target.hex)
@@ -1629,10 +1662,20 @@ func _handle_player_attack(target: BattleStack) -> void:
 	else:
 		# Melee: move adjacent if not already adjacent
 		if HexGrid.distance(current_actor.hex, target.hex) > 1:
+			# Встаём с той стороны цели, куда тапнули; при равенстве — ближе к себе (PR #3)
+			var best_hex := Vector2i(-99, -99)
+			var best_score := 999999.0
 			for r_hex in reachable_hexes:
-				if HexGrid.distance(r_hex, target.hex) == 1:
-					current_actor.hex = r_hex
-					break
+				if HexGrid.distance(r_hex, target.hex) != 1:
+					continue
+				var mid: Vector2 = (HexGrid.hex_to_pixel(r_hex.x, r_hex.y, HEX_SIZE, grid_origin)
+					+ HexGrid.hex_to_pixel(target.hex.x, target.hex.y, HEX_SIZE, grid_origin)) * 0.5
+				var score: float = mid.distance_to(tap_pos) if tap_pos != Vector2.INF else float(HexGrid.distance(r_hex, current_actor.hex))
+				if score < best_score:
+					best_score = score
+					best_hex = r_hex
+			if best_hex != Vector2i(-99, -99):
+				current_actor.hex = best_hex
 		_execute_attack(current_actor, target, true)
 
 func _update_initiative_bar() -> void:

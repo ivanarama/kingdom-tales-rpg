@@ -278,8 +278,9 @@ theme_override_font_sizes/font_size = 28
 text = "Книга Заклинаний"
 horizontal_alignment = 1
 
-[node name="SpellGrid" type="HBoxContainer" parent="CanvasLayer/SpellbookDialog/Parchment"]
+[node name="SpellGrid" type="GridContainer" parent="CanvasLayer/SpellbookDialog/Parchment"]
 layout_mode = 1
+columns = 5
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5

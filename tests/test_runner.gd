@@ -207,9 +207,15 @@ func _ready() -> void:
 	assert(post_scry_count >= pre_scry_count, "Scrying spell must reveal cells on world map")
 	GameState.current_mana = 30
 	var prev_count = GameState.player_army[0]["count"]
+	# Благодать возвращает только павших в боях (0.3.3): садим павших и проверяем
+	GameState.add_fallen_units(GameState.player_army[0]["unit_id"], 10)
 	wmap_node2._cast_restoration()
-	assert(GameState.player_army[0]["count"] > prev_count, "Restoration spell must replenish troops in army")
+	assert(GameState.player_army[0]["count"] > prev_count, "Restoration spell must return fallen troops to army")
 	assert(GameState.current_mana == 15, "Restoration must consume 15 mana")
+	var fallen_left := 0
+	for f51 in GameState.fallen_units:
+		fallen_left += int(f51["count"])
+	assert(fallen_left < 10, "Fallen pool must shrink after restoration")
 	print("  -> Adventure spells (Scrying & Divine Restoration) cast and verified!")
 
 	# 14. Test Unit Upgrades
@@ -733,8 +739,13 @@ func _ready() -> void:
 	add_child(arena_node_33)
 	var arena_sb_parch = arena_node_33.get_node("CanvasLayer/SpellbookDialog/Parchment") as NinePatchRect
 	assert(arena_sb_parch.offset_right - arena_sb_parch.offset_left >= 650.0, "Arena spellbook parchment must be >= 650px wide")
-	var arena_spell_grid = arena_sb_parch.get_node("SpellGrid") as HBoxContainer
-	assert(arena_spell_grid.offset_right - arena_spell_grid.offset_left >= 550.0, "Arena SpellGrid must be >= 550px wide for 6+ spells")
+	# 0.3.3: SpellGrid теперь GridContainer с подписями под иконками
+	var arena_spell_grid = arena_sb_parch.get_node("SpellGrid") as GridContainer
+	assert(arena_spell_grid.columns == 5, "Arena SpellGrid must have 5 columns for 10 labeled spells")
+	var grid_children := arena_spell_grid.get_child_count()
+	assert(grid_children >= 8, "All combat spells must render as labeled cells")
+	for cell in arena_spell_grid.get_children():
+		assert(cell.get_child_count() >= 2, "Each spell cell must contain an icon and a label")
 	arena_node_33.queue_free()
 	
 	wmap_node_33.queue_free()
@@ -1300,8 +1311,61 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Guarded chest auto-opens and is lootable after guard victory!")
 
+	# 51. Остаток PR: павшие/Благодать, блокирующие объекты, hero_form, can_add_units
+	print("[TEST] 51. Testing Fallen Units, Blocking Objects & Hero Forms...")
+	GameState.reset()
+	# can_add_units
+	GameState.player_army = [{"unit_id": "griffin", "count": 5}]
+	assert(GameState.can_add_units("griffin"), "Same-kind stack always fits")
+	assert(GameState.can_add_units("wolf"), "Free slot accepts new kind")
+	GameState.player_army = [
+		{"unit_id": "griffin", "count": 1},
+		{"unit_id": "wolf", "count": 1},
+		{"unit_id": "goblin", "count": 1},
+		{"unit_id": "druid", "count": 1},
+		{"unit_id": "treant", "count": 1}
+	]
+	assert(not GameState.can_add_units("fairy_archer"), "Full army of distinct kinds must refuse")
+	# fallen_units + restore cap (3 + Spellpower)
+	GameState.player_army = [{"unit_id": "griffin", "count": 3}]
+	GameState.fallen_units = [{"unit_id": "griffin", "count": 10}]
+	GameState.spellpower = 3
+	var res51: Dictionary = GameState.restore_fallen_units()
+	assert(int(res51["restored"]) == 6, "Restore cap = 3 + Spellpower 3 = 6 (got %d)" % int(res51["restored"]))
+	assert(GameState.player_army[0]["count"] == 9, "Griffins must be restored into their stack")
+	assert(GameState.fallen_units.size() == 1 and int(GameState.fallen_units[0]["count"]) == 4, "4 fallen must remain for later")
+	# hero_form
+	GameState.set_hero_class("paladin")
+	assert(GameState.hero_form() == "сэр Аларик", "Paladin form")
+	GameState.set_hero_class("archmage")
+	assert(GameState.hero_form() == "леди Элеонора", "Archmage form")
+	GameState.set_hero_class("paladin")
+	# Блокирующие объекты и маршрут
+	var b_enc = {"type": "encounter", "id": "patrol_1", "name": "x"}
+	assert(WorldView.is_blocking_object(b_enc), "Living encounter must block")
+	GameState.flags["patrol_1"] = true
+	assert(not WorldView.is_blocking_object(b_enc), "Dead encounter must not block")
+	var b_gate = {"type": "gate", "id": "iron_gate"}
+	assert(WorldView.is_blocking_object(b_gate), "Locked gate must block")
+	GameState.flags["iron_gate_opened"] = true
+	assert(not WorldView.is_blocking_object(b_gate), "Opened gate must not block")
+	# Маршрут сквозь запертые врата невозможен, после открытия — возможен
+	var bwm = load("res://src/world/world_map.tscn").instantiate()
+	add_child(bwm)
+	await get_tree().process_frame
+	GameState.flags["iron_gate_opened"] = false
+	var blocked_path: Array[Vector2i] = bwm.world_view.get_path_obstacles(Vector2i(20, 11))
+	var p_locked: Array[Vector2i] = WorldNavigator.find_path(Vector2i(4, 11), Vector2i(20, 11), blocked_path, Rect2i(0, 0, bwm.world_view.MAP_COLS, bwm.world_view.MAP_ROWS), bwm.world_view.road_cells, false)
+	assert(p_locked.is_empty(), "Locked gate must stop the route to the east")
+	GameState.flags["iron_gate_opened"] = true
+	var p_open: Array[Vector2i] = WorldNavigator.find_path(Vector2i(4, 11), Vector2i(20, 11), bwm.world_view.get_path_obstacles(Vector2i(20, 11)), Rect2i(0, 0, bwm.world_view.MAP_COLS, bwm.world_view.MAP_ROWS), bwm.world_view.road_cells, false)
+	assert(not p_open.is_empty(), "Opened gate must let the route through")
+	bwm.queue_free()
+	GameState.reset()
+	print("  -> Fallen/Grace restore, blocking objects, gate routing and hero forms verified!")
+
 	print("\n==========================================")
-	print("   ALL 50 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 51 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame

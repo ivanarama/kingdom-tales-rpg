@@ -533,8 +533,7 @@ func _trigger_guarded_chest(guard: Dictionary, chest: Dictionary) -> void:
 	popup_btn1.text = "⚔ В БОЙ С ОХРАНОЙ!"
 	popup_btn1.pressed.connect(func():
 		SoundManager.play_sfx("sword_hit")
-		GameState.pending_battle_id = guard_id
-		get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
+		_start_battle(guard_id)
 	)
 	
 	popup_btn2.visible = true
@@ -546,6 +545,12 @@ func _trigger_guarded_chest(guard: Dictionary, chest: Dictionary) -> void:
 		)
 	)
 	_show_popup_dialog()
+
+## Запуск тактического боя: точка возврата всегда — карта кампании (PR #2).
+func _start_battle(battle_id: String) -> void:
+	GameState.pending_battle_id = battle_id
+	GameState.battle_return_scene = "res://src/world/world_map.tscn"
+	get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
 
 func _trigger_object(obj: Dictionary) -> void:
 	SoundManager.play_sfx("page_turn")
@@ -765,8 +770,7 @@ func _trigger_object(obj: Dictionary) -> void:
 			popup_btn1.text = "⚔ В БОЙ! (Тактическая арена)"
 			popup_btn1.pressed.connect(func():
 				SoundManager.play_sfx("sword_hit")
-				GameState.pending_battle_id = obj_id
-				get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
+				_start_battle(obj_id)
 			)
 			popup_btn2.visible = true
 			popup_btn2.text = "⚡ Быстрый бой (Авторасчет)"
@@ -782,8 +786,7 @@ func _trigger_object(obj: Dictionary) -> void:
 			popup_btn1.text = "⚔ СОКРУШИТЬ АТАМАНА!"
 			popup_btn1.pressed.connect(func():
 				SoundManager.play_sfx("sword_hit")
-				GameState.pending_battle_id = "bandit_boss"
-				get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
+				_start_battle("bandit_boss")
 			)
 			popup_btn2.visible = true
 			popup_btn2.text = "⚡ Быстрый бой"
@@ -1027,8 +1030,7 @@ func _trigger_object(obj: Dictionary) -> void:
 			popup_btn1.text = "⚔ СОКРУШИТЬ ЛИЧА!"
 			popup_btn1.pressed.connect(func():
 				SoundManager.play_sfx("sword_hit")
-				GameState.pending_battle_id = "lich_boss"
-				get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
+				_start_battle("lich_boss")
 			)
 			popup_btn2.visible = true
 			popup_btn2.text = "⚡ Быстрый бой"
@@ -1044,8 +1046,7 @@ func _trigger_object(obj: Dictionary) -> void:
 			popup_btn1.text = "⚔ БРОСИТЬ ВЫЗОВ ДРАКОНУ!"
 			popup_btn1.pressed.connect(func():
 				SoundManager.play_sfx("sword_hit")
-				GameState.pending_battle_id = "dragon_boss"
-				get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
+				_start_battle("dragon_boss")
 			)
 			popup_btn2.visible = true
 			popup_btn2.text = "⚡ Быстрый бой"
@@ -1118,6 +1119,8 @@ func _trigger_object(obj: Dictionary) -> void:
 	_show_popup_dialog()
 
 func _show_popup_dialog() -> void:
+	# Обращение по классу героя: сэр Аларик / леди Элеонора / мастер Торн
+	popup_text.text = popup_text.text.replace("сэр Аларик", GameState.hero_form())
 	popup_dialog.move_to_front()
 	popup_dialog.visible = true
 
@@ -1652,19 +1655,39 @@ func _cast_scrying() -> void:
 	popup_btn1.pressed.connect(func(): popup_dialog.hide())
 	_show_popup_dialog()
 
+func _restorable_count() -> int:
+	var cap := 3 + (GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower)
+	var total := 0
+	for slot in GameState.player_army:
+		for f in GameState.fallen_units:
+			if f["unit_id"] == slot["unit_id"]:
+				total += mini(int(f["count"]), cap)
+	return total
+
 func _cast_restoration() -> void:
+	var can_restore := _restorable_count()
+	if can_restore <= 0:
+		SoundManager.play_sfx("click")
+		popup_title.text = tr("Благодать Похода")
+		popup_text.text = tr("«В боях никто не пал — возвращать некому. Приходите после сражений!»")
+		popup_btn1.text = tr("Хорошо")
+		_reset_popup_buttons()
+		popup_btn1.pressed.connect(func(): popup_dialog.hide())
+		_show_popup_dialog()
+		return
 	if not GameState.spend_mana(15):
 		SoundManager.play_sfx("click")
 		return
 	SoundManager.play_sfx("spell_cast")
-	for slot in GameState.player_army:
-		slot["count"] += maxi(1, int(slot["count"] * 0.2))
+	var res: Dictionary = GameState.restore_fallen_units()
+	var restored: int = int(res["restored"])
 	GameState.state_changed.emit()
 	_update_hud()
 	$CanvasLayer/SpellbookDialog.hide()
-	popup_title.text = "Благодать Похода"
-	popup_text.text = "Священная энергия наполняет лагерь рыцаря! Раненые воины исцелены, и ряды войска пополнены (+20% бойцов во всех отрядах)!"
-	popup_btn1.text = "Во славу Королевства!"
+	popup_title.text = tr("Благодать Похода")
+	popup_text.text = tr("Священная энергия возвращает павших в боях в строй: %d воинов!") % restored
+	popup_btn1.text = tr("Во славу Королевства!")
+	_reset_popup_buttons()
 	popup_btn1.pressed.connect(func(): popup_dialog.hide())
 	_show_popup_dialog()
 

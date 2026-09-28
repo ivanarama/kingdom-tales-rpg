@@ -9,6 +9,7 @@ var data: Dictionary
 var team: int # 0: Player, 1: Enemy
 var hex: Vector2i
 var count: int
+var start_count: int # численность на начало боя — потолок воскрешения Исцелением
 var current_hp: int
 
 var has_retaliated: bool = false
@@ -35,6 +36,7 @@ func setup(p_unit_id: String, p_count: int, p_team: int, p_hex: Vector2i) -> voi
 	data = UnitData.get_unit(unit_id)
 	team = p_team
 	count = p_count
+	start_count = p_count
 	hex = p_hex
 	current_hp = data.get("max_hp", 20)
 	had_morale_this_round = false
@@ -255,12 +257,22 @@ func is_entangled() -> bool:
 func has_stoneskin() -> bool:
 	return buff_stoneskin_turns > 0
 
+## Исцеление (PR #2): сначала лечит верхнего воина, затем поднимает павших,
+## но не выше численности отряда на начало боя. Возвращает реально восстановленное.
 func heal(amount: int) -> Dictionary:
 	var max_hp: int = data.get("max_hp", 20)
-	var missing_hp := max_hp - current_hp
-	current_hp = mini(max_hp, current_hp + amount)
+	var restored := 0
+	if current_hp < max_hp and amount > 0:
+		var put: int = mini(max_hp - current_hp, amount)
+		current_hp += put
+		amount -= put
+		restored += put
+	while amount >= max_hp and count < start_count:
+		count += 1
+		amount -= max_hp
+		restored += max_hp
 	return {
-		"healed": amount,
+		"healed": restored,
 		"current_hp": current_hp
 	}
 
