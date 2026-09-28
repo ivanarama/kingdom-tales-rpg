@@ -224,8 +224,92 @@ static var UNITS: Dictionary = {
 		"token_path": "res://assets/art/ui/tokens/token_unit_griffin.png",
 		"sprite_path": "res://assets/art/units/unit_griffin.png",
 		"description": "Легендарный владыка огнедышащих пиков. Огненное дыхание пробивает на 2 гекса сквозь строй врагов!"
+	},
+	# Награда Королевы Фей и найм в Роще после главы 1. Арт временно от грифона.
+	"royal_pegasus": {
+		"id": "royal_pegasus",
+		"name": "Королевские Пегасы",
+		"tier": 3,
+		"max_hp": 36,
+		"min_dmg": 7,
+		"max_dmg": 12,
+		"defense": 9,
+		"speed": 8,
+		"initiative": 15,
+		"is_ranged": false,
+		"flying": true,
+		"unlimited_retaliation": false,
+		"natural_faces_left": false,
+		"token_path": "res://assets/art/ui/tokens/token_unit_griffin.png",
+		"sprite_path": "res://assets/art/units/unit_griffin.png",
+		"description": "Крылатые скакуны Королевы Фей. Стремительно облетают поле боя и первыми бросаются в атаку."
+	},
+	# Найм у Лесника после главы 1. Арт временно от волка.
+	"fox_shifter": {
+		"id": "fox_shifter",
+		"name": "Лисы-оборотни",
+		"tier": 2,
+		"max_hp": 24,
+		"min_dmg": 5,
+		"max_dmg": 8,
+		"defense": 6,
+		"speed": 6,
+		"initiative": 13,
+		"is_ranged": false,
+		"flying": false,
+		"unlimited_retaliation": false,
+		"natural_faces_left": true,
+		"token_path": "res://assets/art/ui/tokens/token_unit_wolf.png",
+		"sprite_path": "res://assets/art/units/unit_wolf.png",
+		"description": "Лесные духи в облике лис. Быстры, неуловимы и верны тем, кто вернул лесу свет."
+	},
+	# Найм у Древнего Обелиска после победы над его стражей. Арт временно от древня.
+	"stone_guardian": {
+		"id": "stone_guardian",
+		"name": "Каменные Стражи",
+		"tier": 5,
+		"max_hp": 90,
+		"min_dmg": 12,
+		"max_dmg": 18,
+		"defense": 18,
+		"speed": 3,
+		"initiative": 7,
+		"is_ranged": false,
+		"flying": false,
+		"unlimited_retaliation": false,
+		"natural_faces_left": true,
+		"token_path": "res://assets/art/ui/tokens/token_unit_treant.png",
+		"sprite_path": "res://assets/art/units/unit_treant.png",
+		"description": "Ожившие изваяния Древнего Обелиска. Медлительны, но почти несокрушимы."
 	}
 }
 
 static func get_unit(id: String) -> Dictionary:
 	return UNITS.get(id, {})
+
+static func has_unit(id: String) -> bool:
+	return UNITS.has(id)
+
+## Краткая строка особенностей существа (кодекс, карточки).
+static func get_trait_string(id: String) -> String:
+	var u: Dictionary = get_unit(id)
+	var traits: Array[String] = []
+	if u.get("is_ranged", false):
+		traits.append("Стрелок")
+	if u.get("double_shot", false):
+		traits.append("Двойной выстрел")
+	if u.get("flying", false):
+		traits.append("Летает")
+	if u.get("unlimited_retaliation", false):
+		traits.append("Бесконечный отпор")
+	if u.get("breath_attack", false):
+		traits.append("Огненное дыхание")
+	if u.get("disease", false):
+		traits.append("Трупный яд")
+	if int(u.get("regeneration", 0)) > 0:
+		traits.append("Регенерация +%d HP" % int(u["regeneration"]))
+	if u.get("entangle", false):
+		traits.append("Оплетающие корни")
+	if traits.is_empty():
+		return "Пехота ближнего боя"
+	return " • ".join(traits)

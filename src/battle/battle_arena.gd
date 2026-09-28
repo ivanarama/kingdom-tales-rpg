@@ -136,9 +136,7 @@ func _init_battle() -> void:
 		for i in range(min(p_army.size(), p_hexes.size())):
 			var item = p_army[i]
 			if item.get("count", 0) > 0:
-				var stack = BattleStack.new()
-				stack.setup(item["unit_id"], item["count"], 0, p_hexes[i])
-				all_stacks.append(stack)
+				_spawn_stack(item["unit_id"], item["count"], 0, p_hexes[i])
 		
 		var e_configs = GameState.demo_enemy_configs
 		if e_configs.is_empty():
@@ -148,10 +146,8 @@ func _init_battle() -> void:
 				{"unit_id": "treant", "count": 2, "hex": Vector2i(10, 5)}
 			]
 		for cfg in e_configs:
-			var stack = BattleStack.new()
-			stack.setup(cfg["unit_id"], cfg["count"], 1, cfg["hex"])
-			all_stacks.append(stack)
-			
+			_spawn_stack(cfg["unit_id"], cfg["count"], 1, cfg["hex"])
+
 		log_combat("⚔️ Демонстрационный бой [%s]: %s!" % [GameState.demo_difficulty_title, GameState.demo_encounter_title])
 		return
 
@@ -178,9 +174,7 @@ func _init_battle() -> void:
 	for i in range(min(player_army.size(), player_hexes.size())):
 		var item = player_army[i]
 		if item["count"] > 0:
-			var stack = BattleStack.new()
-			stack.setup(item["unit_id"], item["count"], 0, player_hexes[i])
-			all_stacks.append(stack)
+			_spawn_stack(item["unit_id"], item["count"], 0, player_hexes[i])
 		
 	# 2. Setup Enemy Stacks (based on chapter & encounter type)
 	var enemy_configs = []
@@ -342,9 +336,17 @@ func _init_battle() -> void:
 			log_combat("Лесные разбойники преграждают путь! Битва началась!")
 
 	for cfg in enemy_configs:
-		var stack = BattleStack.new()
-		stack.setup(cfg["unit_id"], cfg["count"], 1, cfg["hex"])
-		all_stacks.append(stack)
+		_spawn_stack(cfg["unit_id"], cfg["count"], 1, cfg["hex"])
+
+## Выставляет отряд на поле. Существо без записи в UnitData не выставляется:
+## иначе у отряда нет имени и спрайта, и ход с ним обрывается ошибкой.
+func _spawn_stack(unit_id: String, count: int, team: int, hex: Vector2i) -> void:
+	if not UnitData.has_unit(unit_id):
+		push_error("BattleArena: unknown unit_id '%s' skipped" % unit_id)
+		return
+	var stack = BattleStack.new()
+	stack.setup(unit_id, count, team, hex)
+	all_stacks.append(stack)
 
 func _start_round() -> void:
 	hero_cast_this_round = false
@@ -1181,6 +1183,8 @@ func _setup_spell_buttons() -> void:
 		child.queue_free()
 		
 	for spell_id in GameState.learned_spells:
+		if not SpellData.has_spell(spell_id):
+			continue
 		var sdata = SpellData.get_spell(spell_id)
 		if sdata.get("category", "combat") != "combat":
 			continue

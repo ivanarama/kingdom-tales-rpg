@@ -14,3 +14,7 @@ Thumbs.db
 
 # локальные заметки агентов
 AGENTS.local.md
+
+# Python bytecode
+__pycache__/
+*.pyc

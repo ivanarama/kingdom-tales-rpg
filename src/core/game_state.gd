@@ -259,7 +259,7 @@ var player_army: Array[Dictionary] = [
 	{"unit_id": "fairy_archer", "count": 18}
 ]
 
-var learned_spells: Array[String] = ["fireball", "heal", "bless", "haste", "scrying", "restoration", "lightning", "slow", "stoneskin", "blind", "inspiration", "shield_light", "retribution"]
+var learned_spells: Array[String] = ["fireball", "heal", "bless", "haste", "scrying", "restoration", "lightning", "slow", "stoneskin", "blind"]
 
 # World progress flags (ключи = id объектов с world_view, читаются через flags.get(oid))
 var flags: Dictionary = {
@@ -311,6 +311,9 @@ func spend_mana(cost: int) -> bool:
 	return false
 
 func add_units_to_army(unit_id: String, count: int) -> void:
+	if not UnitData.has_unit(unit_id):
+		push_error("GameState: unknown unit_id '%s' not added to army" % unit_id)
+		return
 	for slot in player_army:
 		if slot["unit_id"] == unit_id:
 			slot["count"] += count
@@ -394,6 +397,7 @@ var dwelling_stock: Dictionary = {
 # Бродячий торговец: 2 предложения в неделю (артефакт + подкрепление)
 var merchant_cell := Vector2i(-99, -99)
 var merchant_offers: Array[Dictionary] = []
+const MERCHANT_UNIT_POOL: Array[String] = ["fairy_archer", "wolf", "goblin", "griffin", "druid", "royal_pegasus", "fox_shifter"]
 
 func spawn_merchant_offers() -> void:
 	merchant_offers.clear()
@@ -419,8 +423,7 @@ func spawn_merchant_offers() -> void:
 			"price": 400 + points * 150
 		})
 	# Подкрепление: случайный отряд невысокого тира
-	var unit_pool := ["fairy_archer", "wolf", "goblin", "griffin", "druid", "royal_pegasus", "fox_shifter"]
-	var uid: String = unit_pool[randi() % unit_pool.size()]
+	var uid: String = MERCHANT_UNIT_POOL[randi() % MERCHANT_UNIT_POOL.size()]
 	var cnt := 3 + randi() % 6
 	var tier: int = int(UnitData.get_unit(uid).get("tier", 1))
 	merchant_offers.append({
@@ -575,7 +578,7 @@ func set_hero_class(class_id: String) -> void:
 				{"unit_id": "griffin", "count": 4},
 				{"unit_id": "fairy_archer", "count": 24}
 			]
-			learned_spells = ["fireball", "lightning", "slow", "bless", "heal", "scrying", "restoration", "haste", "stoneskin", "blind", "inspiration", "shield_light", "retribution"]
+			learned_spells = ["fireball", "lightning", "slow", "bless", "heal", "scrying", "restoration", "haste", "stoneskin", "blind"]
 		"ranger":
 			hero_name = "Следопыт Торн"
 			hero_title = "Хранитель Чащобы"
@@ -601,7 +604,7 @@ func set_hero_class(class_id: String) -> void:
 				{"unit_id": "griffin", "count": 8},
 				{"unit_id": "fairy_archer", "count": 14}
 			]
-			learned_spells = ["heal", "haste", "slow", "bless", "scrying", "restoration", "fireball", "lightning", "stoneskin", "blind", "inspiration", "shield_light", "retribution"]
+			learned_spells = ["heal", "haste", "slow", "bless", "scrying", "restoration", "fireball", "lightning", "stoneskin", "blind"]
 		_:
 			hero_class_id = "paladin"
 			hero_name = "Рыцарь Аларик"
@@ -626,7 +629,7 @@ func set_hero_class(class_id: String) -> void:
 				{"unit_id": "griffin", "count": 6},
 				{"unit_id": "fairy_archer", "count": 18}
 			]
-			learned_spells = ["fireball", "heal", "bless", "haste", "scrying", "restoration", "lightning", "slow", "stoneskin", "blind", "inspiration", "shield_light", "retribution"]
+			learned_spells = ["fireball", "heal", "bless", "haste", "scrying", "restoration", "lightning", "slow", "stoneskin", "blind"]
 			
 	max_mana = get_total_max_mana()
 	current_mana = max_mana
@@ -669,7 +672,7 @@ func reset() -> void:
 		{"unit_id": "griffin", "count": 6},
 		{"unit_id": "fairy_archer", "count": 18}
 	]
-	learned_spells = ["fireball", "heal", "bless", "haste", "scrying", "restoration", "lightning", "slow", "stoneskin", "blind", "inspiration", "shield_light", "retribution"]
+	learned_spells = ["fireball", "heal", "bless", "haste", "scrying", "restoration", "lightning", "slow", "stoneskin", "blind"]
 	flags = {
 		"watermill": false,
 		"mana_fountain": false,
@@ -945,8 +948,13 @@ func load_game(path: String = SAVE_PATH) -> bool:
 	for slot in raw_army:
 		player_army.append({"unit_id": str(slot.get("unit_id", "")), "count": int(slot.get("count", 1))})
 		
+	# Заклинания, которых нет в SpellData (например, из старых сохранений), отбрасываем
 	var raw_spells = data.get("learned_spells", [])
-	learned_spells = Array(raw_spells, TYPE_STRING, &"", null)
+	learned_spells.clear()
+	if raw_spells is Array:
+		for sp in raw_spells:
+			if SpellData.has_spell(str(sp)):
+				learned_spells.append(str(sp))
 	
 	flags = data.get("flags", flags)
 	has_gate_key = data.get("has_gate_key", false)

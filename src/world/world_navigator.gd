@@ -41,12 +41,7 @@ static func find_path(from: Vector2i, to: Vector2i, impassable: Array[Vector2i],
 			if impassable.has(nxt) and nxt != to:
 				continue
 				
-			var step_cost = 1
-			if road_cells.size() > 0:
-				if road_cells.has(nxt):
-					step_cost = 1
-				else:
-					step_cost = 1 if has_pathfinding else 2
+			var step_cost = move_step_cost(nxt, road_cells, has_pathfinding) if road_cells.size() > 0 else 1
 			var new_cost = cost_so_far[current] + step_cost
 			if not cost_so_far.has(nxt) or new_cost < cost_so_far[nxt]:
 				cost_so_far[nxt] = new_cost
@@ -64,6 +59,12 @@ static func find_path(from: Vector2i, to: Vector2i, impassable: Array[Vector2i],
 		curr = came_from[curr]
 	path.reverse()
 	return path
+
+## Стоимость шага героя на клетку: дорога — 1 очко хода, бездорожье — 2 (1 с навыком «Поиск пути»).
+static func move_step_cost(cell: Vector2i, road_cells: Array[Vector2i], has_pathfinding: bool = false) -> int:
+	if road_cells.has(cell):
+		return 1
+	return 1 if has_pathfinding else 2
 
 static func _heuristic(a: Vector2i, b: Vector2i) -> int:
 	return absi(a.x - b.x) + absi(a.y - b.y)

@@ -102,11 +102,11 @@ func cancel_hero_movement() -> void:
 func _ready() -> void:
 	match GameState.current_chapter:
 		2:
-			SoundManager.play_music("res://assets/audio/music/swamp_theme.ogg")
+			SoundManager.play_music("res://assets/audio/music/swamp_theme.wav")
 		3:
-			SoundManager.play_music("res://assets/audio/music/volcano_theme.ogg")
+			SoundManager.play_music("res://assets/audio/music/volcano_theme.wav")
 		_:
-			SoundManager.play_music("res://assets/audio/music/fairy_tale_theme.ogg")
+			SoundManager.play_music("res://assets/audio/music/fairy_tale_theme.wav")
 
 	_update_hud()
 	_update_quest_hud()
@@ -1668,6 +1668,8 @@ func _open_spellbook() -> void:
 		for c in combat_grid.get_children():
 			c.queue_free()
 		for sp_id in GameState.learned_spells:
+			if not SpellData.has_spell(sp_id):
+				continue
 			var sdata = SpellData.get_spell(sp_id)
 			if sdata.get("category", "") != "combat":
 				continue
@@ -2611,7 +2613,7 @@ func _spawn_merchant() -> void:
 	GameState.spawn_merchant_offers()
 	world_view.queue_redraw()
 
-## Дата-драйвен наём: попап жилища из data/dwellings.json.
+## Дата-драйвен наём: попап жилища по таблице DwellingData.
 func _open_dwelling_popup(obj_id: String) -> void:
 	var reg: Dictionary = DwellingData.get_dwelling(obj_id)
 	if reg.is_empty():
