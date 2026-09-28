@@ -56,7 +56,7 @@ func _finish(timed_out: bool = false) -> void:
 		get_tree().quit(1)
 		return
 	print("\n==========================================")
-	print("   ALL 41 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL %d TEST SUITES PASSED FLAWLESSLY!  " % _suites_run)
 	print("==========================================\n")
 	get_tree().quit(0)
 
@@ -1185,8 +1185,32 @@ func _ready() -> void:
 	await _check_mobile_ui()
 	print("  -> Back button, backdrop taps, two-step retreat, tap-side attacks and dialog layouts verified!")
 
+	await _run_extra_suites()
+
 	await get_tree().process_frame
 	_finish()
+
+## Наборы из tests/suites/*.gd подключаются сами, по алфавиту. Каждый набор —
+## отдельный файл со своей фичей: PR, добавляющие тесты, не конфликтуют в этом файле.
+## Набор: скрипт с func run(t) -> void (t — этот раннер: t._check(), t.add_child(),
+## t.get_tree()) и необязательным func get_title() -> String.
+const EXTRA_SUITES_DIR := "res://tests/suites"
+var _suites_run: int = 41
+
+func _run_extra_suites() -> void:
+	if not DirAccess.dir_exists_absolute(EXTRA_SUITES_DIR):
+		return
+	var files := Array(DirAccess.get_files_at(EXTRA_SUITES_DIR))
+	files.sort()
+	for f in files:
+		if not str(f).ends_with(".gd"):
+			continue
+		var suite = load(EXTRA_SUITES_DIR.path_join(f)).new()
+		_suites_run += 1
+		var title: String = suite.get_title() if suite.has_method("get_title") else str(f).get_basename()
+		print("[TEST] %d. %s" % [_suites_run, title])
+		await suite.run(self)
+		print("  -> %s verified!" % str(f).get_basename())
 
 func _tap(pos: Vector2) -> void:
 	for pressed in [true, false]:
