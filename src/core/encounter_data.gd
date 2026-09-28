@@ -223,10 +223,13 @@ static func get_encounter(battle_id: String, chapter: int) -> Dictionary:
 	return CHAPTER_DEFAULTS.get(chapter, CHAPTER_DEFAULTS[1])
 
 ## Копия вражеской армии — её можно менять, не трогая таблицу.
-static func get_army(battle_id: String, chapter: int) -> Array[Dictionary]:
+## enemy_mult — множитель численности по сложности кампании (1.0 — «Нормально»).
+static func get_army(battle_id: String, chapter: int, enemy_mult: float = 1.0) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for item in get_encounter(battle_id, chapter)["army"]:
-		result.append(item.duplicate())
+		var copy: Dictionary = item.duplicate()
+		copy["count"] = maxi(1, int(round(int(copy["count"]) * enemy_mult)))
+		result.append(copy)
 	return result
 
 static func is_boss(battle_id: String) -> bool:

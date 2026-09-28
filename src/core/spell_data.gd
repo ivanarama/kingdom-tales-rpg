@@ -9,7 +9,7 @@ static var SPELLS: Dictionary = {
 		"type": "target_enemy",
 		"category": "combat",
 		"icon_path": "res://assets/art/spells/spell_fireball.png",
-		"description": "Обрушивает пылающую сферу на вражеский отряд: 50 + 14 × Сила Магии ед. урона (+25% с навыком Волшебство)."
+		"description": "Обрушивает пылающую сферу на вражеский отряд: 50 + 14 × Сила Магии ед. урона (+25–55% с навыком Волшебство)."
 	},
 	"heal": {
 		"id": "heal",
@@ -63,7 +63,7 @@ static var SPELLS: Dictionary = {
 		"type": "target_enemy",
 		"category": "combat",
 		"icon_path": "res://assets/art/spells/spell_fireball.png",
-		"description": "Призывает с небес ослепительную молнию: 65 + 18 × Сила Магии ед. урона (+25% с навыком Волшебство)."
+		"description": "Призывает с небес ослепительную молнию: 65 + 18 × Сила Магии ед. урона (+25–55% с навыком Волшебство)."
 	},
 	"slow": {
 		"id": "slow",

@@ -76,12 +76,12 @@ const ALL_SKILLS: Dictionary = {
 	"archery": {
 		"name": "Стрельба",
 		"icon": "🏹",
-		"desc": "Увеличивает урон всех стрелков в войске на 20%."
+		"desc": "Увеличивает урон всех стрелков в войске: +20% / +35% / +50% (базовый / продвинутый / эксперт)."
 	},
 	"offense": {
 		"name": "Нападение",
 		"icon": "⚔️",
-		"desc": "Увеличивает урон отрядов в ближнем бою на 15%."
+		"desc": "Увеличивает урон отрядов в ближнем бою: +15% / +25% / +35% (базовый / продвинутый / эксперт)."
 	},
 	"logistics": {
 		"name": "Логистика",
@@ -91,6 +91,7 @@ const ALL_SKILLS: Dictionary = {
 	"pathfinding": {
 		"name": "Поиск пути",
 		"icon": "🌿",
+		"max_level": 1, # у навыка нет продвинутых ступеней — не предлагаем их при повышении уровня
 		"desc": "Снижает штраф за бездорожье: трава стоит 1 очко хода вместо 2."
 	},
 	"leadership": {
@@ -101,7 +102,7 @@ const ALL_SKILLS: Dictionary = {
 	"sorcery": {
 		"name": "Волшебство",
 		"icon": "✨",
-		"desc": "Увеличивает урон всех атакующих заклинаний героя на 25%."
+		"desc": "Увеличивает урон атакующих заклинаний героя: +25% / +40% / +55% (базовый / продвинутый / эксперт)."
 	},
 	"mysticism": {
 		"name": "Мистицизм",
@@ -109,6 +110,22 @@ const ALL_SKILLS: Dictionary = {
 		"desc": "Восстанавливает герою дополнительно +10 маны каждый новый день."
 	}
 }
+
+## Бонус боевых навыков по уровням (0 — навыка нет). Раньше эти навыки проверялись
+## только на наличие, и «продвинутый/эксперт» при повышении уровня ничего не давали.
+const SKILL_BONUS: Dictionary = {
+	"offense": [0.0, 0.15, 0.25, 0.35],
+	"archery": [0.0, 0.20, 0.35, 0.50],
+	"sorcery": [0.0, 0.25, 0.40, 0.55]
+}
+
+func skill_bonus(skill_id: String) -> float:
+	var table: Array = SKILL_BONUS.get(skill_id, [0.0])
+	return float(table[clampi(get_skill_level(skill_id), 0, table.size() - 1)])
+
+## Множитель численности врагов кампании по выбранной сложности (как на Арене).
+func campaign_enemy_multiplier() -> float:
+	return float(get_difficulty_multipliers(campaign_difficulty)["enemy"])
 
 var pending_level_ups: Array[Dictionary] = []
 
@@ -254,7 +271,7 @@ func add_xp(amount: int) -> void:
 		var options: Array[String] = []
 		var pool: Array[String] = []
 		for s in ALL_SKILLS.keys():
-			if not skills.has(s) or skills[s] < 3:
+			if int(skills.get(s, 0)) < int(ALL_SKILLS[s].get("max_level", 3)):
 				pool.append(s)
 		pool.shuffle()
 		if pool.size() > 0:
@@ -1014,6 +1031,7 @@ func load_game(path: String = SAVE_PATH) -> bool:
 	# Загрузка всегда ведёт в кампанию: флаги Арены из этой сессии не должны пережить её
 	is_demo_battle = false
 	battle_return_scene = WORLD_MAP_SCENE
+	campaign_difficulty = str(data.get("campaign_difficulty", "normal"))
 	weekly_attack_bonus = int(data.get("weekly_attack_bonus", 0))
 	weekly_mana_bonus = int(data.get("weekly_mana_bonus", 0))
 	fallen_units.clear()

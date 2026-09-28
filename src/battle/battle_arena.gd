@@ -228,7 +228,7 @@ func _init_battle() -> void:
 	# 2. Setup Enemy Stacks: состав из EncounterData — общий с быстрым боем на карте
 	var encounter: Dictionary = EncounterData.get_encounter(GameState.pending_battle_id, GameState.current_chapter)
 	log_combat(encounter["intro"])
-	for cfg in EncounterData.get_army(GameState.pending_battle_id, GameState.current_chapter):
+	for cfg in EncounterData.get_army(GameState.pending_battle_id, GameState.current_chapter, GameState.campaign_enemy_multiplier()):
 		_spawn_stack(cfg["unit_id"], cfg["count"], 1, cfg["hex"])
 
 ## Выставляет отряд на поле. Существо без записи в UnitData не выставляется:
@@ -726,8 +726,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 				arena_viewport.flash_stack(target_stack)
 				var cur_sp = GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower
 				var dmg = 50 + cur_sp * 14
-				if GameState.has_skill("sorcery"):
-					dmg = int(dmg * 1.25)
+				dmg = int(dmg * (1.0 + GameState.skill_bonus("sorcery")))
 				var res = target_stack.take_damage(dmg)
 				_spawn_floating_text(target_stack.hex, "ОГОНЬ -%d" % res.damage, Color(1.0, 0.4, 0.1))
 				log_combat("%s сокрушает %s Огненным Шаром! Урон: %d (Потери: %d)" % [
@@ -780,8 +779,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 				arena_viewport.flash_stack(target_stack)
 				var cur_sp = GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower
 				var dmg = 65 + cur_sp * 18
-				if GameState.has_skill("sorcery"):
-					dmg = int(dmg * 1.25)
+				dmg = int(dmg * (1.0 + GameState.skill_bonus("sorcery")))
 				var res = target_stack.take_damage(dmg)
 				_spawn_floating_text(target_stack.hex, "МОЛНИЯ -%d" % res.damage, Color(0.85, 0.95, 1.0))
 				log_combat("Небесная Молния поражает %s на %d урона! (Потери: %d)" % [

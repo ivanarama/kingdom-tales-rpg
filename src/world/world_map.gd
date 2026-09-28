@@ -1160,48 +1160,29 @@ func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable())
 	# 1. Состав вражеского отряда — из EncounterData, общего с тактическим боем
 	var encounter: Dictionary = EncounterData.get_encounter(battle_id, GameState.current_chapter)
 	var battle_name: String = encounter["name"]
-	var enemy_army: Array[Dictionary] = EncounterData.get_army(battle_id, GameState.current_chapter)
+	var enemy_army: Array[Dictionary] = EncounterData.get_army(battle_id, GameState.current_chapter, GameState.campaign_enemy_multiplier())
 
-	# 2. Calculate combat power
-	var hero_att = GameState.get_total_attack() if GameState.has_method("get_total_attack") else GameState.attack
-	var hero_def = GameState.get_total_defense() if GameState.has_method("get_total_defense") else GameState.defense
-	var hero_sp = GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower
-	
-	var player_power: float = 0.0
-	for stack in GameState.player_army:
-		var u = UnitData.get_unit(stack["unit_id"])
-		if not u.is_empty():
-			var u_att: int = u.get("attack", 0)
-			var u_def: int = u.get("defense", 0)
-			var u_hp: int = u.get("max_hp", 10)
-			var eff_att = u_att + hero_att
-			var eff_def = u_def + hero_def
-			player_power += stack["count"] * u_hp * (1.0 + eff_att * 0.05) * (1.0 + eff_def * 0.05)
-	player_power += hero_sp * 80.0
-
-	var enemy_power: float = 0.0
-	for stack in enemy_army:
-		var u = UnitData.get_unit(stack["unit_id"])
-		if not u.is_empty():
-			var u_att: int = u.get("attack", 0)
-			var u_def: int = u.get("defense", 0)
-			var u_hp: int = u.get("max_hp", 10)
-			enemy_power += stack["count"] * u_hp * (1.0 + u_att * 0.05) * (1.0 + u_def * 0.05)
+	# 2. Calculate combat power (см. _army_power); Сила Магии героя — +3% за очко
+	var player_power: float = _army_power(GameState.player_army, true) * (1.0 + GameState.get_total_spellpower() * 0.03)
+	var enemy_power: float = _army_power(enemy_army, false)
 
 	# 3. Resolve Outcome
 	popup_dialog.hide()
 	_reset_popup_buttons()
 
-	if player_power >= enemy_power * 0.70:
+	# Автобой выигрывает только более сильная армия (раньше хватало 70% силы врага)
+	if player_power >= enemy_power:
 		SoundManager.play_sfx("victory")
-		var loss_ratio = clampf(enemy_power / (player_power * 2.2), 0.02, 0.35)
+		# Потери победителя по тому же закону Ланчестера: 1 − √(1 − (сила врага / своя сила)²)
+		var power_ratio: float = enemy_power / maxf(player_power, 1.0)
+		var loss_ratio: float = clampf(1.0 - sqrt(maxf(0.0, 1.0 - power_ratio * power_ratio)), 0.02, 0.9)
 		var casualties_desc = ""
-		
-		# Apply losses
+
+		# Apply losses: доля одинакова для всех отрядов (раньше 80% потерь приходилось на первый)
 		var army_before: Array = GameState.player_army.duplicate(true)
 		for idx in range(GameState.player_army.size()):
 			var st = GameState.player_army[idx]
-			var lost = int(ceil(float(st["count"]) * loss_ratio * (0.8 if idx == 0 else 0.2)))
+			var lost = int(round(float(st["count"]) * loss_ratio))
 			lost = mini(lost, max(0, st["count"] - 1))
 			st["count"] -= lost
 			if lost > 0:
@@ -1289,6 +1270,30 @@ func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable())
 		popup_btn1.pressed.connect(func(): popup_dialog.hide())
 		popup_btn2.visible = false
 		_show_popup_dialog()
+
+## Сила армии для быстрого боя по квадратичному закону Ланчестера:
+## √(Σ HP × Σ урона за раунд). Атака и защита — ±5% за очко, как в формуле боя
+## (базовая атака существ 4, отрядам героя прибавляются его Атака и Защита).
+## Стрелки бьют без ответа (×1.3), двойной выстрел — ×2.
+## Раньше считались только HP и защита: урон существ (дракон 38–55) не влиял вовсе.
+func _army_power(army: Array, is_player: bool) -> float:
+	var hero_att: int = GameState.get_total_attack() if is_player else 0
+	var hero_def: int = GameState.get_total_defense() if is_player else 0
+	var hp_total := 0.0
+	var dmg_total := 0.0
+	for stack in army:
+		var u: Dictionary = UnitData.get_unit(stack["unit_id"])
+		if u.is_empty():
+			continue
+		var count := float(stack["count"])
+		hp_total += count * float(u.get("max_hp", 10)) * (1.0 + (int(u.get("defense", 0)) + hero_def) * 0.05)
+		var dmg := count * (float(u.get("min_dmg", 1)) + float(u.get("max_dmg", 1))) / 2.0 * (1.0 + (int(u.get("attack", 4)) + hero_att) * 0.05)
+		if u.get("is_ranged", false):
+			dmg *= 1.3
+		if u.get("double_shot", false):
+			dmg *= 2.0
+		dmg_total += dmg
+	return sqrt(hp_total * dmg_total)
 
 func _is_any_modal_open() -> bool:
 	if world_view.is_moving:

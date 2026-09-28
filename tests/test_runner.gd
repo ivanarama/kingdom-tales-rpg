@@ -56,7 +56,7 @@ func _finish(timed_out: bool = false) -> void:
 		get_tree().quit(1)
 		return
 	print("\n==========================================")
-	print("   ALL 41 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 42 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	get_tree().quit(0)
 
@@ -414,6 +414,8 @@ func _ready() -> void:
 	
 	var pre_gold = GameState.gold
 	var pre_xp = GameState.xp
+	# Быстрый бой выигрывает только более сильная армия — даём заведомо сильное войско
+	GameState.player_army = [{"unit_id": "griffin", "count": 30}, {"unit_id": "fairy_archer", "count": 40}]
 	wmap_node4._execute_quick_combat("test_encounter")
 	_check(GameState.flags.get("test_encounter", false) == true, "Encounter flag must be set to true")
 	_check(GameState.gold > pre_gold, "Gold must be awarded for quick victory")
@@ -1185,8 +1187,63 @@ func _ready() -> void:
 	await _check_mobile_ui()
 	print("  -> Back button, backdrop taps, two-step retreat, tap-side attacks and dialog layouts verified!")
 
+	# 42. Balance: skill levels, campaign difficulty, quick combat formula
+	print("[TEST] 42. Testing Skill Levels, Campaign Difficulty & Quick Combat Formula...")
+	await _check_balance()
+	print("  -> Skill level bonuses, campaign difficulty scaling and Lanchester quick combat verified!")
+
 	await get_tree().process_frame
 	_finish()
+
+func _check_balance() -> void:
+	GameState.reset()
+	GameState.skills = {"archery": 1}
+	var basic_archery := GameState.skill_bonus("archery")
+	GameState.skills["archery"] = 3
+	_check(GameState.skill_bonus("archery") > basic_archery, "Expert Archery must be stronger than Basic")
+	_check(GameState.skill_bonus("offense") == 0.0, "A skill the hero lacks gives no bonus")
+	GameState.skills = {"pathfinding": 1}
+	var offered_pathfinding := false
+	for i in 25:
+		GameState.pending_level_ups.clear()
+		GameState.add_xp(GameState.next_level_xp)
+		if "pathfinding" in GameState.pending_level_ups[0]["options"]:
+			offered_pathfinding = true
+	_check(not offered_pathfinding, "Pathfinding has no higher ranks and must not be offered again")
+	GameState.pending_level_ups.clear()
+
+	GameState.reset()
+	GameState.campaign_difficulty = "hard"
+	_check(EncounterData.get_army("patrol_wolves", 1, GameState.campaign_enemy_multiplier())[0]["count"] > 16, "Hard campaign must field more enemies")
+	GameState.campaign_difficulty = "normal"
+	_check(EncounterData.get_army("patrol_wolves", 1, GameState.campaign_enemy_multiplier())[0]["count"] == 16, "Normal campaign keeps the original enemy counts")
+	GameState.campaign_difficulty = "legendary"
+	_check(GameState.save_game("user://test_difficulty.json"), "Save with difficulty must succeed")
+	GameState.campaign_difficulty = "normal"
+	GameState.load_game("user://test_difficulty.json")
+	_check(GameState.campaign_difficulty == "legendary", "Campaign difficulty must survive save/load")
+
+	GameState.reset()
+	GameState.start_chapter(1)
+	var wm = load("res://src/world/world_map.tscn").instantiate()
+	add_child(wm)
+	await get_tree().process_frame
+	wm.popup_dialog.hide()
+	var one: float = wm._army_power([{"unit_id": "griffin", "count": 10}], true)
+	var two: float = wm._army_power([{"unit_id": "griffin", "count": 20}], true)
+	_check(absf(two - 2.0 * one) < 0.01, "Army power must scale linearly with its size")
+	_check(wm._army_power([{"unit_id": "royal_fairy", "count": 10}], false) > wm._army_power([{"unit_id": "fairy_archer", "count": 10}], false), "Double shot and better stats must raise army power")
+	GameState.player_army = [{"unit_id": "goblin", "count": 1}]
+	wm._execute_quick_combat("patrol_wolves")
+	_check(not GameState.flags.get("patrol_wolves", false), "A weak army must not win quick combat")
+	GameState.player_army = [{"unit_id": "griffin", "count": 40}, {"unit_id": "fairy_archer", "count": 40}]
+	wm._execute_quick_combat("patrol_goblins")
+	_check(GameState.flags.get("patrol_goblins", false), "A strong army must win quick combat")
+	var lost_griffins: int = 40 - int(GameState.player_army[0]["count"])
+	var lost_fairies: int = 40 - int(GameState.player_army[1]["count"])
+	_check(absi(lost_griffins - lost_fairies) <= 1, "Quick combat losses must be spread evenly (%d vs %d)" % [lost_griffins, lost_fairies])
+	wm.queue_free()
+	await get_tree().process_frame
 
 func _tap(pos: Vector2) -> void:
 	for pressed in [true, false]:

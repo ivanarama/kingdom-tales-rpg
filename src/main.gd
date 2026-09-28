@@ -12,6 +12,8 @@ var about_dialog: Control
 
 var current_theme_idx: int = 0
 var mini_player_btn: Button
+var campaign_difficulty_opt: OptionButton
+const CAMPAIGN_DIFFICULTIES: Array[String] = ["easy", "normal", "hard", "legendary"]
 
 const MENU_THEMES: Array[Dictionary] = [
 	# --- HoMM 2 Style Baroque Harpsichord Themes (1 - 20) ---
@@ -323,6 +325,23 @@ func _setup_hero_select_ui() -> void:
 	sub.add_theme_color_override("font_color", Color(0.45, 0.3, 0.15))
 	main_vbox.add_child(sub)
 
+	# Сложность кампании: множитель численности врагов (те же уровни, что на Арене)
+	var diff_row = HBoxContainer.new()
+	diff_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	diff_row.add_theme_constant_override("separation", 10)
+	var diff_lbl = Label.new()
+	diff_lbl.text = "Сложность кампании:"
+	diff_lbl.add_theme_font_size_override("font_size", 16)
+	diff_lbl.add_theme_color_override("font_color", Color(0.35, 0.22, 0.1))
+	diff_row.add_child(diff_lbl)
+	campaign_difficulty_opt = OptionButton.new()
+	for d in CAMPAIGN_DIFFICULTIES:
+		campaign_difficulty_opt.add_item(GameState.get_difficulty_multipliers(d)["title"])
+	campaign_difficulty_opt.select(CAMPAIGN_DIFFICULTIES.find("normal"))
+	campaign_difficulty_opt.custom_minimum_size = Vector2(260, 40)
+	diff_row.add_child(campaign_difficulty_opt)
+	main_vbox.add_child(diff_row)
+
 	var hbox = HBoxContainer.new()
 	hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	hbox.add_theme_constant_override("separation", 18)
@@ -408,6 +427,7 @@ func _setup_hero_select_ui() -> void:
 			SoundManager.play_sfx("victory")
 			GameState.reset()
 			GameState.set_hero_class(cid)
+			GameState.campaign_difficulty = CAMPAIGN_DIFFICULTIES[maxi(0, campaign_difficulty_opt.selected)]
 			GameState.start_chapter(1)
 			get_tree().change_scene_to_file("res://src/world/world_map.tscn")
 		)
