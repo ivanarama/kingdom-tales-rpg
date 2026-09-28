@@ -16,14 +16,19 @@ var has_acted: bool = false
 var has_waited: bool = false
 var is_defending: bool = false
 var had_morale_this_round: bool = false
+var init_bonus: int = 0 # Рог Доблести и прочие боевые бонусы на весь бой
 
 var buff_bless_turns: int = 0
 var buff_haste_turns: int = 0
 var buff_slow_turns: int = 0
 var buff_stoneskin_turns: int = 0
+var buff_shield_turns: int = 0
+var buff_retribution_turns: int = 0
+var buff_inspiration_turns: int = 0
 var debuff_blind_turns: int = 0
 var debuff_disease_turns: int = 0
 var debuff_entangle_turns: int = 0
+var shield_hp: int = 0 # поглощённый Щитом Света урон
 
 func setup(p_unit_id: String, p_count: int, p_team: int, p_hex: Vector2i) -> void:
 	unit_id = p_unit_id
@@ -34,10 +39,15 @@ func setup(p_unit_id: String, p_count: int, p_team: int, p_hex: Vector2i) -> voi
 	current_hp = data.get("max_hp", 20)
 	had_morale_this_round = false
 	has_waited = false
+	init_bonus = 0
 	buff_bless_turns = 0
 	buff_haste_turns = 0
 	buff_slow_turns = 0
 	buff_stoneskin_turns = 0
+	buff_shield_turns = 0
+	buff_retribution_turns = 0
+	buff_inspiration_turns = 0
+	shield_hp = 0
 	debuff_blind_turns = 0
 	debuff_disease_turns = 0
 	debuff_entangle_turns = 0
@@ -59,6 +69,14 @@ func reset_round() -> void:
 		buff_slow_turns -= 1
 	if buff_stoneskin_turns > 0:
 		buff_stoneskin_turns -= 1
+	if buff_shield_turns > 0:
+		buff_shield_turns -= 1
+		if buff_shield_turns == 0:
+			shield_hp = 0
+	if buff_retribution_turns > 0:
+		buff_retribution_turns -= 1
+	if buff_inspiration_turns > 0:
+		buff_inspiration_turns -= 1
 	if debuff_blind_turns > 0:
 		debuff_blind_turns -= 1
 	if debuff_disease_turns > 0:
@@ -72,7 +90,7 @@ func reset_round() -> void:
 		heal(regen)
 
 func get_initiative() -> int:
-	return data.get("initiative", 10)
+	return data.get("initiative", 10) + init_bonus
 
 func get_speed() -> int:
 	if debuff_blind_turns > 0 or debuff_entangle_turns > 0:
@@ -192,7 +210,14 @@ func take_damage(damage: int) -> Dictionary:
 	var was_blind = (debuff_blind_turns > 0)
 	if debuff_blind_turns > 0:
 		debuff_blind_turns = 0 # Damage dispels blind!
-		
+	
+	# Щит Света поглощает урон до здоровья отряда
+	var absorbed := 0
+	if shield_hp > 0 and damage > 0:
+		absorbed = mini(shield_hp, damage)
+		shield_hp -= absorbed
+		damage -= absorbed
+	
 	var max_hp: int = data.get("max_hp", 20)
 	var total_pool := (count - 1) * max_hp + current_hp
 	var actual_dmg := mini(damage, total_pool)
@@ -214,7 +239,8 @@ func take_damage(damage: int) -> Dictionary:
 		"damage": actual_dmg,
 		"casualties": casualties,
 		"is_dead": count <= 0,
-		"dispelled_blind": was_blind
+		"dispelled_blind": was_blind,
+		"absorbed": absorbed
 	}
 
 func is_blinded() -> bool:

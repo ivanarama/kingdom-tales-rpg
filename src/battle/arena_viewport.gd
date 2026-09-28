@@ -312,6 +312,9 @@ func _draw() -> void:
 		# Health Bar (Top of unit)
 		var hp_bar_pos = center + Vector2(0, -target_h + hex_size * 0.45 - 8.0 + bob_y)
 		_draw_hp_bar(hp_bar_pos, stack.current_hp, stack.data.get("max_hp", 20))
+
+		# Status pips (active buffs/debuffs at a glance)
+		_draw_status_pips(center + Vector2(0, hp_bar_pos.y - 16.0), stack)
 		
 	# 4. Hover Forecast & Broken Arrow Indicator
 	if arena.hovered_target != null and arena.hovered_target.is_alive():
@@ -397,6 +400,42 @@ func _draw() -> void:
 					var ang = float(ai) * TAU / 8.0 + (1.0 - ratio) * 1.5
 					var p_ray = p + Vector2(cos(ang), sin(ang)) * (b_rad * 1.4)
 					draw_line(p, p_ray, Color(1.0, 1.0, 0.8, ratio), 2.5)
+
+## Ряд цветных пипсов над стеком: активные баффы/дебаффы с одного взгляда.
+func _draw_status_pips(pos: Vector2, stack: BattleStack) -> void:
+	var pips: Array[Color] = []
+	if stack.buff_bless_turns > 0:
+		pips.append(Color(1.0, 0.85, 0.25))
+	if stack.buff_haste_turns > 0:
+		pips.append(Color(0.35, 0.9, 1.0))
+	if stack.buff_slow_turns > 0:
+		pips.append(Color(0.25, 0.4, 1.0))
+	if stack.buff_stoneskin_turns > 0:
+		pips.append(Color(0.66, 0.6, 0.45))
+	if stack.shield_hp > 0 or stack.buff_shield_turns > 0:
+		pips.append(Color(0.95, 0.97, 1.0))
+	if stack.buff_retribution_turns > 0:
+		pips.append(Color(1.0, 0.6, 0.2))
+	if stack.buff_inspiration_turns > 0:
+		pips.append(Color(0.5, 1.0, 0.5))
+	if stack.is_defending:
+		pips.append(Color(0.6, 0.7, 0.9))
+	if stack.debuff_blind_turns > 0:
+		pips.append(Color(1.0, 0.95, 0.4))
+	if stack.debuff_disease_turns > 0:
+		pips.append(Color(0.55, 0.7, 0.2))
+	if stack.debuff_entangle_turns > 0:
+		pips.append(Color(0.55, 0.35, 0.15))
+	if pips.is_empty():
+		return
+	var n := pips.size()
+	var spacing := 11.0
+	var start_x := pos.x - (n - 1) * spacing * 0.5
+	for i in range(n):
+		var p := Vector2(start_x + i * spacing, pos.y)
+		draw_circle(p + Vector2(1, 1), 4.0, Color(0, 0, 0, 0.7))
+		draw_circle(p, 4.0, pips[i])
+		draw_arc(p, 4.0, 0, TAU, 12, Color(0.1, 0.08, 0.04, 0.8), 1.0)
 
 func _draw_hp_bar(pos: Vector2, cur_hp: int, max_hp: int) -> void:
 	var hp_ratio = clampf(float(cur_hp) / float(max_hp), 0.0, 1.0)

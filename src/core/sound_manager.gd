@@ -5,7 +5,7 @@ var sfx_players: Array[AudioStreamPlayer] = []
 const SFX_POOL_SIZE := 8
 
 var sfx_cache: Dictionary = {}
-var current_music_path: String = "res://assets/audio/music/themes/homm2_01_sorceress_garden.wav"
+var current_music_path: String = "res://assets/audio/music/themes/homm2_01_sorceress_garden.ogg"
 
 var master_volume: float = 1.0
 var music_volume: float = 0.8
@@ -37,6 +37,12 @@ func load_music_preference() -> String:
 			if p != "" and ResourceLoader.exists(p):
 				custom_menu_theme = p
 				return p
+			# Migration: preference saved as .wav before the OGG conversion
+			if p.ends_with(".wav"):
+				var ogg_path = p.replace(".wav", ".ogg")
+				if ResourceLoader.exists(ogg_path):
+					custom_menu_theme = ogg_path
+					return ogg_path
 	return ""
 
 func save_music_preference(path: String) -> void:
@@ -95,6 +101,8 @@ func play_music(path: String, force_restart: bool = false) -> void:
 			w.loop_mode = AudioStreamWAV.LOOP_FORWARD
 			w.loop_begin = 0
 			w.loop_end = int(round(w.get_length() * w.mix_rate))
+		elif stream is AudioStreamOggVorbis:
+			(stream as AudioStreamOggVorbis).loop = true
 		music_player.stream = stream
 		music_player.volume_db = linear_to_db(music_volume) if music_volume > 0.001 else -80.0
 		music_player.play()

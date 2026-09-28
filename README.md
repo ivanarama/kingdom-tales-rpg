@@ -29,3 +29,16 @@
 ```bash
 "C:\Projects\tools\godot-4.7.2\Godot_v4.7.2-stable_win64.exe" --path "C:\Projects\mm_rpg_monolithic_gemini"
 ```
+
+## Тесты
+
+Перед мержем обязательно гоняйте тестовый гейт ([run_tests.bat](file:///C:/Projects/mm_rpg_monolithic_gemini/run_tests.bat)):
+
+```bash
+run_tests.bat
+```
+
+Скрипт запускает набор сценой (`res://tests/test_runner.tscn`) headless и
+проверяет вывод: «ALL 38 TEST SUITES PASSED» и отсутствие SCRIPT ERROR.
+Запускать именно им — Godot возвращает код 0 даже при упавшем скрипте.
+

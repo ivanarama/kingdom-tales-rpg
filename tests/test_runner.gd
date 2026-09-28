@@ -1052,9 +1052,250 @@ func _ready() -> void:
 	main_node.queue_free()
 	print("  -> Mobile Main Menu layout, touch targets, and Back navigation fully verified!")
 
+	# 38. Review 0.1.1 regression: attack stats, level-up persistence, scaled rewards
+	print("[TEST] 38. Testing Review 0.1.1 Fixes (attack stats, level-up persistence, scaled rewards)...")
+	# a) Every unit must declare its own attack stat (unit card honesty)
+	for uid in UnitData.UNITS.keys():
+		var uinfo = UnitData.UNITS[uid]
+		assert(uinfo.get("attack", 0) > 0, "Unit '%s' must declare an attack stat" % uid)
+	print("  -> All %d units declare their attack stat!" % UnitData.UNITS.size())
+
+	# b) pending_level_ups must survive a save/load roundtrip (skill choice is never lost)
+	GameState.pending_level_ups.clear()
+	GameState.pending_level_ups.append({"level": 2, "stat": "Атака (+1)", "options": ["archery", "offense"]})
+	assert(GameState.save_game(), "Save must succeed")
+	GameState.pending_level_ups.clear()
+	assert(GameState.load_game(), "Load must succeed")
+	assert(GameState.pending_level_ups.size() == 1, "pending_level_ups must survive save/load")
+	assert(GameState.pending_level_ups[0]["stat"] == "Атака (+1)", "Level-up stat must survive save/load")
+	assert(GameState.pending_level_ups[0]["options"].size() == 2, "Level-up options must survive save/load")
+	GameState.pending_level_ups.clear()
+	print("  -> Pending level-up choices persisted across save/load!")
+
+	# c) Victory rewards scale with enemy strength (patrol_goblins = 24 goblins + 6 wolves, tier 1)
+	#    gold = 100 + (24*12 + 10) + (6*12 + 10) = 480; xp = 60 + (24*8 + 12) + (6*8 + 12) = 324
+	GameState.is_demo_battle = false
+	GameState.current_chapter = 1
+	GameState.pending_battle_id = "patrol_goblins"
+	var rewards_arena = arena_packed.instantiate()
+	add_child(rewards_arena)
+	var exp_gold = 100 + (24 * 12 + 10) + (6 * 12 + 10)
+	var exp_xp = 60 + (24 * 8 + 12) + (6 * 8 + 12)
+	assert(rewards_arena.pending_reward_gold == exp_gold,
+		"Scaled gold for patrol_goblins must be %d, got %d" % [exp_gold, rewards_arena.pending_reward_gold])
+	assert(rewards_arena.pending_reward_xp == exp_xp,
+		"Scaled xp for patrol_goblins must be %d, got %d" % [exp_xp, rewards_arena.pending_reward_xp])
+	rewards_arena.queue_free()
+	GameState.pending_battle_id = ""
+	print("  -> Victory rewards scale with enemy strength (gold %d, xp %d)!" % [exp_gold, exp_xp])
+
+	# 39. Новый контент 0.2.0: существа, арт, заклинания, артефакты
+	print("[TEST] 39. Testing New Content (units, art, spells, artifacts)...")
+	for uid in ["royal_pegasus", "stone_guardian", "fox_shifter", "lich", "red_dragon"]:
+		var nu = UnitData.get_unit(uid)
+		assert(not nu.is_empty(), "Unit '%s' must exist" % uid)
+		assert(int(nu.get("attack", 0)) > 0, "Unit '%s' must have attack" % uid)
+		assert(ResourceLoader.exists(nu.get("token_path", "")), "Token missing for %s" % uid)
+		assert(ResourceLoader.exists(nu.get("sprite_path", "")), "Sprite missing for %s" % uid)
+	assert(UnitData.get_unit("lich").get("is_caster", false), "Lich must be a caster")
+	assert(float(UnitData.get_unit("stone_guardian").get("reflect", 0.0)) > 0.0, "Stone guardian must reflect")
+	assert(float(UnitData.get_unit("fox_shifter").get("dodge", 0.0)) > 0.0, "Fox must dodge")
+	for sid in ["inspiration", "shield_light", "retribution"]:
+		var sp = SpellData.get_spell(sid)
+		assert(not sp.is_empty(), "Spell '%s' must exist" % sid)
+		assert(ResourceLoader.exists(sp.get("icon_path", "")), "Icon missing for spell %s" % sid)
+	assert(SpellData.SPELLS.size() == 13, "Spellbook must have 13 spells")
+	for aid in ["horn_of_valor", "mantle_wanderer"]:
+		var art = ArtifactData.get_artifact(aid)
+		assert(not art.is_empty() and art.get("battle_effect", "") != "", "Battle artifact '%s' must exist" % aid)
+	print("  -> New units (own art), 13 distinct spell icons and battle artifacts verified!")
+
+	# 40. Механика новых заклинаний: Щит Света, чары Вдохновения/Возмездия
+	print("[TEST] 40. Testing New Spell Mechanics (shield absorb, buffs)...")
+	var shield_stack = BattleStack.new()
+	shield_stack.setup("griffin", 10, 0, Vector2i(2, 2))
+	shield_stack.shield_hp = 50
+	var r1 = shield_stack.take_damage(30)
+	assert(int(r1["absorbed"]) == 30 and int(r1["damage"]) == 0, "Shield must absorb 30 fully")
+	assert(shield_stack.is_alive() and shield_stack.count == 10, "No casualties behind full shield")
+	var r2 = shield_stack.take_damage(40)
+	assert(int(r2["absorbed"]) == 20 and int(r2["damage"]) == 20, "Overspill must wound the stack")
+	assert(shield_stack.shield_hp == 0, "Shield pool must be spent")
+	shield_stack.buff_slow_turns = 3
+	shield_stack.debuff_disease_turns = 2
+	shield_stack.buff_inspiration_turns = 3
+	shield_stack.buff_retribution_turns = 3
+	shield_stack.reset_round()
+	assert(shield_stack.buff_slow_turns == 2 and shield_stack.debuff_disease_turns == 1, "Buff timers decrement")
+	assert(shield_stack.buff_inspiration_turns == 2 and shield_stack.buff_retribution_turns == 2, "New buffs decrement per round")
+	print("  -> Shield Light absorb pool, Inspiration/Retaliation buff timers verified!")
+
+	# 41. Летопись подвигов
+	print("[TEST] 41. Testing Chronicle of Deeds...")
+	if FileAccess.file_exists(GameState.CHRONICLE_PATH):
+		DirAccess.remove_absolute(GameState.CHRONICLE_PATH)
+	GameState.chronicle.clear()
+	assert(GameState.unlock_feat("first_blood"), "First unlock must succeed")
+	assert(not GameState.unlock_feat("first_blood"), "Duplicate unlock must be rejected")
+	assert(GameState.is_feat_unlocked("first_blood"), "Feat must be unlocked")
+	GameState.chronicle.clear()
+	GameState.load_chronicle()
+	assert(GameState.is_feat_unlocked("first_blood"), "Chronicle must persist to user://")
+	print("  -> Chronicle unlock, dedup and persistence verified!")
+
+	# 42. Реестр встреч (data/encounters.json)
+	print("[TEST] 42. Testing Encounter Registry (JSON data-driven)...")
+	for enc_id in ["bandit_boss", "lich_boss", "dragon_boss", "patrol_1", "patrol_wolves", "patrol_goblins",
+			"patrol_forester", "patrol_grove", "patrol_rogues", "patrol_obelisk", "swamp_patrol_road",
+			"swamp_patrol_fens", "swamp_patrol_gate", "swamp_patrol_east", "swamp_patrol_ruins",
+			"dragon_patrol_gate", "dragon_patrol_caldera", "dragon_patrol_citadel", "patrol_2", "swamp_patrol"]:
+		var enc = EncounterData.get_encounter(enc_id)
+		assert(not enc.is_empty(), "Encounter '%s' must exist in JSON" % enc_id)
+		assert(enc["enemies"].size() > 0, "Encounter '%s' must have enemies" % enc_id)
+		for e in enc["enemies"]:
+			assert(not UnitData.get_unit(e["unit_id"]).is_empty(), "Unknown unit in %s: %s" % [enc_id, e["unit_id"]])
+	var pg = EncounterData.get_encounter("patrol_goblins")
+	assert(pg["enemies"][0]["count"] == 24 and pg["enemies"][0]["hex"] == Vector2i(10, 2), "patrol_goblins must match original config")
+	var def1 = EncounterData.get_default_for_chapter(1)
+	assert(def1["enemies"].size() == 3, "Chapter 1 default encounter must exist")
+	assert(not EncounterData.get_encounter("patrol_grove").is_empty(), "grove patrol must use fox shifters now")
+	print("  -> All 20+ encounter configs loaded from data/encounters.json!")
+
+	# 43. Настройки: язык и громкость
+	print("[TEST] 43. Testing Settings (locale & volumes)...")
+	SettingsManager.set_locale("en")
+	assert(TranslationServer.get_locale() == "en", "Locale must switch to en")
+	assert(tr("Закрыть") == "Close", "UI string must translate to English")
+	SettingsManager.set_locale("ru")
+	assert(tr("Закрыть") == "Закрыть", "UI string must fall back to Russian")
+	SettingsManager.save_settings()
+	assert(FileAccess.file_exists(SettingsManager.PATH), "Settings file must persist")
+	print("  -> Language switch (RU/EN via CSV) and settings persistence verified!")
+
+	# 44. Слоты сохранений
+	print("[TEST] 44. Testing Save Slots...")
+	var slot2 = GameState.SAVE_SLOTS[2]
+	assert(GameState.save_game(slot2), "Save to slot 2 must succeed")
+	assert(GameState.has_save_game(slot2), "Slot 2 file must exist")
+	assert(GameState.get_save_summary(slot2).size() > 0, "Slot 2 must provide a summary")
+	assert(GameState.get_newest_save_path() == slot2, "Newest slot must be the just-written slot 2")
+	print("  -> 3 save slots + newest-slot detection verified!")
+
+	# 45. Боевые артефакты, отражение, статистика боя
+	print("[TEST] 45. Testing Battle Artifacts, Reflect & Battle Stats...")
+	GameState.equipped_artifacts["accessory"] = "horn_of_valor"
+	assert(GameState.has_artifact_effect("horn_of_valor"), "Horn must be detected as equipped")
+	var art_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(art_arena)
+	for st in art_arena.all_stacks:
+		if st.team == 0:
+			assert(st.init_bonus == 2, "Horn must grant +2 initiative to every player stack")
+	var gob = BattleStack.new()
+	gob.setup("goblin", 5, 1, Vector2i(5, 2))
+	var guard = BattleStack.new()
+	guard.setup("stone_guardian", 2, 0, Vector2i(6, 2))
+	var res_reflect = art_arena._resolve_attack_damage(gob, guard, 100, true)
+	assert(int(res_reflect["damage"]) == 100, "Guardian must take full damage")
+	assert(gob.count < 5, "Goblin must suffer 30%% reflect damage")
+	assert(art_arena.battle_stats["taken"] >= 100, "Battle stats must track incoming damage")
+	GameState.equipped_artifacts.erase("accessory")
+	art_arena.queue_free()
+	GameState.equipped_artifacts["accessory"] = "ring_arcana"
+	print("  -> Horn initiative, Stone Guardian reflect and battle stats verified!")
+
+	# 46. Наём новых существ на карте: склады и недельное пополнение
+	print("[TEST] 46. Testing New Creature Hiring (stocks & weekly growth)...")
+	GameState.reset()
+	assert(int(GameState.dwelling_stock.get("shrine_pegasus", 0)) == 2, "Pegasus stock must start at 2")
+	assert(int(GameState.dwelling_stock.get("forester_fox", 0)) == 6, "Fox stock must start at 6")
+	assert(int(GameState.dwelling_stock.get("obelisk_guard", 0)) == 1, "Guardian stock must start at 1")
+	for i in range(7):
+		GameState.next_day()
+	assert(GameState.day == 8, "Seven next_day calls must reach day 8")
+	assert(int(GameState.dwelling_stock.get("shrine_pegasus", 0)) == 4, "Pegasus stock must grow +2 weekly")
+	assert(int(GameState.dwelling_stock.get("forester_fox", 0)) == 12, "Fox stock must grow +6 weekly")
+	assert(int(GameState.dwelling_stock.get("obelisk_guard", 0)) == 2, "Guardian stock must grow +1 weekly")
+	GameState.reset()
+	print("  -> Pegasus/fox/guardian hiring stocks and weekly growth verified!")
+
+	# 47. Сложность кампании скейлит составы
+	print("[TEST] 47. Testing Campaign Difficulty Scaling...")
+	GameState.reset()
+	GameState.campaign_difficulty = "legendary"
+	GameState.pending_battle_id = "patrol_goblins"
+	var d_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(d_arena)
+	var enemies := []
+	var player_counts := []
+	for st in d_arena.all_stacks:
+		if st.team == 1:
+			enemies.append(st.count)
+		else:
+			player_counts.append(st.count)
+	assert(53 in enemies and 13 in enemies, "Legendary must scale enemies x2.2 (got %s)" % str(enemies))
+	assert(player_counts == [5, 14], "Player must scale x0.8 on legendary (got %s)" % str(player_counts))
+	d_arena.queue_free()
+	GameState.campaign_difficulty = "normal"
+	GameState.pending_battle_id = ""
+	print("  -> Campaign difficulty multipliers applied in arena (53/13 enemies, 5/14 player)!")
+
+	# 48. Бэкап и восстановление сохранения
+	print("[TEST] 48. Testing Save Backup & Fallback...")
+	GameState.gold = 4321
+	assert(GameState.save_game(), "Save must succeed")
+	assert(GameState.save_game(), "Second save must succeed (fills .bak with same state)")
+	assert(FileAccess.file_exists(GameState.SAVE_PATH + ".bak"), ".bak must exist after second save")
+	var f = FileAccess.open(GameState.SAVE_PATH, FileAccess.WRITE)
+	f.store_string("{broken json!")
+	f.close()
+	assert(GameState.load_game(), "load_game must fall back to .bak")
+	assert(GameState.gold == 4321, "State must be restored from backup")
+	assert(int(GameState._read_save_data(GameState.SAVE_PATH + ".bak").get("version", 0)) == 3, "Saves must be version 3")
+	print("  -> .bak rotation, fallback load and save migration verified!")
+
+	# 49. Бродячий торговец
+	print("[TEST] 49. Testing Wandering Merchant...")
+	GameState.reset()
+	GameState.spawn_merchant_offers()
+	assert(GameState.merchant_offers.size() == 2, "Merchant must have 2 offers")
+	for offer in GameState.merchant_offers:
+		assert(int(offer["price"]) > 0 and str(offer["id"]) != "", "Offer must be filled")
+	GameState.gold = 99999
+	var offers_before: int = GameState.merchant_offers.size()
+	assert(GameState.buy_merchant_offer(0), "Buying offer 0 must succeed")
+	assert(GameState.merchant_offers.size() == offers_before - 1, "Bought offer must be removed")
+	var gold_before := GameState.gold
+	assert(not GameState.buy_merchant_offer(5), "Buying nonexistent offer must fail")
+	assert(GameState.gold == gold_before, "Gold must not change on failed purchase")
+	GameState.reset()
+	print("  -> Merchant offers, purchase and gold handling verified!")
+
+	# 50. Охраняемый сундук после победы над охраной (регрессия игрока)
+	print("[TEST] 50. Testing Guarded Chest After Victory...")
+	GameState.reset()
+	GameState.flags["chapter_intro_seen_1"] = true
+	GameState.flags["patrol_goblins"] = true
+	GameState.hero_cell = Vector2i(4, 9)
+	var gwm = load("res://src/world/world_map.tscn").instantiate()
+	add_child(gwm)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert(not gwm.world_view.objects.has(Vector2i(4, 8)), "Dead guard must be purged on return")
+	assert(gwm.world_view.objects.has(Vector2i(4, 9)), "Chest must remain after guard victory")
+	assert(gwm.popup_dialog.visible, "Chest popup must auto-open on victory return")
+	var gold_before2 := GameState.gold
+	gwm.popup_btn1.emit_signal("pressed")
+	assert(GameState.gold == gold_before2 + 1000, "Chest gold must be claimable after guard victory")
+	assert(not gwm.world_view.objects.has(Vector2i(4, 9)), "Chest must vanish after pickup")
+	gwm.queue_free()
+	GameState.reset()
+	print("  -> Guarded chest auto-opens and is lootable after guard victory!")
+
 	print("\n==========================================")
-	print("   ALL 37 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 50 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
+	await get_tree().process_frame
+	await get_tree().process_frame
 	get_tree().quit()
 
 

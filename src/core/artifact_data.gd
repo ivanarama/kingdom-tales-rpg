@@ -80,6 +80,34 @@ static var ARTIFACTS: Dictionary = {
 		"mp_bonus": 4,
 		"mana_bonus": 20,
 		"description": "Легендарная реликвия волшебного леса. Дарует +2 ко всем параметрам и +4 очка хода!"
+	},
+	"horn_of_valor": {
+		"id": "horn_of_valor",
+		"name": "Рог Доблести",
+		"slot": "accessory",
+		"icon": "📯",
+		"attack_bonus": 0,
+		"defense_bonus": 0,
+		"spellpower_bonus": 0,
+		"knowledge_bonus": 0,
+		"mp_bonus": 0,
+		"mana_bonus": 0,
+		"battle_effect": "initiative",
+		"description": "Боевой рог королевских герольдов. Всё войско начинает каждый бой на +2 инициативы быстрее!"
+	},
+	"mantle_wanderer": {
+		"id": "mantle_wanderer",
+		"name": "Плащ Странника",
+		"slot": "armor",
+		"icon": "🧥",
+		"attack_bonus": 0,
+		"defense_bonus": 1,
+		"spellpower_bonus": 0,
+		"knowledge_bonus": 0,
+		"mp_bonus": 0,
+		"mana_bonus": 0,
+		"battle_effect": "dodge",
+		"description": "Плащ из туманной пряжи странников: воины в ближнем бою 15% шансом вдвое уменьшают получаемый урон."
 	}
 }
 

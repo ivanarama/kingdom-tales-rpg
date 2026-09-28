@@ -233,6 +233,17 @@ func _ready() -> void:
 			var hero_guard = _find_guard_for_cell(world_view.hero_cell)
 			if hero_guard.is_empty() and not GameState.flags.get(hero_obj.get("id", ""), false):
 				_trigger_object(hero_obj)
+	elif world_view:
+		# Сундук, чья охрана только что пала, открываем и с соседней клетки
+		for n in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var cc: Vector2i = world_view.hero_cell + n
+			if world_view.objects.has(cc) and world_view.objects[cc].get("type", "") == "chest":
+				var cg: Dictionary = _find_guard_for_cell(cc)
+				var cid: String = world_view.objects[cc].get("id", "")
+				if cg.is_empty() and not GameState.flags.get(cid, false):
+					_trigger_object(world_view.objects[cc])
+					break
+
 
 func _center_camera_on_hero() -> void:
 	var target_pos = world_view.hero_pixel_pos
@@ -1102,115 +1113,18 @@ func _show_popup_dialog() -> void:
 	popup_dialog.visible = true
 
 func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable()) -> void:
-	# 1. Determine enemy army for this encounter
+	# 1. Determine enemy army — единый источник: data/encounters.json
 	var enemy_army: Array[Dictionary] = []
 	var battle_name = "Вражеский отряд"
+	var qc_enc := EncounterData.get_encounter(battle_id)
+	var qc_diff := GameState.get_difficulty_multipliers(GameState.campaign_difficulty)
 	# Chapter 1 Encounters
-	if battle_id == "patrol_wolves":
-		battle_name = "Стая Волков"
-		enemy_army = [{"unit_id": "wolf", "count": 16}]
-	elif battle_id == "patrol_goblins":
-		battle_name = "Шайка Гоблинов"
-		enemy_army = [{"unit_id": "goblin", "count": 24}, {"unit_id": "wolf", "count": 6}]
-	elif battle_id == "patrol_forester":
-		battle_name = "Засада Разбойников"
-		enemy_army = [{"unit_id": "goblin", "count": 18}, {"unit_id": "wolf", "count": 8}]
-	elif battle_id == "patrol_grove":
-		battle_name = "Страж Рощи"
-		enemy_army = [{"unit_id": "treant", "count": 3}, {"unit_id": "wolf", "count": 10}]
-	elif battle_id == "patrol_1":
-		battle_name = "Авангард Разбойников"
-		enemy_army = [{"unit_id": "goblin", "count": 25}, {"unit_id": "wolf", "count": 12}]
-	elif battle_id == "patrol_rogues":
-		battle_name = "Дозор Стрелков"
-		enemy_army = [{"unit_id": "goblin", "count": 26}, {"unit_id": "wolf", "count": 14}]
-	elif battle_id == "patrol_obelisk":
-		battle_name = "Стража Обелиска"
-		enemy_army = [{"unit_id": "treant", "count": 3}, {"unit_id": "goblin", "count": 20}, {"unit_id": "wolf", "count": 10}]
-	elif battle_id == "bandit_boss":
-		battle_name = "Атаман Разбойников"
-		enemy_army = [
-			{"unit_id": "goblin", "count": 35},
-			{"unit_id": "wolf", "count": 18},
-			{"unit_id": "treant", "count": 5}
-		]
-	# Chapter 2 Encounters
-	elif battle_id == "swamp_patrol_road":
-		battle_name = "Болотные Зомби"
-		enemy_army = [{"unit_id": "swamp_zombie", "count": 18}]
-	elif battle_id == "swamp_patrol_fens":
-		battle_name = "Скелеты Топей"
-		enemy_army = [{"unit_id": "skeleton_archer", "count": 20}]
-	elif battle_id == "swamp_patrol_gate":
-		battle_name = "Костяная Стража"
-		enemy_army = [{"unit_id": "skeleton_archer", "count": 22}, {"unit_id": "swamp_zombie", "count": 14}]
-	elif battle_id == "swamp_patrol_east":
-		battle_name = "Легион Смерти"
-		enemy_army = [{"unit_id": "skeleton_archer", "count": 24}, {"unit_id": "swamp_zombie", "count": 18}]
-	elif battle_id == "swamp_patrol_ruins":
-		battle_name = "Стражи Гробниц"
-		enemy_army = [{"unit_id": "lich", "count": 4}, {"unit_id": "skeleton_archer", "count": 20}, {"unit_id": "swamp_zombie", "count": 12}]
-	elif battle_id == "lich_boss":
-		battle_name = "Древний Лич"
-		enemy_army = [
-			{"unit_id": "skeleton_archer", "count": 32},
-			{"unit_id": "swamp_zombie", "count": 22},
-			{"unit_id": "lich", "count": 8}
-		]
-	# Chapter 3 Encounters
-	elif battle_id in ["dragon_patrol_pass", "dragon_patrol", "patrol_dragon"]:
-		battle_name = "Огненный Дозор"
-		enemy_army = [{"unit_id": "skeleton_archer", "count": 20}, {"unit_id": "griffin", "count": 8}]
-	elif battle_id == "dragon_patrol_gate":
-		battle_name = "Стража Врат"
-		enemy_army = [{"unit_id": "skeleton_archer", "count": 22}, {"unit_id": "goblin", "count": 25}, {"unit_id": "wolf", "count": 14}]
-	elif battle_id == "dragon_patrol_caldera":
-		battle_name = "Слуги Дракона"
-		enemy_army = [{"unit_id": "goblin", "count": 25}, {"unit_id": "wolf", "count": 16}, {"unit_id": "treant", "count": 4}]
-	elif battle_id == "dragon_patrol_citadel":
-		battle_name = "Лавовые Хищники"
-		enemy_army = [{"unit_id": "griffin", "count": 12}, {"unit_id": "goblin", "count": 22}]
-	elif battle_id == "dragon_boss":
-		battle_name = "Красный Дракон"
-		enemy_army = [
-			{"unit_id": "wolf", "count": 25},
-			{"unit_id": "red_dragon", "count": 3},
-			{"unit_id": "treant", "count": 8}
-		]
-	elif battle_id in ["swamp_patrol", "patrol_swamp"]:
-		battle_name = "Болотный дозор"
-		enemy_army = [
-			{"unit_id": "skeleton_archer", "count": 18},
-			{"unit_id": "swamp_zombie", "count": 14}
-		]
-	elif battle_id == "patrol_2":
-		battle_name = "Разбойничий дозор"
-		enemy_army = [
-			{"unit_id": "goblin", "count": 22},
-			{"unit_id": "wolf", "count": 12}
-		]
-	else:
-		if GameState.current_chapter == 2:
-			battle_name = "Болотная нежить"
-			enemy_army = [
-				{"unit_id": "skeleton_archer", "count": 16},
-				{"unit_id": "swamp_zombie", "count": 12},
-				{"unit_id": "wolf", "count": 10}
-			]
-		elif GameState.current_chapter == 3:
-			battle_name = "Стража ущелья"
-			enemy_army = [
-				{"unit_id": "goblin", "count": 25},
-				{"unit_id": "wolf", "count": 16},
-				{"unit_id": "treant", "count": 4}
-			]
-		else:
-			battle_name = "Лесные разбойники"
-			enemy_army = [
-				{"unit_id": "goblin", "count": 18},
-				{"unit_id": "wolf", "count": 9},
-				{"unit_id": "treant", "count": 2}
-			]
+	if qc_enc.is_empty():
+		qc_enc = EncounterData.get_default_for_chapter(GameState.current_chapter)
+	for qe in qc_enc["enemies"]:
+		enemy_army.append({"unit_id": qe["unit_id"], "count": maxi(1, int(round(qe["count"] * float(qc_diff["enemy"]))))})
+	var qc_log: String = tr(qc_enc["log"])
+	battle_name = qc_log.split("!")[0] if "!" in qc_log else qc_log
 
 	# 2. Calculate combat power
 	var hero_att = GameState.get_total_attack() if GameState.has_method("get_total_attack") else GameState.attack

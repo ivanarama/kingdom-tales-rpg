@@ -15,48 +15,48 @@ var mini_player_btn: Button
 
 const MENU_THEMES: Array[Dictionary] = [
 	# --- HoMM 2 Style Baroque Harpsichord Themes (1 - 20) ---
-	{"file": "res://assets/audio/music/themes/homm2_01_sorceress_garden.wav", "name": "01. Сад Волшебницы (HoMM2)", "mood": "Виртуозный клавесин, пасторальная флейта, хрустальные колокольчики"},
-	{"file": "res://assets/audio/music/themes/homm2_02_knight_castle.wav", "name": "02. Замок Рыцаря (HoMM2)", "mood": "Благородный контрапункт на клавесине, лютня и королевские фанфары"},
-	{"file": "res://assets/audio/music/themes/homm2_03_warlock_dungeon.wav", "name": "03. Башня Чернокнижника (HoMM2)", "mood": "Нисходящие минорные пассажи клавесина, пиццикато и полночный перезвон"},
-	{"file": "res://assets/audio/music/themes/homm2_04_wizard_academy.wav", "name": "04. Академия Магов (HoMM2)", "mood": "Барочная пассакалья 3/4 на клавесине и волшебная челеста"},
-	{"file": "res://assets/audio/music/themes/homm2_05_baroque_gavotte.wav", "name": "05. Придворный Гавот (HoMM2)", "mood": "Игривый стаккато-танец клавесина и флейтовый дуэт"},
-	{"file": "res://assets/audio/music/themes/homm2_06_fairytale_minuet.wav", "name": "06. Сказочный Менуэт (HoMM2)", "mood": "Изящный 3/4 менуэт с мордентами клавесина и щипковой лютней"},
-	{"file": "res://assets/audio/music/themes/homm2_07_enchanted_fountain.wav", "name": "07. Зачарованный Фонтан (HoMM2)", "mood": "Искрящиеся шестнадцатые переборы клавесина, словно струи воды"},
-	{"file": "res://assets/audio/music/themes/homm2_08_harpsichord_invention.wav", "name": "08. Двухголосная Инвенция (HoMM2)", "mood": "Классический баховский полифонический диалог двух голосов"},
-	{"file": "res://assets/audio/music/themes/homm2_09_court_jester_gigue.wav", "name": "09. Шут при Дворе — Жига (HoMM2)", "mood": "Задорный галоп 6/8, прыгающий клавесин и средневековая лютня"},
-	{"file": "res://assets/audio/music/themes/homm2_10_princess_pavane.wav", "name": "10. Павана Принцессы (HoMM2)", "mood": "Величавая ренессансная поступь, нежный клавесин и басовая лютня"},
-	{"file": "res://assets/audio/music/themes/homm2_11_alchemist_laboratory.wav", "name": "11. Лаборатория Алхимика (HoMM2)", "mood": "Хроматические барочные фигуры, стеклянные колокольчики и орган"},
-	{"file": "res://assets/audio/music/themes/homm2_12_druid_grove.wav", "name": "12. Священная Роща Друидов (HoMM2)", "mood": "Дорийский напев лесной флейты над струящимися аккордами клавесина"},
-	{"file": "res://assets/audio/music/themes/homm2_13_troubadour_serenade.wav", "name": "13. Серенада Трубадура (HoMM2)", "mood": "Романтичный клавесин и мягкая щипковая виуэла менестреля"},
-	{"file": "res://assets/audio/music/themes/homm2_14_magic_music_box.wav", "name": "14. Волшебная Шкатулка (HoMM2)", "mood": "Звонкий высокий спинет и сказочные колокольчики фей"},
-	{"file": "res://assets/audio/music/themes/homm2_15_royal_cembalo_march.wav", "name": "15. Королевский Чембало-Марш (HoMM2)", "mood": "Пышные арпеджированные аккорды клавесина и праздничный шаг"},
-	{"file": "res://assets/audio/music/themes/homm2_16_pastoral_dawn.wav", "name": "16. Пасторальный Рассвет (HoMM2)", "mood": "Пробуждение лесной чащи, птичьи трели флейты и рассветный клавесин"},
-	{"file": "res://assets/audio/music/themes/homm2_17_clavier_fughetta.wav", "name": "17. Клавирная Фугетта (HoMM2)", "mood": "Строгий старинный контрапункт с проведением темы во всех голосах"},
-	{"file": "res://assets/audio/music/themes/homm2_18_crystal_spinet.wav", "name": "18. Хрустальный Спинет (HoMM2)", "mood": "Виртуозная токката в духе Скарлатти с быстрыми репетициями нот"},
-	{"file": "res://assets/audio/music/themes/homm2_19_archers_pavilion.wav", "name": "19. Шатёр Лесных Лучников (HoMM2)", "mood": "Ритмичный стаккато-клавесин и удалой мотив стрелков Шервуда"},
-	{"file": "res://assets/audio/music/themes/homm2_20_archmage_fantasia.wav", "name": "20. Фантазия Верховного Мага (HoMM2)", "mood": "Драматическая барочная кульминация с органом и мажорным разрешением"},
+	{"file": "res://assets/audio/music/themes/homm2_01_sorceress_garden.ogg", "name": "01. Сад Волшебницы (HoMM2)", "mood": "Виртуозный клавесин, пасторальная флейта, хрустальные колокольчики"},
+	{"file": "res://assets/audio/music/themes/homm2_02_knight_castle.ogg", "name": "02. Замок Рыцаря (HoMM2)", "mood": "Благородный контрапункт на клавесине, лютня и королевские фанфары"},
+	{"file": "res://assets/audio/music/themes/homm2_03_warlock_dungeon.ogg", "name": "03. Башня Чернокнижника (HoMM2)", "mood": "Нисходящие минорные пассажи клавесина, пиццикато и полночный перезвон"},
+	{"file": "res://assets/audio/music/themes/homm2_04_wizard_academy.ogg", "name": "04. Академия Магов (HoMM2)", "mood": "Барочная пассакалья 3/4 на клавесине и волшебная челеста"},
+	{"file": "res://assets/audio/music/themes/homm2_05_baroque_gavotte.ogg", "name": "05. Придворный Гавот (HoMM2)", "mood": "Игривый стаккато-танец клавесина и флейтовый дуэт"},
+	{"file": "res://assets/audio/music/themes/homm2_06_fairytale_minuet.ogg", "name": "06. Сказочный Менуэт (HoMM2)", "mood": "Изящный 3/4 менуэт с мордентами клавесина и щипковой лютней"},
+	{"file": "res://assets/audio/music/themes/homm2_07_enchanted_fountain.ogg", "name": "07. Зачарованный Фонтан (HoMM2)", "mood": "Искрящиеся шестнадцатые переборы клавесина, словно струи воды"},
+	{"file": "res://assets/audio/music/themes/homm2_08_harpsichord_invention.ogg", "name": "08. Двухголосная Инвенция (HoMM2)", "mood": "Классический баховский полифонический диалог двух голосов"},
+	{"file": "res://assets/audio/music/themes/homm2_09_court_jester_gigue.ogg", "name": "09. Шут при Дворе — Жига (HoMM2)", "mood": "Задорный галоп 6/8, прыгающий клавесин и средневековая лютня"},
+	{"file": "res://assets/audio/music/themes/homm2_10_princess_pavane.ogg", "name": "10. Павана Принцессы (HoMM2)", "mood": "Величавая ренессансная поступь, нежный клавесин и басовая лютня"},
+	{"file": "res://assets/audio/music/themes/homm2_11_alchemist_laboratory.ogg", "name": "11. Лаборатория Алхимика (HoMM2)", "mood": "Хроматические барочные фигуры, стеклянные колокольчики и орган"},
+	{"file": "res://assets/audio/music/themes/homm2_12_druid_grove.ogg", "name": "12. Священная Роща Друидов (HoMM2)", "mood": "Дорийский напев лесной флейты над струящимися аккордами клавесина"},
+	{"file": "res://assets/audio/music/themes/homm2_13_troubadour_serenade.ogg", "name": "13. Серенада Трубадура (HoMM2)", "mood": "Романтичный клавесин и мягкая щипковая виуэла менестреля"},
+	{"file": "res://assets/audio/music/themes/homm2_14_magic_music_box.ogg", "name": "14. Волшебная Шкатулка (HoMM2)", "mood": "Звонкий высокий спинет и сказочные колокольчики фей"},
+	{"file": "res://assets/audio/music/themes/homm2_15_royal_cembalo_march.ogg", "name": "15. Королевский Чембало-Марш (HoMM2)", "mood": "Пышные арпеджированные аккорды клавесина и праздничный шаг"},
+	{"file": "res://assets/audio/music/themes/homm2_16_pastoral_dawn.ogg", "name": "16. Пасторальный Рассвет (HoMM2)", "mood": "Пробуждение лесной чащи, птичьи трели флейты и рассветный клавесин"},
+	{"file": "res://assets/audio/music/themes/homm2_17_clavier_fughetta.ogg", "name": "17. Клавирная Фугетта (HoMM2)", "mood": "Строгий старинный контрапункт с проведением темы во всех голосах"},
+	{"file": "res://assets/audio/music/themes/homm2_18_crystal_spinet.ogg", "name": "18. Хрустальный Спинет (HoMM2)", "mood": "Виртуозная токката в духе Скарлатти с быстрыми репетициями нот"},
+	{"file": "res://assets/audio/music/themes/homm2_19_archers_pavilion.ogg", "name": "19. Шатёр Лесных Лучников (HoMM2)", "mood": "Ритмичный стаккато-клавесин и удалой мотив стрелков Шервуда"},
+	{"file": "res://assets/audio/music/themes/homm2_20_archmage_fantasia.ogg", "name": "20. Фантазия Верховного Мага (HoMM2)", "mood": "Драматическая барочная кульминация с органом и мажорным разрешением"},
 
 	# --- Symphonic & Fantasy Themes (21 - 40) ---
-	{"file": "res://assets/audio/music/themes/theme_01_fairy_forest.wav", "name": "21. Зачарованный Лес", "mood": "Сказочные флейты, арфа и мягкий ветер"},
-	{"file": "res://assets/audio/music/themes/theme_02_royal_march.wav", "name": "22. Королевский Марш", "mood": "Торжественные медные духовые и барабаны"},
-	{"file": "res://assets/audio/music/themes/theme_03_cozy_tavern.wav", "name": "23. Уютная Таверна", "mood": "Веселый средневековый танец, лютня"},
-	{"file": "res://assets/audio/music/themes/theme_04_mystic_sanctuary.wav", "name": "24. Тайное Святилище", "mood": "Мистический эмбиент-пад и колокольчики"},
-	{"file": "res://assets/audio/music/themes/theme_05_wanderer_ballad.wav", "name": "25. Баллада Странника", "mood": "Ностальгическая свирель и переборы струн"},
-	{"file": "res://assets/audio/music/themes/theme_06_knights_honor.wav", "name": "26. Рыцарская Честь", "mood": "Благородные валторны и струнные"},
-	{"file": "res://assets/audio/music/themes/theme_07_crystal_spring.wav", "name": "27. Хрустальный Источник", "mood": "Серебряные переливы челесты и ручей"},
-	{"file": "res://assets/audio/music/themes/theme_08_homm_nostalgia.wav", "name": "28. Ностальгия Героев", "mood": "Классический клавесин в духе HoMM3"},
-	{"file": "res://assets/audio/music/themes/theme_09_ancient_ruins.wav", "name": "29. Древние Руины", "mood": "Загадочный хор предков и глубокий гонг"},
-	{"file": "res://assets/audio/music/themes/theme_10_morning_meadow.wav", "name": "30. Утренний Луг", "mood": "Пасторальная дудочка и птичьи трели"},
-	{"file": "res://assets/audio/music/themes/theme_11_celtic_dance.wav", "name": "31. Кельтский Праздник", "mood": "Бодрая кельтская джига и волынка"},
-	{"file": "res://assets/audio/music/themes/theme_12_foggy_swamp.wav", "name": "32. Туманные Топи", "mood": "Таинственный низкий гул и капли"},
-	{"file": "res://assets/audio/music/themes/theme_13_glory_triumph.wav", "name": "33. Триумф Королевства", "mood": "Победные фанфары и литавры"},
-	{"file": "res://assets/audio/music/themes/theme_14_moonlight_grove.wav", "name": "34. Лунная Роща", "mood": "Мерцающие колокольчики и фортепиано"},
-	{"file": "res://assets/audio/music/themes/theme_15_battle_call.wav", "name": "35. Зов Битвы", "mood": "Энергичный ритм и боевой марш"},
-	{"file": "res://assets/audio/music/themes/theme_16_fairy_lullaby.wav", "name": "36. Колыбельная Фей", "mood": "Нежная музыкальная шкатулка"},
-	{"file": "res://assets/audio/music/themes/theme_17_dragon_peak.wav", "name": "37. Пик Дракона", "mood": "Величественные медные и размах гор"},
-	{"file": "res://assets/audio/music/themes/theme_18_minstrel_song.wav", "name": "38. Песнь Менестреля", "mood": "Старинная баллада бродячего барда (плавный бесшовный луп)"},
-	{"file": "res://assets/audio/music/themes/theme_19_cathedral_light.wav", "name": "39. Храм Света", "mood": "Священный орган и светлые гармонии"},
-	{"file": "res://assets/audio/music/themes/theme_20_epic_fairytale.wav", "name": "40. Великая Сказка", "mood": "Полнозвучная симфоническая увертюра"}
+	{"file": "res://assets/audio/music/themes/theme_01_fairy_forest.ogg", "name": "21. Зачарованный Лес", "mood": "Сказочные флейты, арфа и мягкий ветер"},
+	{"file": "res://assets/audio/music/themes/theme_02_royal_march.ogg", "name": "22. Королевский Марш", "mood": "Торжественные медные духовые и барабаны"},
+	{"file": "res://assets/audio/music/themes/theme_03_cozy_tavern.ogg", "name": "23. Уютная Таверна", "mood": "Веселый средневековый танец, лютня"},
+	{"file": "res://assets/audio/music/themes/theme_04_mystic_sanctuary.ogg", "name": "24. Тайное Святилище", "mood": "Мистический эмбиент-пад и колокольчики"},
+	{"file": "res://assets/audio/music/themes/theme_05_wanderer_ballad.ogg", "name": "25. Баллада Странника", "mood": "Ностальгическая свирель и переборы струн"},
+	{"file": "res://assets/audio/music/themes/theme_06_knights_honor.ogg", "name": "26. Рыцарская Честь", "mood": "Благородные валторны и струнные"},
+	{"file": "res://assets/audio/music/themes/theme_07_crystal_spring.ogg", "name": "27. Хрустальный Источник", "mood": "Серебряные переливы челесты и ручей"},
+	{"file": "res://assets/audio/music/themes/theme_08_homm_nostalgia.ogg", "name": "28. Ностальгия Героев", "mood": "Классический клавесин в духе HoMM3"},
+	{"file": "res://assets/audio/music/themes/theme_09_ancient_ruins.ogg", "name": "29. Древние Руины", "mood": "Загадочный хор предков и глубокий гонг"},
+	{"file": "res://assets/audio/music/themes/theme_10_morning_meadow.ogg", "name": "30. Утренний Луг", "mood": "Пасторальная дудочка и птичьи трели"},
+	{"file": "res://assets/audio/music/themes/theme_11_celtic_dance.ogg", "name": "31. Кельтский Праздник", "mood": "Бодрая кельтская джига и волынка"},
+	{"file": "res://assets/audio/music/themes/theme_12_foggy_swamp.ogg", "name": "32. Туманные Топи", "mood": "Таинственный низкий гул и капли"},
+	{"file": "res://assets/audio/music/themes/theme_13_glory_triumph.ogg", "name": "33. Триумф Королевства", "mood": "Победные фанфары и литавры"},
+	{"file": "res://assets/audio/music/themes/theme_14_moonlight_grove.ogg", "name": "34. Лунная Роща", "mood": "Мерцающие колокольчики и фортепиано"},
+	{"file": "res://assets/audio/music/themes/theme_15_battle_call.ogg", "name": "35. Зов Битвы", "mood": "Энергичный ритм и боевой марш"},
+	{"file": "res://assets/audio/music/themes/theme_16_fairy_lullaby.ogg", "name": "36. Колыбельная Фей", "mood": "Нежная музыкальная шкатулка"},
+	{"file": "res://assets/audio/music/themes/theme_17_dragon_peak.ogg", "name": "37. Пик Дракона", "mood": "Величественные медные и размах гор"},
+	{"file": "res://assets/audio/music/themes/theme_18_minstrel_song.ogg", "name": "38. Песнь Менестреля", "mood": "Старинная баллада бродячего барда (плавный бесшовный луп)"},
+	{"file": "res://assets/audio/music/themes/theme_19_cathedral_light.ogg", "name": "39. Храм Света", "mood": "Священный орган и светлые гармонии"},
+	{"file": "res://assets/audio/music/themes/theme_20_epic_fairytale.ogg", "name": "40. Великая Сказка", "mood": "Полнозвучная симфоническая увертюра"}
 ]
 
 func _ready() -> void:
@@ -67,9 +67,9 @@ func _ready() -> void:
 
 	# --- Primary Action Cards ---
 	var continue_btn: Button = $SafeMargin/MainVBox/CenterSection/ActionCards/ContinueBtn
-	if GameState.has_save_game():
+	if GameState.has_save_game(GameState.get_newest_save_path()):
 		continue_btn.visible = true
-		var summary = GameState.get_save_summary()
+		var summary = GameState.get_save_summary(GameState.get_newest_save_path())
 		if summary.size() > 0:
 			var h_name = summary.get("hero_name", "Герой")
 			var chap = summary.get("chapter", 1)
@@ -97,6 +97,24 @@ func _ready() -> void:
 
 	var about_btn: Button = $SafeMargin/MainVBox/BottomToolbar/AboutBtn
 	about_btn.pressed.connect(_on_about)
+
+	var settings_btn: Button = Button.new()
+	settings_btn.text = tr("⚙️ Настройки")
+	settings_btn.custom_minimum_size = Vector2(0, 50)
+	$SafeMargin/MainVBox/BottomToolbar.add_child(settings_btn)
+	settings_btn.pressed.connect(_open_settings_dialog)
+
+	var chron_btn: Button = Button.new()
+	chron_btn.text = tr("📜 Летопись подвигов")
+	chron_btn.custom_minimum_size = Vector2(0, 50)
+	$SafeMargin/MainVBox/BottomToolbar.add_child(chron_btn)
+	chron_btn.pressed.connect(_open_chronicle_dialog)
+
+	var best_btn: Button = Button.new()
+	best_btn.text = tr("📖 Кодекс существ")
+	best_btn.custom_minimum_size = Vector2(0, 50)
+	$SafeMargin/MainVBox/BottomToolbar.add_child(best_btn)
+	best_btn.pressed.connect(_open_bestiary_dialog)
 
 	var exit_btn: Button = $SafeMargin/MainVBox/BottomToolbar/ExitBtn
 	exit_btn.pressed.connect(func():
@@ -148,7 +166,7 @@ func _update_mini_player_text() -> void:
 
 func _on_continue_adventure() -> void:
 	SoundManager.play_sfx("click")
-	if GameState.load_game():
+	if GameState.load_game(GameState.get_newest_save_path()):
 		get_tree().change_scene_to_file("res://src/world/world_map.tscn")
 	else:
 		_on_start_adventure()
@@ -226,6 +244,42 @@ func _setup_chapter_selection_ui() -> void:
 
 	vbox.add_spacer(false)
 
+	# Campaign difficulty selector
+	var diff_lbl = Label.new()
+	diff_lbl.text = tr("Сложность кампании:")
+	diff_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	diff_lbl.add_theme_font_size_override("font_size", 15)
+	diff_lbl.add_theme_color_override("font_color", Color(0.45, 0.3, 0.15))
+	vbox.add_child(diff_lbl)
+
+	var diff_row = HBoxContainer.new()
+	diff_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	diff_row.add_theme_constant_override("separation", 8)
+	vbox.add_child(diff_row)
+
+	var chapter_diff = {"v": "normal"}
+	var diff_btns: Array[Button] = []
+	for diff_id in ["easy", "normal", "hard", "legendary"]:
+		var ddata := GameState.get_difficulty_multipliers(diff_id)
+		var d_btn := Button.new()
+		d_btn.text = str(ddata["title"])
+		d_btn.custom_minimum_size = Vector2(0, 40)
+		d_btn.add_theme_font_size_override("font_size", 13)
+		var did: String = diff_id
+		d_btn.pressed.connect(func():
+			SoundManager.play_sfx("click")
+			chapter_diff["v"] = did
+			for b in diff_btns:
+				b.modulate = Color(0.75, 0.75, 0.75)
+			d_btn.modulate = Color(1.0, 0.95, 0.6)
+		)
+		if diff_id == "normal":
+			d_btn.modulate = Color(1.0, 0.95, 0.6)
+		else:
+			d_btn.modulate = Color(0.75, 0.75, 0.75)
+		diff_row.add_child(d_btn)
+		diff_btns.append(d_btn)
+
 	# Chapter 1
 	var c1_btn = Button.new()
 	c1_btn.text = "🌲 Глава 1: Похищенный Венец (Зачарованный Лес)"
@@ -234,6 +288,7 @@ func _setup_chapter_selection_ui() -> void:
 	c1_btn.pressed.connect(func():
 		SoundManager.play_sfx("click")
 		GameState.reset()
+		GameState.campaign_difficulty = chapter_diff["v"]
 		GameState.start_chapter(1)
 		get_tree().change_scene_to_file("res://src/world/world_map.tscn")
 	)
@@ -247,6 +302,7 @@ func _setup_chapter_selection_ui() -> void:
 	c2_btn.pressed.connect(func():
 		SoundManager.play_sfx("click")
 		GameState.reset()
+		GameState.campaign_difficulty = chapter_diff["v"]
 		GameState.level = 3
 		GameState.attack = 6
 		GameState.defense = 5
@@ -267,6 +323,7 @@ func _setup_chapter_selection_ui() -> void:
 	c3_btn.pressed.connect(func():
 		SoundManager.play_sfx("click")
 		GameState.reset()
+		GameState.campaign_difficulty = chapter_diff["v"]
 		GameState.level = 5
 		GameState.attack = 8
 		GameState.defense = 7
@@ -926,6 +983,261 @@ func _setup_about_dialog_ui() -> void:
 		about_dialog.hide()
 	)
 	vbox.add_child(close_btn)
+
+# 6. Настройки: громкость + язык
+func _open_settings_dialog() -> void:
+	SoundManager.play_sfx("page_turn")
+	_build_settings_dialog().show()
+
+func _build_settings_dialog() -> Control:
+	var root = _create_modal_dialog("SettingsDialog", Vector2(520, 420))
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 14)
+	root["margin"].add_child(vbox)
+
+	var title = Label.new()
+	title.text = tr("⚙️ НАСТРОЙКИ")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 26)
+	title.add_theme_color_override("font_color", Color(0.28, 0.16, 0.08))
+	vbox.add_child(title)
+
+	for cfg in [["Общая громкость:", SettingsManager.master_volume,
+			func(v: float): SettingsManager.master_volume = v],
+			["Музыка:", SettingsManager.music_volume,
+			func(v: float): SettingsManager.music_volume = v],
+			["Звуки:", SettingsManager.sfx_volume,
+			func(v: float): SettingsManager.sfx_volume = v]]:
+		var box = HBoxContainer.new()
+		box.add_theme_constant_override("separation", 10)
+		var lbl = Label.new()
+		lbl.text = tr(cfg[0])
+		lbl.custom_minimum_size = Vector2(180, 0)
+		lbl.add_theme_color_override("font_color", Color(0.35, 0.22, 0.1))
+		var slider = HSlider.new()
+		slider.min_value = 0.0
+		slider.max_value = 1.0
+		slider.step = 0.05
+		slider.value = cfg[1]
+		slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		slider.value_changed.connect(func(v: float):
+			cfg[2].call(v)
+			SettingsManager.apply()
+			SettingsManager.save_settings()
+		)
+		box.add_child(lbl)
+		box.add_child(slider)
+		vbox.add_child(box)
+
+	var lang_box = HBoxContainer.new()
+	var lang_lbl = Label.new()
+	lang_lbl.text = tr("Язык:")
+	lang_lbl.custom_minimum_size = Vector2(180, 0)
+	lang_lbl.add_theme_color_override("font_color", Color(0.35, 0.22, 0.1))
+	var lang_opt = OptionButton.new()
+	lang_opt.add_item("Русский", 0)
+	lang_opt.add_item("English", 1)
+	lang_opt.select(1 if SettingsManager.locale == "en" else 0)
+	lang_opt.item_selected.connect(func(idx: int):
+		SoundManager.play_sfx("click")
+		SettingsManager.set_locale("en" if idx == 1 else "ru")
+	)
+	lang_box.add_child(lang_lbl)
+	lang_box.add_child(lang_opt)
+	vbox.add_child(lang_box)
+
+	var anim_chk := CheckButton.new()
+	anim_chk.text = tr("Упрощённые анимации (для слабых устройств)")
+	anim_chk.button_pressed = SettingsManager.reduced_animations
+	anim_chk.add_theme_color_override("font_color", Color(0.35, 0.22, 0.1))
+	anim_chk.toggled.connect(func(on: bool):
+		SettingsManager.reduced_animations = on
+		SettingsManager.save_settings()
+	)
+	vbox.add_child(anim_chk)
+
+	vbox.add_spacer(false)
+
+	var close_btn = Button.new()
+	close_btn.text = tr("Закрыть")
+	close_btn.custom_minimum_size = Vector2(180, 52)
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_btn.pressed.connect(func():
+		SoundManager.play_sfx("click")
+		root["root"].hide()
+	)
+	vbox.add_child(close_btn)
+	return root["root"]
+
+# 7. Летопись подвигов (главное меню)
+func _open_chronicle_dialog() -> void:
+	SoundManager.play_sfx("page_turn")
+	_build_chronicle_dialog().show()
+
+func _build_chronicle_dialog() -> Control:
+	var root = _create_modal_dialog("ChronicleDialog", Vector2(640, 620))
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	root["margin"].add_child(vbox)
+
+	var title = Label.new()
+	title.text = tr("📜 ЛЕТОПИСЬ ПОДВИГОВ")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 24)
+	title.add_theme_color_override("font_color", Color(0.28, 0.16, 0.08))
+	vbox.add_child(title)
+
+	var sub = Label.new()
+	sub.text = tr("Открыто подвигов: %d из %d") % [GameState.chronicle.size(), GameState.CHRONICLE_DEFS.size()]
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.add_theme_font_size_override("font_size", 14)
+	sub.add_theme_color_override("font_color", Color(0.45, 0.3, 0.15))
+	vbox.add_child(sub)
+
+	var scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(0, 380)
+	vbox.add_child(scroll)
+
+	var list = VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 4)
+	scroll.add_child(list)
+
+	for feat in GameState.CHRONICLE_DEFS:
+		var unlocked = GameState.is_feat_unlocked(feat["id"])
+		var row = PanelContainer.new()
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var st = StyleBoxFlat.new()
+		st.set_corner_radius_all(6)
+		st.bg_color = Color(1.0, 0.93, 0.6, 0.35) if unlocked else Color(0, 0, 0, 0.05)
+		row.add_theme_stylebox_override("panel", st)
+		var lbl = Label.new()
+		var mark = "✅ " if unlocked else "🔒 "
+		var when = ""
+		if unlocked and GameState.chronicle.get(feat["id"], {}).get("day", 0) > 0:
+			when = " • " + tr("день %d") % int(GameState.chronicle[feat["id"]]["day"])
+		lbl.text = mark + tr(str(feat["title"])) + " — " + tr(str(feat["desc"])) + when
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lbl.add_theme_font_size_override("font_size", 14)
+		lbl.add_theme_color_override("font_color", Color(0.25, 0.15, 0.05) if unlocked else Color(0.45, 0.4, 0.35))
+		row.add_child(lbl)
+		list.add_child(row)
+
+	var close_btn = Button.new()
+	close_btn.text = tr("Закрыть")
+	close_btn.custom_minimum_size = Vector2(180, 46)
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_btn.pressed.connect(func():
+		SoundManager.play_sfx("click")
+		root["root"].hide()
+	)
+	vbox.add_child(close_btn)
+	return root["root"]
+
+# 8. Кодекс существ (бестиарий)
+func _open_bestiary_dialog() -> void:
+	SoundManager.play_sfx("page_turn")
+	_build_bestiary_dialog().show()
+
+func _build_bestiary_dialog() -> Control:
+	var root = _create_modal_dialog("BestiaryDialog", Vector2(720, 640))
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	root["margin"].add_child(vbox)
+
+	var title = Label.new()
+	title.text = tr("📖 КОДЕКС СУЩЕСТВ")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 24)
+	title.add_theme_color_override("font_color", Color(0.28, 0.16, 0.08))
+	vbox.add_child(title)
+
+	var scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(0, 420)
+	vbox.add_child(scroll)
+
+	var list = VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 6)
+	scroll.add_child(list)
+
+	var ids := UnitData.UNITS.keys()
+	ids.sort_custom(func(a, b):
+		var ua: Dictionary = UnitData.UNITS[a]
+		var ub: Dictionary = UnitData.UNITS[b]
+		if int(ua.get("tier", 0)) != int(ub.get("tier", 0)):
+			return int(ua.get("tier", 0)) < int(ub.get("tier", 0))
+		return str(ua.get("name", "")) < str(ub.get("name", ""))
+	)
+	for uid in ids:
+		var u: Dictionary = UnitData.UNITS[uid]
+		var row = PanelContainer.new()
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var st = StyleBoxFlat.new()
+		st.set_corner_radius_all(6)
+		st.bg_color = Color(1.0, 0.93, 0.6, 0.18)
+		row.add_theme_stylebox_override("panel", st)
+
+		var hb = HBoxContainer.new()
+		hb.add_theme_constant_override("separation", 10)
+		row.add_child(hb)
+
+		var token = TextureRect.new()
+		token.custom_minimum_size = Vector2(56, 56)
+		token.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		token.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		var tpath = u.get("token_path", "")
+		if ResourceLoader.exists(tpath):
+			token.texture = load(tpath)
+		hb.add_child(token)
+
+		var info = VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.add_theme_constant_override("separation", 2)
+		hb.add_child(info)
+
+		var name_l = Label.new()
+		name_l.text = "%s — %s тир %d" % [tr(str(u.get("name", uid))), tr("тир"), int(u.get("tier", 1))]
+		name_l.add_theme_font_size_override("font_size", 15)
+		name_l.add_theme_color_override("font_color", Color(0.6, 0.42, 0.1))
+		info.add_child(name_l)
+
+		var stats_l = Label.new()
+		stats_l.text = "❤ %d   ⚔ %d-%d   🛡 %d   💨 %d   ✦ %d" % [
+			int(u.get("max_hp", 0)), int(u.get("min_dmg", 0)), int(u.get("max_dmg", 0)),
+			int(u.get("defense", 0)), int(u.get("speed", 0)), int(u.get("initiative", 0))
+		]
+		stats_l.add_theme_font_size_override("font_size", 13)
+		stats_l.add_theme_color_override("font_color", Color(0.25, 0.15, 0.05))
+		info.add_child(stats_l)
+
+		var traits_l = Label.new()
+		traits_l.text = tr(UnitData.get_trait_string(uid))
+		traits_l.add_theme_font_size_override("font_size", 12)
+		traits_l.add_theme_color_override("font_color", Color(0.45, 0.32, 0.12))
+		info.add_child(traits_l)
+
+		var desc_l = Label.new()
+		desc_l.text = tr(str(u.get("description", "")))
+		desc_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_l.add_theme_font_size_override("font_size", 12)
+		desc_l.add_theme_color_override("font_color", Color(0.3, 0.22, 0.12))
+		info.add_child(desc_l)
+
+		list.add_child(row)
+
+	var close_btn = Button.new()
+	close_btn.text = tr("Закрыть")
+	close_btn.custom_minimum_size = Vector2(180, 46)
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_btn.pressed.connect(func():
+		SoundManager.play_sfx("click")
+		root["root"].hide()
+	)
+	vbox.add_child(close_btn)
+	return root["root"]
 
 func _on_about() -> void:
 	SoundManager.play_sfx("page_turn")

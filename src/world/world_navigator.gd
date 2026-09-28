@@ -5,6 +5,12 @@ const DIRECTIONS: Array[Vector2i] = [
 	Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
 ]
 
+# Single source of truth for movement cost (also used by world_map march loop)
+static func move_step_cost(cell: Vector2i, road_cells: Array[Vector2i], has_pathfinding: bool) -> int:
+	if road_cells.has(cell):
+		return 1
+	return 1 if has_pathfinding else 2
+
 static func find_path(from: Vector2i, to: Vector2i, impassable: Array[Vector2i], bounds: Rect2i, road_cells: Array[Vector2i] = [], has_pathfinding: bool = false) -> Array[Vector2i]:
 	if not bounds.has_point(from) or not bounds.has_point(to):
 		return []
@@ -41,12 +47,7 @@ static func find_path(from: Vector2i, to: Vector2i, impassable: Array[Vector2i],
 			if impassable.has(nxt) and nxt != to:
 				continue
 				
-			var step_cost = 1
-			if road_cells.size() > 0:
-				if road_cells.has(nxt):
-					step_cost = 1
-				else:
-					step_cost = 1 if has_pathfinding else 2
+			var step_cost = move_step_cost(nxt, road_cells, has_pathfinding)
 			var new_cost = cost_so_far[current] + step_cost
 			if not cost_so_far.has(nxt) or new_cost < cost_so_far[nxt]:
 				cost_so_far[nxt] = new_cost

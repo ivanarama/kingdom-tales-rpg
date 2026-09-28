@@ -13,6 +13,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]
 
+SettingsManager="*res://src/core/settings_manager.gd"
 SoundManager="*res://src/core/sound_manager.gd"
 GameState="*res://src/core/game_state.gd"
 
@@ -34,6 +35,11 @@ pointing/emulate_mouse_from_touch=true
 [gui]
 
 theme/custom="res://assets/art/ui/fairytale_theme.tres"
+
+[internationalization]
+
+locale/fallback="ru"
+locale/translations=PackedStringArray("res://localization/translations.en.translation")
 
 [rendering]
 

@@ -1,0 +1,194 @@
+{
+	"_comment": "Реестр тактических встреч. unit — id из unit_data.gd, hex — [колонка, строка]. Новые встречи добавляются сюда без правок кода.",
+	"_defaults": {
+		"1": {
+			"log": "Лесные разбойники преграждают путь! Битва началась!",
+			"enemies": [
+				{"unit": "goblin", "count": 18, "hex": [10, 1]},
+				{"unit": "wolf", "count": 9, "hex": [10, 3]},
+				{"unit": "treant", "count": 2, "hex": [10, 5]}
+			]
+		},
+		"2": {
+			"log": "Орда нежити восстает из могил болот!",
+			"enemies": [
+				{"unit": "skeleton_archer", "count": 16, "hex": [10, 1]},
+				{"unit": "swamp_zombie", "count": 12, "hex": [10, 3]},
+				{"unit": "wolf", "count": 10, "hex": [10, 5]}
+			]
+		},
+		"3": {
+			"log": "Стражи вулканического ущелья бросаются в бой!",
+			"enemies": [
+				{"unit": "goblin", "count": 25, "hex": [10, 1]},
+				{"unit": "wolf", "count": 16, "hex": [10, 3]},
+				{"unit": "treant", "count": 4, "hex": [10, 5]}
+			]
+		}
+	},
+	"bandit_boss": {
+		"log": "Логово Главаря Разбойников! Атаман и его приспешники идут в атаку!",
+		"enemies": [
+			{"unit": "goblin", "count": 35, "hex": [10, 1]},
+			{"unit": "wolf", "count": 18, "hex": [10, 3]},
+			{"unit": "treant", "count": 5, "hex": [10, 5]}
+		]
+	},
+	"lich_boss": {
+		"log": "Цитадель Тьмы! Древний Лич поднимает нежить из болотных могил!",
+		"enemies": [
+			{"unit": "skeleton_archer", "count": 32, "hex": [10, 1]},
+			{"unit": "swamp_zombie", "count": 22, "hex": [10, 3]},
+			{"unit": "lich", "count": 8, "hex": [10, 5]}
+		]
+	},
+	"dragon_boss": {
+		"log": "Гнездо Владыки Огня! Красный Дракон расправляет пылающие крылья!",
+		"enemies": [
+			{"unit": "wolf", "count": 25, "hex": [10, 1]},
+			{"unit": "red_dragon", "count": 3, "hex": [10, 3]},
+			{"unit": "treant", "count": 8, "hex": [10, 5]}
+		]
+	},
+	"patrol_1": {
+		"log": "Авангард разбойников преграждает дорогу за Железными Вратами!",
+		"enemies": [
+			{"unit": "goblin", "count": 25, "hex": [10, 2]},
+			{"unit": "wolf", "count": 12, "hex": [10, 4]}
+		]
+	},
+	"patrol_wolves": {
+		"log": "Стая голодных лесных волков скалит клыки и идет на перехват!",
+		"enemies": [
+			{"unit": "wolf", "count": 16, "hex": [10, 3]}
+		]
+	},
+	"patrol_goblins": {
+		"log": "Шайка гоблинов-грабителей бросается в атаку!",
+		"enemies": [
+			{"unit": "goblin", "count": 24, "hex": [10, 2]},
+			{"unit": "wolf", "count": 6, "hex": [10, 4]}
+		]
+	},
+	"patrol_forester": {
+		"log": "Засада разбойников на южном тракте атакует из кустов!",
+		"enemies": [
+			{"unit": "goblin", "count": 18, "hex": [10, 1]},
+			{"unit": "wolf", "count": 8, "hex": [10, 4]}
+		]
+	},
+	"patrol_grove": {
+		"log": "Страж Рощи — могучий Древень и его духи-оборотни пробудились!",
+		"enemies": [
+			{"unit": "treant", "count": 3, "hex": [10, 2]},
+			{"unit": "fox_shifter", "count": 8, "hex": [10, 4]}
+		]
+	},
+	"patrol_rogues": {
+		"log": "Стрелки разбойников преграждают путь к Роще Фей!",
+		"enemies": [
+			{"unit": "goblin", "count": 26, "hex": [10, 2]},
+			{"unit": "wolf", "count": 14, "hex": [10, 4]}
+		]
+	},
+	"patrol_obelisk": {
+		"log": "Элитная стража Обелиска и её каменные исполины защищают древние сокровища!",
+		"enemies": [
+			{"unit": "stone_guardian", "count": 2, "hex": [10, 1]},
+			{"unit": "goblin", "count": 20, "hex": [10, 3]},
+			{"unit": "wolf", "count": 10, "hex": [10, 5]}
+		]
+	},
+	"swamp_patrol_road": {
+		"log": "Орда болотных зомби медленно поднимается из тины!",
+		"enemies": [
+			{"unit": "swamp_zombie", "count": 18, "hex": [10, 3]}
+		]
+	},
+	"swamp_patrol_fens": {
+		"log": "Скелеты-лучники натягивают тетиву среди камышей!",
+		"enemies": [
+			{"unit": "skeleton_archer", "count": 20, "hex": [10, 2]}
+		]
+	},
+	"swamp_patrol_gate": {
+		"log": "Костяная стража охраняет подступы к Некрополю!",
+		"enemies": [
+			{"unit": "skeleton_archer", "count": 22, "hex": [10, 1]},
+			{"unit": "swamp_zombie", "count": 14, "hex": [10, 4]}
+		]
+	},
+	"swamp_patrol_east": {
+		"log": "Легион Смерти преграждает дорогу к Алтарю Друидов!",
+		"enemies": [
+			{"unit": "skeleton_archer", "count": 24, "hex": [10, 2]},
+			{"unit": "swamp_zombie", "count": 18, "hex": [10, 4]}
+		]
+	},
+	"swamp_patrol_ruins": {
+		"log": "Осквернители древних гробниц обрушивают темную магию!",
+		"enemies": [
+			{"unit": "lich", "count": 4, "hex": [10, 1]},
+			{"unit": "skeleton_archer", "count": 20, "hex": [10, 3]},
+			{"unit": "swamp_zombie", "count": 12, "hex": [10, 5]}
+		]
+	},
+	"dragon_patrol_pass": {
+		"log": "Огненная стража перевала атакует!",
+		"enemies": [
+			{"unit": "skeleton_archer", "count": 20, "hex": [10, 1]},
+			{"unit": "griffin", "count": 8, "hex": [10, 4]}
+		]
+	},
+	"dragon_patrol": {
+		"log": "Огненная стража перевала атакует!",
+		"enemies": [
+			{"unit": "skeleton_archer", "count": 20, "hex": [10, 1]},
+			{"unit": "griffin", "count": 8, "hex": [10, 4]}
+		]
+	},
+	"patrol_dragon": {
+		"log": "Огненная стража перевала атакует!",
+		"enemies": [
+			{"unit": "skeleton_archer", "count": 20, "hex": [10, 1]},
+			{"unit": "griffin", "count": 8, "hex": [10, 4]}
+		]
+	},
+	"dragon_patrol_gate": {
+		"log": "Стража Огненных Врат идет на таран!",
+		"enemies": [
+			{"unit": "skeleton_archer", "count": 22, "hex": [10, 1]},
+			{"unit": "goblin", "count": 25, "hex": [10, 3]},
+			{"unit": "wolf", "count": 14, "hex": [10, 5]}
+		]
+	},
+	"dragon_patrol_caldera": {
+		"log": "Слуги дракона перекрывают путь к жерлу вулкана!",
+		"enemies": [
+			{"unit": "goblin", "count": 25, "hex": [10, 1]},
+			{"unit": "wolf", "count": 16, "hex": [10, 3]},
+			{"unit": "treant", "count": 4, "hex": [10, 5]}
+		]
+	},
+	"dragon_patrol_citadel": {
+		"log": "Лавовые хищники бросаются на защиту цитадели!",
+		"enemies": [
+			{"unit": "griffin", "count": 12, "hex": [10, 2]},
+			{"unit": "goblin", "count": 22, "hex": [10, 4]}
+		]
+	},
+	"swamp_patrol": {
+		"log": "Болотная нежить преграждает путь сквозь трясину!",
+		"enemies": [
+			{"unit": "skeleton_archer", "count": 18, "hex": [10, 2]},
+			{"unit": "swamp_zombie", "count": 14, "hex": [10, 4]}
+		]
+	},
+	"patrol_2": {
+		"log": "Вражеский дозор пытается перерезать дорогу!",
+		"enemies": [
+			{"unit": "goblin", "count": 22, "hex": [10, 2]},
+			{"unit": "wolf", "count": 12, "hex": [10, 4]}
+		]
+	}
+}

@@ -1,0 +1,32 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  godot-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot 4.7.2 (headless)
+        run: |
+          curl -sL -o godot.zip "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          unzip -q godot.zip
+          sudo mv Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+
+      - name: Import assets
+        run: |
+          godot --headless --path . --import 2>&1 | tee import.log
+          ! grep -q "SCRIPT ERROR" import.log
+
+      - name: Run test suite (46+ suites)
+        run: |
+          set -o pipefail
+          godot --headless --path . res://tests/test_runner.tscn --quit-after 200000 2>&1 | tee tests.log
+          grep -q "TEST SUITES PASSED" tests.log
+          ! grep -q "SCRIPT ERROR" tests.log
+          ! grep -q "Assertion failed" tests.log

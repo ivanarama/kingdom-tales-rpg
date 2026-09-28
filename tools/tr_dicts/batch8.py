@@ -1,0 +1,28 @@
+# -*- coding: utf-8 -*-
+# Переводы, батч 8: логи встреч из data/encounters.json.
+T = {
+"Авангард разбойников преграждает дорогу за Железными Вратами!": "A bandit vanguard blocks the road beyond the Iron Gates!",
+"Болотная нежить преграждает путь сквозь трясину!": "Swamp undead block the way across the mire!",
+"Вражеский дозор пытается перерезать дорогу!": "An enemy picket tries to cut off the road!",
+"Гнездо Владыки Огня! Красный Дракон расправляет пылающие крылья!": "The Fire Lord's eyrie! The Red Dragon spreads its blazing wings!",
+"Засада разбойников на южном тракте атакует из кустов!": "A bandit ambush on the southern road attacks from the bushes!",
+"Костяная стража охраняет подступы к Некрополю!": "The bone watch guards the approaches to the Necropolis!",
+"Лавовые хищники бросаются на защиту цитадели!": "The lava predators leap to defend the citadel!",
+"Легион Смерти преграждает дорогу к Алтарю Друидов!": "The Legion of Death blocks the road to the Druid Altar!",
+"Лесные разбойники преграждают путь! Битва началась!": "Forest bandits block the way! The battle begins!",
+"Логово Главаря Разбойников! Атаман и его приспешники идут в атаку!": "The Bandit Chieftain's lair! The Chieftain and his henchmen charge!",
+"Огненная стража перевала атакует!": "The pass's fire watch attacks!",
+"Орда болотных зомби медленно поднимается из тины!": "A horde of swamp zombies slowly rises from the muck!",
+"Орда нежити восстает из могил болот!": "A horde of undead rises from the bog graves!",
+"Осквернители древних гробниц обрушивают темную магию!": "The defilers of ancient tombs unleash dark magic!",
+"Скелеты-лучники натягивают тетиву среди камышей!": "Skeleton archers draw their bowstrings among the reeds!",
+"Слуги дракона перекрывают путь к жерлу вулкана!": "The dragon's servants seal off the volcano's maw!",
+"Стая голодных лесных волков скалит клыки и идет на перехват!": "A pack of hungry forest wolves bares its fangs and moves to intercept!",
+"Страж Рощи — могучий Древень и его духи-оборотни пробудились!": "The Grove Warden — a mighty treant and its fox-spirit kin — have awakened!",
+"Стража Огненных Врат идет на таран!": "The Fire Gate watch charges to ram!",
+"Стражи вулканического ущелья бросаются в бой!": "The guardians of the volcanic gorge rush into battle!",
+"Стрелки разбойников преграждают путь к Роще Фей!": "Bandit shooters block the way to the Fairy Grove!",
+"Цитадель Тьмы! Древний Лич поднимает нежить из болотных могил!": "The Citadel of Darkness! The Ancient Lich raises the undead from the bog graves!",
+"Шайка гоблинов-грабителей бросается в атаку!": "A gang of goblin robbers charges to the attack!",
+"Элитная стража Обелиска и её каменные исполины защищают древние сокровища!": "The Obelisk's elite guard and its stone colossi defend the ancient treasures!",
+}
