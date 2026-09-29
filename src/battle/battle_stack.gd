@@ -10,6 +10,7 @@ var team: int # 0: Player, 1: Enemy
 var hex: Vector2i
 var count: int
 var start_count: int # численность на начало боя — потолок воскрешения Исцелением
+var veteran_rank: int = 0 # ранг ветеранского полка: +1 к атаке и защите за ранг
 var current_hp: int
 
 var has_retaliated: bool = false
@@ -56,6 +57,15 @@ func setup(p_unit_id: String, p_count: int, p_team: int, p_hex: Vector2i) -> voi
 	debuff_blind_turns = 0
 	debuff_disease_turns = 0
 	debuff_entangle_turns = 0
+
+## Ветераны: +rank к атаке и защите. Данные копируются — общий UnitData не меняется.
+func apply_veteran_rank(rank: int) -> void:
+	veteran_rank = rank
+	if rank <= 0:
+		return
+	data = data.duplicate()
+	data["attack"] = int(data.get("attack", 4)) + rank
+	data["defense"] = int(data.get("defense", 4)) + rank
 
 func is_alive() -> bool:
 	return count > 0
