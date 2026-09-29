@@ -1836,8 +1836,30 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Grace brings back stacks that fell entirely, capped per kind!")
 
+	# 64. Недельные бонусы переживают сохранение и снимаются ровно через неделю
+	print("[TEST] 64. Testing Weekly Bonuses Across Save/Load...")
+	GameState.reset()
+	var wk_attack: int = GameState.attack
+	GameState.day = 28
+	GameState.next_day() # день 29 — Неделя Воинской Доблести
+	assert(GameState.week_valor_bonus == 2 and GameState.attack == wk_attack + 2, "Week of Valor gives +2 attack")
+	GameState.save_game()
+	GameState.week_valor_bonus = 0
+	GameState.load_game()
+	assert(GameState.week_valor_bonus == 2, "The valor bonus must survive save/load")
+	for wk_i in 7:
+		GameState.next_day()
+	assert(GameState.attack == wk_attack, "After a reload the +2 attack must still expire in a week, not stay forever")
+	GameState.reset()
+	GameState.day = 21
+	var wk_mana_base: int = GameState.get_total_max_mana()
+	GameState.next_day() # день 22 — Неделя Магии
+	assert(GameState.week_mana_bonus == 20 and GameState.max_mana == wk_mana_base + 20, "Week of Magic adds 20 max mana, not 40")
+	GameState.reset()
+	print("  -> Weekly bonuses survive reloads and expire on time!")
+
 	print("\n==========================================")
-	print("   ALL 63 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 64 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame

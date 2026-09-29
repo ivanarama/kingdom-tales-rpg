@@ -597,7 +597,7 @@ func next_day() -> void:
 					add_gold(1000)
 				"week_of_magic":
 					week_mana_bonus = 20
-					max_mana = get_total_max_mana() + week_mana_bonus
+					max_mana = get_total_max_mana()
 					current_mana = max_mana
 				"week_of_valor":
 					attack += 2
@@ -975,7 +975,10 @@ func save_game(path: String = SAVE_PATH) -> bool:
 		"dwelling_stock": dwelling_stock,
 		"fallen_units": fallen_units,
 		"pending_level_ups": pending_level_ups,
-		"last_astrologers_event": last_astrologers_event
+		"last_astrologers_event": last_astrologers_event,
+		# Недельные бонусы: без них после загрузки +2 атаки Недели Доблести оставались навсегда
+		"week_valor_bonus": week_valor_bonus,
+		"week_mana_bonus": week_mana_bonus
 	}
 	
 	# Бэкап предыдущего сохранения перед записью
@@ -1036,6 +1039,8 @@ func load_game(path: String = SAVE_PATH) -> bool:
 	xp = int(data.get("xp", xp))
 	next_level_xp = int(data.get("next_level_xp", next_level_xp))
 	attack = int(data.get("attack", attack))
+	week_valor_bonus = int(data.get("week_valor_bonus", 0))
+	week_mana_bonus = int(data.get("week_mana_bonus", 0))
 	defense = int(data.get("defense", defense))
 	spellpower = int(data.get("spellpower", spellpower))
 	knowledge = int(data.get("knowledge", knowledge))
