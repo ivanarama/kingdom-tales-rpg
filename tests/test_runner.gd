@@ -1715,8 +1715,45 @@ func _ready() -> void:
 	assert(BattleArena.obstacle_layout("lich_boss", 2) == lay_lich, "Bosses have their own field")
 	print("  -> Battlefields vary by encounter, bosses have their own, no layout blocks the way!")
 
+	# 61. Обучение в первом бою: подсказки сменяются по действиям игрока, показываются один раз
+	print("[TEST] 61. Testing First Battle Tutorial...")
+	var tut_saved: bool = SettingsManager.battle_tutorial_done
+	GameState.reset()
+	GameState.is_demo_battle = true
+	SettingsManager.battle_tutorial_done = false
+	assert(not BattleTutorial.should_show(), "No tutorial in demo arena battles")
+	GameState.is_demo_battle = false
+	assert(BattleTutorial.should_show(), "Tutorial shows in the first campaign battle")
+	var tut_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(tut_arena)
+	await get_tree().process_frame
+	var tut: BattleTutorial = tut_arena.get_node("CanvasLayer/BattleTutorial")
+	assert(tut != null and tut.step == 0, "Tutorial starts at the first tip")
+	var tut_actor: BattleStack = tut_arena.current_actor
+	assert(tut_actor != null and tut_actor.team == 0, "First actor of the first battle is the player's")
+	tut_actor.hex += Vector2i(1, 0)
+	await get_tree().process_frame
+	assert(tut.step == 1, "Moving a stack advances to the attack tip")
+	tut_arena.battle_stats["dealt"] = int(tut_arena.battle_stats["dealt"]) + 10
+	await get_tree().process_frame
+	assert(tut.step == 2, "Dealing damage advances to the shooters tip")
+	tut.next_step()
+	assert(tut.step == 3, "The Next button advances the tip")
+	tut_arena.hero_cast_this_round = true
+	await get_tree().process_frame
+	assert(tut.step == 4, "Casting a spell advances to the last tip")
+	tut.next_step()
+	assert(SettingsManager.battle_tutorial_done, "Finishing the tutorial marks it done")
+	assert(not BattleTutorial.should_show(), "The tutorial is shown only once")
+	tut_arena.queue_free()
+	await get_tree().process_frame
+	SettingsManager.battle_tutorial_done = tut_saved
+	SettingsManager.save_settings()
+	GameState.reset()
+	print("  -> First battle tips follow the player's actions and show only once!")
+
 	print("\n==========================================")
-	print("   ALL 60 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 61 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
