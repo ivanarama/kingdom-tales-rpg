@@ -1858,8 +1858,26 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Weekly bonuses survive reloads and expire on time!")
 
+	# 65. Королевские отряды и Друиды не выглядят как базовые: у каждого существа свой арт
+	print("[TEST] 65. Testing Distinct Unit Art (royal units, druids)...")
+	for va_pair in [["royal_griffin", "griffin"], ["royal_fairy", "fairy_archer"], ["druid", "fairy_archer"]]:
+		var va_unit: Dictionary = UnitData.get_unit(va_pair[0])
+		var va_base: Dictionary = UnitData.get_unit(va_pair[1])
+		for va_key in ["token_path", "sprite_path"]:
+			var va_path: String = va_unit.get(va_key, "")
+			assert(va_path != va_base.get(va_key, ""), "%s must not reuse the %s of %s" % [va_pair[0], va_key, va_pair[1]])
+			var va_tex = load(va_path)
+			assert(va_tex is Texture2D and va_tex.get_width() > 0, "%s: %s must load (%s)" % [va_pair[0], va_key, va_path])
+	var va_seen := {}
+	for va_id in UnitData.UNITS:
+		for va_key in ["token_path", "sprite_path"]:
+			var va_slot: String = va_key + ":" + str(UnitData.UNITS[va_id].get(va_key, ""))
+			assert(not va_seen.has(va_slot), "%s and %s share the same %s" % [va_id, va_seen.get(va_slot, ""), va_slot])
+			va_seen[va_slot] = va_id
+	print("  -> Royal griffins, royal fairies and druids have their own art!")
+
 	print("\n==========================================")
-	print("   ALL 64 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 65 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
