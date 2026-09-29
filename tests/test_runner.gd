@@ -2383,8 +2383,44 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Unicorns join from the moonlit glade and blind foes; the Dragon Peak has its own fire creatures!")
 
+	# 75. Крючки под арт: у каждого объекта карты есть место под свой значок, фоны боя по главам
+	print("[TEST] 75. Testing Art Hooks (map object icons, battle backgrounds)...")
+	var ah_combat := ["encounter", "bandit_boss", "lich_boss", "dragon_boss"]
+	for ah_ch in [1, 2, 3]:
+		GameState.reset()
+		GameState.start_chapter(ah_ch)
+		GameState.flags["chapter_intro_seen_%d" % ah_ch] = true
+		var ah_wm = load("res://src/world/world_map.tscn").instantiate()
+		add_child(ah_wm)
+		await get_tree().process_frame
+		for ah_obj in ah_wm.world_view.objects.values():
+			var ah_type: String = ah_obj.get("type", "")
+			if ah_type in ah_combat:
+				continue
+			assert(ah_type in WorldView.MAP_OBJECT_ICON_TYPES, "Map object type %s must be listed for its own icon (and in the art brief)" % ah_type)
+			assert(ah_wm.world_view.icons.get(ah_type) != null, "Map object type %s keeps a fallback icon until the art arrives" % ah_type)
+		ah_wm.queue_free()
+		await get_tree().process_frame
+	assert(WorldView.object_icon_override("mill", 1) == "", "No own icons yet: the generic ones stay")
+	for ah_id in ["", "patrol_goblins", "bandit_boss", "lich_boss", "dragon_boss"]:
+		assert(BattleArena.background_path(ah_id, 1) == "", "No own backgrounds yet: the meadow stays")
+	GameState.reset()
+	GameState.pending_battle_id = "patrol_goblins"
+	var ah_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(ah_arena)
+	await get_tree().process_frame
+	assert(ah_arena.get_node("Background").texture.resource_path.ends_with("meadow_bg.jpg"), "Without new art the battle keeps the meadow")
+	ah_arena.victory_dialog.show()
+	ah_arena.turn_queue.clear()
+	ah_arena.current_actor = null
+	await get_tree().create_timer(0.6).timeout
+	ah_arena.queue_free()
+	await get_tree().process_frame
+	GameState.reset()
+	print("  -> Every map object and battle has a hook for its own art, with safe fallbacks!")
+
 	print("\n==========================================")
-	print("   ALL 74 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 75 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame

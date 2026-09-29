@@ -79,6 +79,21 @@ func _ready() -> void:
 		revealed_cells = GameState.revealed_cells.duplicate()
 	_reveal_fog(hero_cell, 5)
 
+## Типы объектов карты, для которых можно положить свой значок (ТЗ: docs/art/tz_icons.md):
+## assets/art/world/objects/<тип>_ch<глава>.png или <тип>.png заменяет общий значок.
+const MAP_OBJECT_ICON_TYPES := [
+	"signpost", "fountain", "mill", "fairy_dwelling", "forester", "gate", "obelisk", "fairy_shrine",
+	"merchant", "chest", "crypt", "druid_camp", "witch_hut", "upgrade_altar", "bone_gate",
+	"druid_altar", "forge", "griffin_roost", "dragon_gate", "dragon_altar", "event", "unicorn_glade",
+]
+
+## Путь к своему значку объекта (сначала — для главы), или "" — тогда общий значок.
+static func object_icon_override(obj_type: String, chapter: int) -> String:
+	for p in ["res://assets/art/world/objects/%s_ch%d.png" % [obj_type, chapter], "res://assets/art/world/objects/%s.png" % obj_type]:
+		if ResourceLoader.exists(p):
+			return p
+	return ""
+
 func _load_textures() -> void:
 	for i in range(4):
 		var p = "res://assets/art/world/tile_grass_%d.png" % i
@@ -119,6 +134,11 @@ func _load_textures() -> void:
 	icons["griffin_roost"] = icons["fairy_dwelling"]
 	icons["unicorn_glade"] = icons["fairy_dwelling"]
 	icons["forge"] = icons["mill"]
+	# Свои значки объектов, если они уже нарисованы (иначе остаются общие выше)
+	for obj_type in MAP_OBJECT_ICON_TYPES:
+		var own := object_icon_override(obj_type, GameState.current_chapter)
+		if own != "":
+			icons[obj_type] = load(own)
 	
 	# Load dedicated creature & boss miniatures for adventure map
 	var token_map = {

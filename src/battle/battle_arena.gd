@@ -403,6 +403,20 @@ func _init_battle() -> void:
 			if s.team == 0:
 				s.init_bonus = 2
 		log_combat("📯 Рог Доблести: всё войско начинает бой на +2 инициативы!")
+	var bg_path := background_path(GameState.pending_battle_id, GameState.current_chapter)
+	if bg_path != "":
+		$Background.texture = load(bg_path)
+
+## Фон боя (ТЗ: docs/art/tz_battle_backgrounds.md): свой у боя (боссы), иначе у главы,
+## иначе "" — остаётся луг из сцены. Пока файлов нет, всё как раньше.
+static func background_path(battle_id: String, chapter: int) -> String:
+	var candidates: Array[String] = ["res://assets/art/battle/bg_chapter_%d.jpg" % chapter]
+	if battle_id != "":
+		candidates.push_front("res://assets/art/battle/bg_%s.jpg" % battle_id)
+	for p in candidates:
+		if ResourceLoader.exists(p):
+			return p
+	return ""
 
 func _start_round() -> void:
 	hero_cast_this_round = false
