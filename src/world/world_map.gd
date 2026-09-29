@@ -2691,6 +2691,10 @@ func _open_map_event(ev_id: String) -> void:
 	var ev := MapEventData.get_event(ev_id)
 	popup_title.text = tr(str(ev.get("title", "")))
 	popup_text.text = tr(str(ev.get("text", "")))
+	var art := _event_art()
+	var art_path := MapEventData.image_path(ev_id)
+	art.texture = load(art_path) if art_path != "" else null
+	art.visible = art.texture != null
 	var choices: Array = ev.get("choices", [])
 	var btns := [popup_btn1, popup_btn2]
 	for i in range(2):
@@ -2706,6 +2710,27 @@ func _open_map_event(ev_id: String) -> void:
 		popup_btn1.visible = true
 		popup_btn1.text = tr("Продолжить путь")
 		popup_btn1.pressed.connect(func(): popup_dialog.hide())
+
+## Картинка встречи между заголовком и текстом окна (ТЗ: docs/art/tz_event_illustrations.md).
+## Создаётся один раз; прячется, когда окно закрывают, — другим окнам не достаётся.
+func _event_art() -> TextureRect:
+	var vbox := popup_title.get_parent()
+	var art := vbox.get_node_or_null("EventArt") as TextureRect
+	if art == null:
+		art = TextureRect.new()
+		art.name = "EventArt"
+		art.custom_minimum_size = Vector2(0, 170)
+		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		art.visible = false
+		vbox.add_child(art)
+		vbox.move_child(art, popup_title.get_index() + 1)
+		popup_dialog.visibility_changed.connect(func():
+			if not popup_dialog.visible:
+				art.visible = false
+		)
+	return art
 
 ## Выбор во встрече: эффекты, флаги, итог. Встреча исчезает, если у выбора нет keep.
 func _resolve_map_event(ev_id: String, choice: Dictionary) -> void:

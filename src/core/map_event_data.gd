@@ -30,6 +30,12 @@ static func get_event(id: String) -> Dictionary:
 	var raw = get_all().get(id, {})
 	return raw if raw is Dictionary else {}
 
+## Иллюстрация встречи: assets/art/events/<image или id>.png, если уже нарисована, иначе "".
+## Поле image позволяет стадиям одного квеста делить картинку.
+static func image_path(id: String) -> String:
+	var p := "res://assets/art/events/%s.png" % str(get_event(id).get("image", id))
+	return p if ResourceLoader.exists(p) else ""
+
 ## Встречи главы, которые сейчас стоят на карте: не решённые, и show_if/hide_if
 ## по флагам. Возвращает готовые объекты карты {type, name, id, cell}.
 static func visible_for_chapter(chapter: int, flags: Dictionary) -> Array[Dictionary]:

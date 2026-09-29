@@ -2419,8 +2419,32 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Every map object and battle has a hook for its own art, with safe fallbacks!")
 
+	# 76. Иллюстрации встреч: место под заголовком, без картинки скрыто, при закрытии окна прячется
+	print("[TEST] 76. Testing Event Illustrations...")
+	assert(str(MapEventData.get_event("ch1_shepherd_thanks").get("image", "")) == "ch1_shepherd", "Quest stages share the shepherdess picture")
+	assert(MapEventData.image_path("ch1_lost_fawn") == "", "No pictures yet: the popup keeps text only")
+	GameState.reset()
+	GameState.start_chapter(1)
+	GameState.flags["chapter_intro_seen_1"] = true
+	var ea_wm = load("res://src/world/world_map.tscn").instantiate()
+	add_child(ea_wm)
+	await get_tree().process_frame
+	ea_wm._trigger_object(ea_wm.world_view.objects[Vector2i(12, 6)])
+	var ea_art: TextureRect = ea_wm.popup_title.get_parent().get_node("EventArt")
+	assert(ea_art.get_index() == ea_wm.popup_title.get_index() + 1 and not ea_art.visible, "The picture slot sits under the title and stays hidden without art")
+	ea_art.texture = load("res://assets/art/world/icon_quest.png")
+	ea_art.visible = true
+	ea_wm.popup_dialog.hide()
+	assert(not ea_art.visible, "Closing the popup hides the picture, other popups never show it")
+	ea_wm._trigger_object(ea_wm.world_view.objects[Vector2i(12, 6)])
+	assert(ea_wm.popup_title.get_parent().get_children().filter(func(n): return n.name == "EventArt").size() == 1, "The picture slot is created once")
+	ea_wm.queue_free()
+	await get_tree().process_frame
+	GameState.reset()
+	print("  -> Event popups have a picture slot that stays hidden until the art arrives!")
+
 	print("\n==========================================")
-	print("   ALL 75 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 76 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
