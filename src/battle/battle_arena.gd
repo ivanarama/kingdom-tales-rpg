@@ -360,6 +360,7 @@ func _init_battle() -> void:
 		if item["count"] > 0:
 			var stack = BattleStack.new()
 			stack.setup(item["unit_id"], maxi(1, int(round(item["count"] * float(diff["player"])))), 0, player_hexes[i])
+			stack.apply_veteran_rank(GameState.veteran_rank(str(item["unit_id"])))
 			all_stacks.append(stack)
 			_army_counts[stack] = int(item["count"])
 		
@@ -1294,6 +1295,15 @@ func _show_victory(won: bool) -> void:
 
 		GameState.add_gold(reward_gold)
 		GameState.add_xp(reward_xp)
+		# Ветеранские полки: каждый уцелевший вид засчитывает победу
+		var vet_kinds: Array = []
+		for vst in all_stacks:
+			if vst.team == 0 and vst.is_alive() and not vet_kinds.has(vst.unit_id):
+				vet_kinds.append(vst.unit_id)
+		for promo in GameState.add_veteran_wins(vet_kinds):
+			victory_desc.text += "\n\n" + tr("🎖 %s становятся ветеранами %s\n+%d к атаке и защите!") % [
+				tr(UnitData.get_unit(promo["unit_id"]).get("name", "")), GameState.veteran_marks(promo["rank"]), promo["rank"]
+			]
 		
 		victory_desc.text += tr("\n\n⚔ Итоги боя: раундов %d | урон %d | потери врага %d | свои потери %d") % [
 			int(battle_stats.get("rounds", 0)), int(battle_stats.get("dealt", 0)),
@@ -1764,6 +1774,8 @@ func _show_unit_info(stack: BattleStack) -> void:
 		traits.append(tr("Обычные боевые навыки"))
 		
 	var buffs = []
+	if stack.veteran_rank > 0:
+		buffs.append(tr("Ветераны %s (+%d к атаке и защите)") % [GameState.veteran_marks(stack.veteran_rank), stack.veteran_rank])
 	if stack.buff_bless_turns > 0:
 		buffs.append(tr("Благословение (%d р.)") % stack.buff_bless_turns)
 	if stack.buff_haste_turns > 0:

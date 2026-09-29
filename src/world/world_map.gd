@@ -1208,6 +1208,14 @@ func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable())
 
 		GameState.add_gold(reward_gold)
 		GameState.add_xp(reward_xp)
+		var qc_kinds: Array = []
+		for qst in GameState.player_army:
+			if int(qst["count"]) > 0 and not qc_kinds.has(str(qst["unit_id"])):
+				qc_kinds.append(str(qst["unit_id"]))
+		for promo in GameState.add_veteran_wins(qc_kinds):
+			artifact_msg += "\n" + tr("🎖 %s становятся ветеранами %s\n+%d к атаке и защите!") % [
+				tr(UnitData.get_unit(promo["unit_id"]).get("name", "")), GameState.veteran_marks(promo["rank"]), promo["rank"]
+			]
 		GameState.flags[battle_id] = true
 		world_view.remove_object_by_id(battle_id)
 		GameState.save_game()
@@ -1294,8 +1302,9 @@ func _army_power(army: Array, is_player: bool) -> float:
 		if u.is_empty():
 			continue
 		var count := float(stack["count"])
-		hp_total += count * float(u.get("max_hp", 10)) * (1.0 + (int(u.get("defense", 0)) + hero_def) * 0.05)
-		var dmg := count * (float(u.get("min_dmg", 1)) + float(u.get("max_dmg", 1))) / 2.0 * (1.0 + (int(u.get("attack", 4)) + hero_att) * 0.05)
+		var vet: int = GameState.veteran_rank(str(stack["unit_id"])) if is_player else 0
+		hp_total += count * float(u.get("max_hp", 10)) * (1.0 + (int(u.get("defense", 0)) + hero_def + vet) * 0.05)
+		var dmg := count * (float(u.get("min_dmg", 1)) + float(u.get("max_dmg", 1))) / 2.0 * (1.0 + (int(u.get("attack", 4)) + hero_att + vet) * 0.05)
 		if u.get("is_ranged", false):
 			dmg *= 1.3
 		if u.get("double_shot", false):
@@ -1400,6 +1409,10 @@ func _update_hud() -> void:
 		lbl.add_theme_font_size_override("font_size", 13)
 		var prefix = "★ " if selected_army_slot == slot_idx else ""
 		lbl.text = "%s%s\n× %d" % [prefix, tr(udata.get("name", "")), slot["count"]]
+		var vet_rank := GameState.veteran_rank(str(slot["unit_id"]))
+		if vet_rank > 0:
+			lbl.text += "  " + GameState.veteran_marks(vet_rank)
+			lbl.tooltip_text = tr("Ветераны: +%d к атаке и защите (побед: %d)") % [vet_rank, int(GameState.veteran_wins.get(str(slot["unit_id"]), 0))]
 		lbl.clip_text = true
 		lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		row.add_child(lbl)

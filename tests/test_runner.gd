@@ -2070,8 +2070,50 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Wolves hunt in packs, goblins lose heart, bones shrug off arrows, druids and pegasi shine!")
 
+	# 69. Ветеранские полки: победы копятся по видам, ранги дают +атаку и +защиту
+	print("[TEST] 69. Testing Veteran Regiments...")
+	GameState.reset()
+	assert(GameState.veteran_rank("griffin") == 0, "A fresh campaign has no veterans")
+	GameState.veteran_wins["griffin"] = 2
+	var vet_promos: Array[Dictionary] = GameState.add_veteran_wins(["griffin", "wolf"])
+	assert(vet_promos.size() == 1 and vet_promos[0]["unit_id"] == "griffin" and vet_promos[0]["rank"] == 1, "The third victory makes griffins veterans")
+	assert(GameState.veteran_rank("wolf") == 0, "One victory is not enough for wolves")
+	GameState.veteran_wins["griffin"] = 40
+	assert(GameState.veteran_rank("griffin") == 3, "Rank caps at 3")
+	# В бою: +ранг к атаке и защите, общий UnitData не меняется, враги не ветераны
+	var vet_base_att: int = int(UnitData.get_unit("griffin")["attack"])
+	var vet_base_def: int = int(UnitData.get_unit("griffin")["defense"])
+	GameState.player_army = [{"unit_id": "griffin", "count": 10}]
+	GameState.pending_battle_id = "patrol_goblins"
+	var vet_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(vet_arena)
+	await get_tree().process_frame
+	var vet_gr: BattleStack = vet_arena.all_stacks[0]
+	assert(vet_gr.veteran_rank == 3 and int(vet_gr.data["attack"]) == vet_base_att + 3 and int(vet_gr.data["defense"]) == vet_base_def + 3, "Veteran griffins fight with +3 attack and defense")
+	assert(int(UnitData.get_unit("griffin")["attack"]) == vet_base_att, "Shared unit data stays untouched")
+	for vet_s in vet_arena.all_stacks:
+		if vet_s.team == 1:
+			assert(vet_s.veteran_rank == 0, "Enemies are not veterans")
+	# Победа засчитывается уцелевшим видам и объявляется в итогах боя
+	GameState.veteran_wins["griffin"] = 7
+	vet_arena._show_victory(true)
+	assert(GameState.veteran_rank("griffin") == 2 and vet_arena.victory_desc.text.contains("🎖"), "A won battle promotes the surviving kind and says so")
+	vet_arena.queue_free()
+	await get_tree().process_frame
+	# Сохранение и улучшение полка
+	GameState.save_game()
+	GameState.veteran_wins.clear()
+	GameState.load_game()
+	assert(int(GameState.veteran_wins.get("griffin", 0)) == 8, "Veteran wins survive save/load")
+	GameState.gold = 99999
+	GameState.player_army = [{"unit_id": "griffin", "count": 2}]
+	assert(GameState.upgrade_army_unit(0) and GameState.veteran_rank("royal_griffin") == 2, "The regiment keeps its rank after an upgrade")
+	GameState.reset()
+	assert(GameState.veteran_wins.is_empty(), "A new game starts without veterans")
+	print("  -> Veteran regiments earn ranks, fight better and survive saves and upgrades!")
+
 	print("\n==========================================")
-	print("   ALL 68 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 69 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame

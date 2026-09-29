@@ -311,6 +311,8 @@ Change your tactics, pick a different army and try again!"
 Available: %d forest druids (at %d gold each)
 Treasury: %d gold"
 "Веселый средневековый танец, лютня","A merry medieval dance, lute"
+Ветераны %s (+%d к атаке и защите),Veterans %s (+%d attack and defense)
+Ветераны: +%d к атаке и защите (побед: %d),Veterans: +%d attack and defense (victories: %d)
 Виртуозная токката в духе Скарлатти с быстрыми репетициями нот,A virtuoso Scarlatti-style toccata with rapid repeated notes
 "Виртуозный клавесин, пасторальная флейта, хрустальные колокольчики","Virtuoso harpsichord, pastoral flute, crystal bells"
 Владыка Огня повержен,The Fire Lord Felled
@@ -1362,6 +1364,9 @@ Weapon"
 🍀 [УДАЧА]: Отряд %s совершает выстрел с удвоенным критическим уроном!,🍀 [LUCK]: The stack %s fires a shot with double critical damage!
 🍀 УДАЧА! (х2),🍀 LUCK! (x2)
 🍀 Удача: 15% шанс двойного урона у вашего войска. 🌟 Боевой дух даёт доп. ход (Лидерство).,🍀 Luck: your army has a 15% chance of double damage. 🌟 High Morale grants extra turns (Leadership).
+"🎖 %s становятся ветеранами %s
++%d к атаке и защите!","🎖 %s become veterans %s
++%d attack and defense!"
 🎯 Прямой выстрел! %s поражает %s на %d урона! (Потери: %d),🎯 Direct hit! %s strikes %s for %d damage! (Losses: %d)
 🎲 Другой враг,🎲 Another foe
 🎲 Перемешать,🎲 Shuffle

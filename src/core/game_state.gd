@@ -28,6 +28,7 @@ var demo_encounter_title: String = "Случайная битва"
 
 var current_chapter: int = 1
 var campaign_difficulty: String = "normal" # easy/normal/hard/legendary — скейлит кампанию
+var veteran_wins: Dictionary = {} # вид отряда -> победы, в которых он уцелел (ветеранские полки)
 
 var level: int = 1
 var xp: int = 0
@@ -378,6 +379,8 @@ func upgrade_army_unit(slot_idx: int) -> bool:
 	if not spend_gold(total_cost):
 		return false
 	slot["unit_id"] = upgrade_id
+	# полк сохраняет опыт и после улучшения
+	veteran_wins[upgrade_id] = maxi(int(veteran_wins.get(upgrade_id, 0)), int(veteran_wins.get(str(udata.get("id", "")), 0)))
 	state_changed.emit()
 	return true
 
@@ -833,6 +836,7 @@ func reset() -> void:
 	hero_cell = Vector2i(4, 11)
 	revealed_cells = {}
 	campaign_difficulty = "normal"
+	veteran_wins = {}
 	merchant_cell = Vector2i(-99, -99)
 	merchant_offers.clear()
 	fallen_units.clear()
@@ -963,6 +967,7 @@ func save_game(path: String = SAVE_PATH) -> bool:
 		"version": CURRENT_SAVE_VERSION,
 		"saved_at": Time.get_unix_time_from_system(),
 		"campaign_difficulty": campaign_difficulty,
+		"veteran_wins": veteran_wins,
 		"merchant_cell": [merchant_cell.x, merchant_cell.y],
 		"merchant_offers": merchant_offers,
 		"hero_class_id": hero_class_id,
@@ -1136,6 +1141,11 @@ func load_game(path: String = SAVE_PATH) -> bool:
 		for item in raw_fu:
 			if item is Dictionary:
 				fallen_units.append({"unit_id": str(item.get("unit_id", "")), "count": int(item.get("count", 0))})
+	veteran_wins.clear()
+	var raw_vw = data.get("veteran_wins", {})
+	if raw_vw is Dictionary:
+		for vk in raw_vw:
+			veteran_wins[str(vk)] = int(raw_vw[vk])
 
 	var mc = data.get("merchant_cell", [-99, -99])
 	if mc is Array and mc.size() >= 2:
@@ -1154,6 +1164,34 @@ func load_game(path: String = SAVE_PATH) -> bool:
 
 	state_changed.emit()
 	return true
+
+## Ветеранские полки: каждый вид воинов копит победы, в которых он уцелел.
+## 3 / 8 / 15 побед — ранг 1 / 2 / 3: +1 к атаке и защите за ранг. Всё само,
+## без управления: полк помнит победы, даже если отряд пополняли или делили.
+const VETERAN_WINS: Array[int] = [3, 8, 15]
+
+func veteran_rank(unit_id: String) -> int:
+	var wins: int = int(veteran_wins.get(unit_id, 0))
+	var rank := 0
+	for need in VETERAN_WINS:
+		if wins >= need:
+			rank += 1
+	return rank
+
+## Засчитать победу уцелевшим видам. Возвращает повышения: [{unit_id, rank}].
+func add_veteran_wins(unit_ids: Array) -> Array[Dictionary]:
+	var promoted: Array[Dictionary] = []
+	for raw_uid in unit_ids:
+		var uid := str(raw_uid)
+		var before := veteran_rank(uid)
+		veteran_wins[uid] = int(veteran_wins.get(uid, 0)) + 1
+		if veteran_rank(uid) > before:
+			promoted.append({"unit_id": uid, "rank": veteran_rank(uid)})
+	return promoted
+
+## Знаки ранга рядом с именем отряда.
+static func veteran_marks(rank: int) -> String:
+	return "🎖".repeat(rank)
 
 func get_difficulty_multipliers(diff: String) -> Dictionary:
 	match diff:
