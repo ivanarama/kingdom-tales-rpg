@@ -6,6 +6,49 @@ var _music_tween: Tween
 const MUSIC_FADE_TIME := 0.8
 const SILENT_DB := -60.0
 
+## Плейлисты: темы здесь — короткие петли (8–37 с), и одна тема часами по кругу
+## приедается. В подборке каждая тема звучит около PLAYLIST_TRACK_SECONDS (целое
+## число своих петель, без швов), затем плавно сменяется следующей; первая —
+## тема главы, она возвращается раз в круг. Одиночная тема (меню, босс) подборку
+## останавливает.
+const PLAYLIST_TRACK_SECONDS := 40.0
+const PLAYLISTS := {
+	"map_1": [
+		"res://assets/audio/music/fairy_tale_theme.ogg",
+		"res://assets/audio/music/themes/theme_01_fairy_forest.ogg",
+		"res://assets/audio/music/themes/homm2_06_fairytale_minuet.ogg",
+		"res://assets/audio/music/themes/theme_10_morning_meadow.ogg",
+		"res://assets/audio/music/themes/homm2_16_pastoral_dawn.ogg",
+		"res://assets/audio/music/themes/theme_16_fairy_lullaby.ogg",
+	],
+	"map_2": [
+		"res://assets/audio/music/swamp_theme.ogg",
+		"res://assets/audio/music/themes/theme_12_foggy_swamp.ogg",
+		"res://assets/audio/music/themes/homm2_12_druid_grove.ogg",
+		"res://assets/audio/music/themes/theme_09_ancient_ruins.ogg",
+		"res://assets/audio/music/themes/theme_04_mystic_sanctuary.ogg",
+		"res://assets/audio/music/themes/homm2_11_alchemist_laboratory.ogg",
+	],
+	"map_3": [
+		"res://assets/audio/music/volcano_theme.ogg",
+		"res://assets/audio/music/themes/theme_06_knights_honor.ogg",
+		"res://assets/audio/music/themes/homm2_02_knight_castle.ogg",
+		"res://assets/audio/music/themes/theme_02_royal_march.ogg",
+		"res://assets/audio/music/themes/homm2_15_royal_cembalo_march.ogg",
+		"res://assets/audio/music/themes/theme_20_epic_fairytale.ogg",
+	],
+	"battle": [
+		"res://assets/audio/music/battle_theme.ogg",
+		"res://assets/audio/music/themes/homm2_17_clavier_fughetta.ogg",
+		"res://assets/audio/music/themes/theme_11_celtic_dance.ogg",
+		"res://assets/audio/music/themes/homm2_19_archers_pavilion.ogg",
+	],
+}
+var _playlist: Array = []
+var _playlist_pos := 0
+var _playlist_timer: Timer
+var _playlist_switching := false
+
 ## Звук стихии заклинания — поверх общего spell_cast.
 const SPELL_SFX := {
 	"fireball": "fire_whoosh", "dark_flame": "fire_whoosh",
@@ -75,6 +118,11 @@ func save_music_preference(path: String) -> void:
 func _ready() -> void:
 	music_player = _make_music_player()
 	_music_prev = _make_music_player()
+	_playlist_timer = Timer.new()
+	_playlist_timer.one_shot = true
+	_playlist_timer.ignore_time_scale = true # ускорение боя x2 не торопит музыку
+	_playlist_timer.timeout.connect(_advance_playlist)
+	add_child(_playlist_timer)
 	
 
 	for i in range(SFX_POOL_SIZE):
@@ -107,6 +155,10 @@ func _load_sfx(name: String, path: String) -> void:
 		sfx_cache[name] = load(path)
 
 func play_music(path: String, force_restart: bool = false) -> void:
+	if not _playlist_switching:
+		_playlist.clear()
+		if _playlist_timer:
+			_playlist_timer.stop()
 	current_music_path = path
 	if not ResourceLoader.exists(path):
 		return
@@ -140,6 +192,29 @@ func play_music(path: String, force_restart: bool = false) -> void:
 		_music_tween.tween_property(music_player, "volume_db", target_db, MUSIC_FADE_TIME)
 		_music_tween.tween_property(_music_prev, "volume_db", SILENT_DB, MUSIC_FADE_TIME)
 		_music_tween.chain().tween_callback(_music_prev.stop)
+
+## Включить подборку из PLAYLISTS (та же уже звучит — не перезапускать).
+func play_playlist(key: String) -> void:
+	var tracks: Array = PLAYLISTS.get(key, [])
+	if tracks.is_empty() or (_playlist == tracks and music_player.playing):
+		return
+	_playlist = tracks.duplicate()
+	_playlist_pos = 0
+	_play_playlist_track()
+
+func _play_playlist_track() -> void:
+	_playlist_switching = true
+	play_music(_playlist[_playlist_pos])
+	_playlist_switching = false
+	var length: float = music_player.stream.get_length() if music_player.stream else 0.0
+	length = maxf(length, 1.0)
+	_playlist_timer.start(length * ceilf(PLAYLIST_TRACK_SECONDS / length))
+
+func _advance_playlist() -> void:
+	if _playlist.is_empty():
+		return
+	_playlist_pos = (_playlist_pos + 1) % _playlist.size()
+	_play_playlist_track()
 
 ## Звук заклинания: общий spell_cast и, если есть, звук его стихии.
 func play_spell_sfx(spell_id: String) -> void:

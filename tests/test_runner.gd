@@ -2182,8 +2182,37 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Map events stand on their cells, choices apply once, the Lost Sheep quest runs to its end!")
 
+	# 71. Плейлисты: короткие темы сменяют друг друга, одиночная тема останавливает подборку
+	print("[TEST] 71. Testing Music Playlists...")
+	for pl_key in SoundManager.PLAYLISTS:
+		for pl_path in SoundManager.PLAYLISTS[pl_key]:
+			assert(ResourceLoader.exists(pl_path), "Playlist %s: missing %s" % [pl_key, pl_path])
+	SoundManager.play_playlist("map_1")
+	assert(SoundManager.current_music_path == SoundManager.PLAYLISTS["map_1"][0], "A playlist starts with the chapter theme")
+	var pl_len: float = SoundManager.music_player.stream.get_length()
+	var pl_wait: float = SoundManager._playlist_timer.wait_time
+	assert(pl_wait >= SoundManager.PLAYLIST_TRACK_SECONDS and pl_wait < SoundManager.PLAYLIST_TRACK_SECONDS + pl_len + 0.01, "Each theme plays about 40 s, in whole loops")
+	assert(SoundManager._playlist_timer.ignore_time_scale, "Battle speed-up must not rush the music")
+	SoundManager._advance_playlist()
+	assert(SoundManager.current_music_path == SoundManager.PLAYLISTS["map_1"][1], "Then the next theme plays")
+	SoundManager.play_playlist("map_1")
+	assert(SoundManager.current_music_path == SoundManager.PLAYLISTS["map_1"][1], "Re-entering the map does not restart a running playlist")
+	SoundManager.play_music("res://assets/audio/music/themes/homm2_01_sorceress_garden.ogg")
+	assert(SoundManager._playlist.is_empty() and SoundManager._playlist_timer.is_stopped(), "A single theme (menu, boss) stops the playlist")
+	GameState.reset()
+	GameState.start_chapter(2)
+	GameState.flags["chapter_intro_seen_2"] = true
+	var pl_wm = load("res://src/world/world_map.tscn").instantiate()
+	add_child(pl_wm)
+	await get_tree().process_frame
+	assert(SoundManager._playlist == SoundManager.PLAYLISTS["map_2"], "The swamp map plays its own playlist")
+	pl_wm.queue_free()
+	await get_tree().process_frame
+	GameState.reset()
+	print("  -> Short music loops now rotate in chapter and battle playlists!")
+
 	print("\n==========================================")
-	print("   ALL 70 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 71 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame

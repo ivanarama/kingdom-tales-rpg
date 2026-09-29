@@ -138,7 +138,10 @@ func _exit_tree() -> void:
 	Engine.time_scale = 1.0
 
 func _ready() -> void:
-	SoundManager.play_music(battle_music_for(GameState.pending_battle_id))
+	if BOSS_BATTLE_MUSIC.has(GameState.pending_battle_id):
+		SoundManager.play_music(battle_music_for(GameState.pending_battle_id))
+	else:
+		SoundManager.play_playlist("battle")
 	_init_battle()
 	BattleMood.apply_for_battle($Background, all_stacks) # топи и вулкан — своим настроением
 	log_combat("🍀 Удача: 15% шанс двойного урона у вашего войска. 🌟 Боевой дух даёт доп. ход (Лидерство).")
