@@ -1571,8 +1571,36 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Slain stacks fade, hits spark and heavy blows shake the field!")
 
+	# 56. Звук: плавная смена музыки, звуки событий и стихий заклинаний, музыка боссов
+	print("[TEST] 56. Testing Sound: crossfade, event and element SFX, boss music...")
+	for sfx_name in ["defeat", "level_up", "fire_whoosh", "lightning", "heal_chime", "frost", "ward", "swift"]:
+		assert(SoundManager.sfx_cache.has(sfx_name), "Missing SFX: " + sfx_name)
+	for spell_key in SoundManager.SPELL_SFX:
+		assert(SoundManager.sfx_cache.has(SoundManager.SPELL_SFX[spell_key]), "Missing element sound for " + spell_key)
+	for boss_key in ["bandit_boss", "lich_boss", "dragon_boss"]:
+		var boss_track: String = BattleArena.battle_music_for(boss_key)
+		assert(boss_track != BattleArena.BATTLE_MUSIC and ResourceLoader.exists(boss_track), "Boss %s must have its own battle theme" % boss_key)
+	assert(BattleArena.battle_music_for("patrol_goblins") == BattleArena.BATTLE_MUSIC, "Regular battles keep the common battle theme")
+	SoundManager.play_music("res://assets/audio/music/fairy_tale_theme.ogg", true)
+	await get_tree().create_timer(SoundManager.MUSIC_FADE_TIME + 0.2).timeout
+	var fade_from: AudioStreamPlayer = SoundManager.music_player
+	SoundManager.play_music("res://assets/audio/music/swamp_theme.ogg")
+	assert(SoundManager.music_player != fade_from and SoundManager.music_player.playing, "The new theme must start on the second player")
+	assert(fade_from.playing, "The old theme must keep playing while it fades out")
+	await get_tree().create_timer(SoundManager.MUSIC_FADE_TIME + 0.2).timeout
+	assert(not fade_from.playing, "The old theme must stop after the fade")
+	assert(is_equal_approx(SoundManager.music_player.volume_db, linear_to_db(SoundManager.music_volume)), "The new theme must reach full volume")
+	SoundManager.play_sfx("click")
+	SoundManager.play_sfx("sword_hit")
+	for sfx_player in SoundManager.sfx_players:
+		if sfx_player.stream == SoundManager.sfx_cache["click"]:
+			assert(sfx_player.pitch_scale == 1.0, "UI sounds keep their pitch")
+		elif sfx_player.stream == SoundManager.sfx_cache["sword_hit"]:
+			assert(sfx_player.pitch_scale >= 0.93 and sfx_player.pitch_scale <= 1.07, "Combat sounds vary their pitch slightly")
+	print("  -> Music crossfades, events and spell elements sound, bosses have their own themes!")
+
 	print("\n==========================================")
-	print("   ALL 55 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 56 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame

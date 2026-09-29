@@ -1965,6 +1965,7 @@ func _process_next_level_up() -> void:
 	else:
 		level_skill_btn2.visible = false
 		
+	SoundManager.play_sfx("level_up")
 	level_dialog.move_to_front()
 	level_dialog.show()
 

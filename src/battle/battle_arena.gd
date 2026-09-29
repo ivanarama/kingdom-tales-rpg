@@ -83,11 +83,22 @@ var wait_btn: Button
 var retreat_btn: Button
 var boss: BossMechanics # способности боссов: знамя Атамана, подъём нежити, огненный шквал
 
+const BATTLE_MUSIC := "res://assets/audio/music/battle_theme.ogg"
+## Бои с боссами — под свою тему из музыкальной шкатулки, остальные — под общую боевую.
+const BOSS_BATTLE_MUSIC := {
+	"bandit_boss": "res://assets/audio/music/themes/theme_15_battle_call.ogg",
+	"lich_boss": "res://assets/audio/music/themes/homm2_03_warlock_dungeon.ogg",
+	"dragon_boss": "res://assets/audio/music/themes/theme_17_dragon_peak.ogg",
+}
+
+static func battle_music_for(battle_id: String) -> String:
+	return BOSS_BATTLE_MUSIC.get(battle_id, BATTLE_MUSIC)
+
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
 
 func _ready() -> void:
-	SoundManager.play_music("res://assets/audio/music/battle_theme.ogg")
+	SoundManager.play_music(battle_music_for(GameState.pending_battle_id))
 	_init_battle()
 	BattleMood.apply_for_battle($Background, all_stacks) # топи и вулкан — своим настроением
 	log_combat("🍀 Удача: 15% шанс двойного урона у вашего войска. 🌟 Боевой дух даёт доп. ход (Лидерство).")
@@ -586,7 +597,7 @@ func _handle_ai_turn() -> void:
 ## Вражеское заклинание: тёмное пламя (Лич и прочие is_caster).
 func _execute_enemy_dark_flame(caster: BattleStack) -> void:
 	is_animating = true
-	SoundManager.play_sfx("spell_cast")
+	SoundManager.play_spell_sfx("dark_flame")
 	var best: BattleStack = null
 	var best_pool := -1.0
 	for s in all_stacks:
@@ -883,7 +894,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 	
 	match spell_id:
 		"fireball":
-			SoundManager.play_sfx("spell_cast")
+			SoundManager.play_spell_sfx(spell_id)
 			var start_p = Vector2(grid_origin.x - 120, grid_origin.y + 120)
 			var end_p = HexGrid.hex_to_pixel(target_stack.hex.x, target_stack.hex.y, HEX_SIZE, grid_origin)
 			var fb_hit = false
@@ -910,7 +921,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 				await get_tree().process_frame
 				fb_wait += get_process_delta_time()
 		"heal":
-			SoundManager.play_sfx("spell_cast")
+			SoundManager.play_spell_sfx(spell_id)
 			var end_p = HexGrid.hex_to_pixel(target_stack.hex.x, target_stack.hex.y, HEX_SIZE, grid_origin)
 			arena_viewport.spawn_holy_halo(end_p, Color(0.3, 1.0, 0.5))
 			arena_viewport.flash_stack(target_stack)
@@ -923,7 +934,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 				tr(target_stack.data.name), healed
 			])
 		"bless":
-			SoundManager.play_sfx("spell_cast")
+			SoundManager.play_spell_sfx(spell_id)
 			var end_p = HexGrid.hex_to_pixel(target_stack.hex.x, target_stack.hex.y, HEX_SIZE, grid_origin)
 			arena_viewport.spawn_holy_halo(end_p, Color(1.0, 0.9, 0.3))
 			arena_viewport.flash_stack(target_stack)
@@ -931,7 +942,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 			_spawn_floating_text(target_stack.hex, "БЛАГОСЛОВЕНИЕ!", Color(1.0, 0.9, 0.3))
 			log_combat(tr("%s благословлен святым сиянием на 3 раунда!") % tr(target_stack.data.name))
 		"haste":
-			SoundManager.play_sfx("spell_cast")
+			SoundManager.play_spell_sfx(spell_id)
 			var end_p = HexGrid.hex_to_pixel(target_stack.hex.x, target_stack.hex.y, HEX_SIZE, grid_origin)
 			arena_viewport.spawn_holy_halo(end_p, Color(0.4, 0.8, 1.0))
 			arena_viewport.flash_stack(target_stack)
@@ -939,7 +950,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 			_spawn_floating_text(target_stack.hex, "УСКОРЕНИЕ!", Color(0.4, 0.8, 1.0))
 			log_combat(tr("%s получает ускорение (+3 к скорости)!") % tr(target_stack.data.name))
 		"lightning":
-			SoundManager.play_sfx("spell_cast")
+			SoundManager.play_spell_sfx(spell_id)
 			var end_p = HexGrid.hex_to_pixel(target_stack.hex.x, target_stack.hex.y, HEX_SIZE, grid_origin)
 			var lt_hit = false
 			arena_viewport.spawn_lightning(end_p, func():
@@ -965,7 +976,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 				await get_tree().process_frame
 				lt_wait += get_process_delta_time()
 		"slow":
-			SoundManager.play_sfx("spell_cast")
+			SoundManager.play_spell_sfx(spell_id)
 			var end_p = HexGrid.hex_to_pixel(target_stack.hex.x, target_stack.hex.y, HEX_SIZE, grid_origin)
 			arena_viewport.spawn_frost(end_p, func():
 				arena_viewport.flash_stack(target_stack)
@@ -976,7 +987,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 				_update_reachable_hexes()
 			)
 		"stoneskin":
-			SoundManager.play_sfx("spell_cast")
+			SoundManager.play_spell_sfx(spell_id)
 			var end_p = HexGrid.hex_to_pixel(target_stack.hex.x, target_stack.hex.y, HEX_SIZE, grid_origin)
 			arena_viewport.spawn_stoneskin(end_p, func():
 				arena_viewport.flash_stack(target_stack)
@@ -987,7 +998,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 				_update_reachable_hexes()
 			)
 		"blind":
-			SoundManager.play_sfx("spell_cast")
+			SoundManager.play_spell_sfx(spell_id)
 			var end_p = HexGrid.hex_to_pixel(target_stack.hex.x, target_stack.hex.y, HEX_SIZE, grid_origin)
 			arena_viewport.spawn_blind(end_p, func():
 				arena_viewport.flash_stack(target_stack)
@@ -999,7 +1010,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 			)
 			
 		"inspiration":
-			SoundManager.play_sfx("spell_cast")
+			SoundManager.play_spell_sfx(spell_id)
 			var end_p = HexGrid.hex_to_pixel(target_stack.hex.x, target_stack.hex.y, HEX_SIZE, grid_origin)
 			arena_viewport.spawn_holy_halo(end_p, Color(0.6, 1.0, 0.5))
 			arena_viewport.flash_stack(target_stack)
@@ -1011,7 +1022,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 			_spawn_floating_text(target_stack.hex, "✨ ВДОХНОВЕНИЕ!", Color(0.6, 1.0, 0.5))
 			log_combat(tr("✨ С отряда %s сняты тёмные чары, боевой дух удвоен на 3 раунда!") % tr(target_stack.data.name))
 		"shield_light":
-			SoundManager.play_sfx("spell_cast")
+			SoundManager.play_spell_sfx(spell_id)
 			var end_p = HexGrid.hex_to_pixel(target_stack.hex.x, target_stack.hex.y, HEX_SIZE, grid_origin)
 			arena_viewport.spawn_holy_halo(end_p, Color(0.75, 0.9, 1.0))
 			arena_viewport.flash_stack(target_stack)
@@ -1021,7 +1032,7 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 			_spawn_floating_text(target_stack.hex, "🛡 ЩИТ СВЕТА!", Color(0.75, 0.9, 1.0))
 			log_combat(tr("🛡 %s окружен куполом света: поглощает %d ед. урона в течение 3 раундов!") % [tr(target_stack.data.name), target_stack.shield_hp])
 		"retribution":
-			SoundManager.play_sfx("spell_cast")
+			SoundManager.play_spell_sfx(spell_id)
 			var end_p = HexGrid.hex_to_pixel(target_stack.hex.x, target_stack.hex.y, HEX_SIZE, grid_origin)
 			arena_viewport.spawn_holy_halo(end_p, Color(1.0, 0.65, 0.25))
 			arena_viewport.flash_stack(target_stack)
@@ -1215,7 +1226,7 @@ func _show_victory(won: bool) -> void:
 		# Sync remaining stacks back to player_army
 		_sync_army_after_battle()
 	else:
-		SoundManager.play_sfx("click")
+		SoundManager.play_sfx("defeat")
 		victory_title.text = "ПОРАЖЕНИЕ..."
 		if GameState.is_demo_battle:
 			victory_desc.text = tr("Ваши воины пали на Арене!\nСложность: %s\n\nСмените тактику, подберите другой состав отрядов и попробуйте снова!") % tr(GameState.demo_difficulty_title)
