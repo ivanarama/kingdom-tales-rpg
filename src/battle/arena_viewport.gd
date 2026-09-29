@@ -282,7 +282,8 @@ func _draw() -> void:
 				sx = -sx
 			
 		# Unit Sprite
-		var target_h: float = hex_size * 2.2
+		# Высота спрайта в клетках: круглому медальону нужно меньше, чем фигуре в полный рост
+		var target_h: float = hex_size * float(stack.data.get("sprite_height", 2.2))
 		var sprite_path = stack.data.get("sprite_path", "")
 		if sprite_path != "":
 			if not sprite_cache.has(sprite_path):
