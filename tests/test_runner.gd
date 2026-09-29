@@ -2019,6 +2019,12 @@ func _ready() -> void:
 	assert(not ab_gob.will_retaliate(ab_peg) and ab_gob.will_retaliate(ab_prey), "Swift strike: no retaliation against pegasi")
 	for ab_uid in ["wolf", "goblin", "skeleton_archer", "druid", "royal_pegasus"]:
 		assert(UnitData.get_trait_string(ab_uid) != "Пехота ближнего боя", "%s shows its ability in the codex" % ab_uid)
+	# Английский кодекс: способности переводятся поштучно, как и остальные черты
+	var ab_locale := TranslationServer.get_locale()
+	TranslationServer.set_locale("en")
+	for ab_en_uid in ["wolf", "goblin", "skeleton_archer", "druid", "royal_pegasus"]:
+		assert(not _has_cyrillic(UnitData.get_trait_string(ab_en_uid)), "%s abilities must be translated in the codex" % ab_en_uid)
+	TranslationServer.set_locale(ab_locale)
 	# В бою: друиды без штрафа за дальность в прогнозе, пегасы бьют без ответа
 	GameState.player_army = [{"unit_id": "royal_pegasus", "count": 6}, {"unit_id": "druid", "count": 6}]
 	GameState.pending_battle_id = "patrol_goblins"

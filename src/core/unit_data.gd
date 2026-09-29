@@ -341,15 +341,15 @@ static func get_trait_string(id: String) -> String:
 	var traits: Array[String] = []
 	# Особые способности — первыми, чтобы их было видно в кодексе
 	if u.get("pack_hunter", false):
-		traits.append("Стая")
+		traits.append(_t("Стая"))
 	if u.get("cowardly", false):
-		traits.append("Трусоватые")
+		traits.append(_t("Трусоватые"))
 	if float(u.get("ranged_resist", 0.0)) > 0.0:
-		traits.append("Кости")
+		traits.append(_t("Кости"))
 	if u.get("no_range_penalty", false):
-		traits.append("Молния природы")
+		traits.append(_t("Молния природы"))
 	if u.get("no_retaliation", false):
-		traits.append("Стремительный налёт")
+		traits.append(_t("Стремительный налёт"))
 	if u.get("is_ranged", false):
 		traits.append(_t("Стрелок"))
 	if u.get("flying", false):
