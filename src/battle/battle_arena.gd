@@ -67,6 +67,7 @@ var is_fast_forward: bool = false
 var speed_btn: Button
 var enemy_spell_charges: int = 0 # сколько раз Лич может колдовать за бой
 var army_start_snapshot: Array[Dictionary] = [] # численность на начало боя (для fallen_units)
+var _army_counts: Dictionary = {} # BattleStack игрока -> численность в войске до масштаба сложности
 var battle_stats: Dictionary = {}
 
 # Rewards scale with defeated enemy strength (computed at battle start)
@@ -355,6 +356,7 @@ func _init_battle() -> void:
 			var stack = BattleStack.new()
 			stack.setup(item["unit_id"], maxi(1, int(round(item["count"] * float(diff["player"])))), 0, player_hexes[i])
 			all_stacks.append(stack)
+			_army_counts[stack] = int(item["count"])
 		
 	# 2. Setup Enemy Stacks (data-driven: data/encounters.json)
 	var enemy_configs := []
@@ -1280,8 +1282,8 @@ func _show_victory(won: bool) -> void:
 		for snap in army_start_snapshot:
 			var surviving := 0
 			for st in all_stacks:
-				if st.team == 0 and st.unit_id == str(snap["unit_id"]):
-					surviving += st.count
+				if st.team == 0 and st.unit_id == str(snap["unit_id"]) and st.is_alive():
+					surviving += _army_survivors(st)
 			var fallen: int = maxi(0, int(snap["count"]) - surviving)
 			if fallen > 0:
 				GameState.add_fallen_units(str(snap["unit_id"]), fallen)
@@ -1290,10 +1292,10 @@ func _show_victory(won: bool) -> void:
 		if GameState.pending_battle_id != "":
 			GameState.flags[GameState.pending_battle_id] = true
 			GameState.pending_battle_id = ""
-		GameState.save_game()
-			
-		# Sync remaining stacks back to player_army
+		# Сначала уцелевшие возвращаются в войско, потом сохранение — иначе на диск
+		# уходит армия до боя и потери пропадают
 		_sync_army_after_battle()
+		GameState.save_game()
 	else:
 		SoundManager.play_sfx("defeat")
 		victory_title.text = "ПОРАЖЕНИЕ..."
@@ -1315,6 +1317,20 @@ func _show_victory(won: bool) -> void:
 				{"unit_id": "griffin", "count": 2}
 			]
 			GameState.state_changed.emit()
+		else:
+			# Уцелевшие отступают вместе с героем — потери боя остаются (раньше армия
+			# возвращалась целиком, и отступление отменяло любые потери)
+			_sync_army_after_battle()
+		GameState.save_game()
+
+## Сколько воинов отряда вернётся в войско. Бой идёт с численностью, умноженной на
+## сложность кампании (Новобранец ×1.35 … Легенда ×0.8), поэтому уцелевших переводим
+## обратно в масштаб войска: иначе армия росла или таяла после каждого боя без потерь.
+func _army_survivors(s: BattleStack) -> int:
+	if not _army_counts.has(s) or s.start_count <= 0:
+		return s.count
+	var base: int = _army_counts[s]
+	return clampi(int(round(float(base) * float(s.count) / float(s.start_count))), 1, base)
 
 func _sync_army_after_battle() -> void:
 	if GameState.is_demo_battle:
@@ -1322,7 +1338,7 @@ func _sync_army_after_battle() -> void:
 	var updated_army: Array[Dictionary] = []
 	for s in all_stacks:
 		if s.team == 0 and s.is_alive() and s.count > 0:
-			updated_army.append({"unit_id": s.unit_id, "count": s.count})
+			updated_army.append({"unit_id": s.unit_id, "count": _army_survivors(s)})
 	if updated_army.size() > 0:
 		GameState.player_army = updated_army
 		GameState.state_changed.emit()

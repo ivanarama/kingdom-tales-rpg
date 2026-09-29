@@ -1752,8 +1752,64 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> First battle tips follow the player's actions and show only once!")
 
+	# 62. Войско после боя: сложность не меняет его навсегда, отступление не отменяет потерь,
+	# в сохранение уходит армия уже с потерями
+	print("[TEST] 62. Testing Army After Battle (difficulty scale, retreat, save)...")
+	GameState.reset()
+	GameState.campaign_difficulty = "easy"
+	GameState.player_army = [{"unit_id": "griffin", "count": 10}]
+	var arm_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(arm_arena)
+	await get_tree().process_frame
+	var arm_gr: BattleStack = arm_arena.all_stacks[0]
+	assert(arm_gr.team == 0 and arm_gr.count == 14, "Easy: 10 griffins fight as 14")
+	arm_arena._sync_army_after_battle()
+	assert(GameState.player_army[0]["count"] == 10, "Easy, no losses: the army keeps 10, it must not grow to 14")
+	arm_gr.count = 7
+	arm_arena._sync_army_after_battle()
+	assert(GameState.player_army[0]["count"] == 5, "Half of the battle stack fell: half of the army (5 of 10)")
+	arm_arena.queue_free()
+	await get_tree().process_frame
+
+	GameState.reset()
+	GameState.campaign_difficulty = "legendary"
+	GameState.player_army = [{"unit_id": "griffin", "count": 10}]
+	arm_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(arm_arena)
+	await get_tree().process_frame
+	arm_gr = arm_arena.all_stacks[0]
+	assert(arm_gr.count == 8, "Legendary: 10 griffins fight as 8")
+	arm_arena._sync_army_after_battle()
+	assert(GameState.player_army[0]["count"] == 10, "Legendary, no losses: the army must not melt to 8")
+	# Отступление: уцелевшие уходят с героем, потери остаются и сохраняются
+	arm_gr.count = 4
+	arm_arena._show_victory(false)
+	assert(GameState.player_army[0]["count"] == 5, "Retreat keeps the survivors and the losses (5 of 10)")
+	GameState.player_army = [{"unit_id": "griffin", "count": 99}]
+	GameState.load_game()
+	assert(GameState.player_army[0]["count"] == 5, "Losses after a retreat must reach the save")
+	arm_arena.queue_free()
+	await get_tree().process_frame
+
+	# Победа: в сохранение уходит армия с потерями, а не армия до боя
+	GameState.reset()
+	GameState.player_army = [{"unit_id": "griffin", "count": 10}]
+	GameState.pending_battle_id = "patrol_goblins"
+	arm_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(arm_arena)
+	await get_tree().process_frame
+	arm_arena.all_stacks[0].count = 6
+	arm_arena._show_victory(true)
+	GameState.player_army = [{"unit_id": "griffin", "count": 99}]
+	GameState.load_game()
+	assert(GameState.player_army[0]["count"] == 6, "Victory: the save must hold the army after losses")
+	arm_arena.queue_free()
+	await get_tree().process_frame
+	GameState.reset()
+	print("  -> Army size survives difficulty scaling, retreats keep losses, saves hold them!")
+
 	print("\n==========================================")
-	print("   ALL 61 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 62 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
