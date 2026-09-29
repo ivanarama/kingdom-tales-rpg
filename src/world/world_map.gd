@@ -100,13 +100,14 @@ func cancel_hero_movement() -> void:
 	_clear_planned_route()
 
 func _ready() -> void:
+	# Подборка главы: её тема чередуется с темами музыкальной шкатулки
 	match GameState.current_chapter:
 		2:
-			SoundManager.play_music("res://assets/audio/music/swamp_theme.ogg")
+			SoundManager.play_playlist("map_2")
 		3:
-			SoundManager.play_music("res://assets/audio/music/volcano_theme.ogg")
+			SoundManager.play_playlist("map_3")
 		_:
-			SoundManager.play_music("res://assets/audio/music/fairy_tale_theme.ogg")
+			SoundManager.play_playlist("map_1")
 
 	_update_hud()
 	_update_quest_hud()
