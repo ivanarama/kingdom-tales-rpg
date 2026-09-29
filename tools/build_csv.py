@@ -6,6 +6,10 @@ import json
 import re
 import glob
 import os
+import sys
+
+# Отчёт печатает эмодзи — консоль Windows (cp1251) иначе падает с UnicodeEncodeError
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 CYR = re.compile(r'[А-Яа-яЁё]')
 

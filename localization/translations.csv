@@ -28,6 +28,8 @@ keys,en
  (Уже ждал), (Already waited)
  [Без ответа], [No retaliation]
  [Враг ответит!], [Enemy will retaliate!]
+%d) %s — артефакт (%d зол.),%d) %s — artifact (%d gold)
+%d) Отряд «%s» ×%d — (%d зол.),%d) A stack of %s x%d — (%d gold)
 "%s
 %s
 
@@ -70,15 +72,80 @@ Active effects: %s"
 %s покрыт каменной броней (+5 к Защите на 3 раунда)!,%s is clad in stone hide (+5 Defense for 3 rounds)!
 %s получает ускорение (+3 к скорости)!,%s is hasted (+3 Speed)!
 %s скован леденящим инеем (скорость снижена на 50%% на 3 раунда)!,%s is bound by freezing frost (Speed halved for 3 rounds)!
+%s: %d воинов,%s: %d warriors
+01. Сад Волшебницы (HoMM2),01. The Sorceress's Garden (HoMM2)
+02. Замок Рыцаря (HoMM2),02. The Knight's Castle (HoMM2)
+03. Башня Чернокнижника (HoMM2),03. The Warlock's Tower (HoMM2)
+04. Академия Магов (HoMM2),04. The Wizards' Academy (HoMM2)
+05. Придворный Гавот (HoMM2),05. Court Gavotte (HoMM2)
+06. Сказочный Менуэт (HoMM2),06. Fairy-Tale Minuet (HoMM2)
+07. Зачарованный Фонтан (HoMM2),07. The Enchanted Fountain (HoMM2)
+08. Двухголосная Инвенция (HoMM2),08. Two-Part Invention (HoMM2)
+09. Шут при Дворе — Жига (HoMM2),09. The Court Jester — Gigue (HoMM2)
+10. Павана Принцессы (HoMM2),10. The Princess's Pavane (HoMM2)
+11. Лаборатория Алхимика (HoMM2),11. The Alchemist's Laboratory (HoMM2)
+12. Священная Роща Друидов (HoMM2),12. The Druids' Sacred Grove (HoMM2)
+13. Серенада Трубадура (HoMM2),13. The Troubadour's Serenade (HoMM2)
+14. Волшебная Шкатулка (HoMM2),14. The Magic Music Box (HoMM2)
+15. Королевский Чембало-Марш (HoMM2),15. Royal Cembalo March (HoMM2)
+16. Пасторальный Рассвет (HoMM2),16. Pastoral Dawn (HoMM2)
+17. Клавирная Фугетта (HoMM2),17. Clavier Fughetta (HoMM2)
+18. Хрустальный Спинет (HoMM2),18. The Crystal Spinet (HoMM2)
+19. Шатёр Лесных Лучников (HoMM2),19. The Forest Archers' Pavilion (HoMM2)
+20 тем в стиле Heroes of Might & Magic II (клавесин) + 20 симфонических тем:,20 themes in the style of Heroes of Might & Magic II (harpsichord) + 20 symphonic themes:
+20. Фантазия Верховного Мага (HoMM2),20. The Archmage's Fantasia (HoMM2)
+21. Зачарованный Лес,21. The Enchanted Forest
+22. Королевский Марш,22. Royal March
+23. Уютная Таверна,23. The Cozy Tavern
+24. Тайное Святилище,24. The Hidden Sanctuary
+25. Баллада Странника,25. The Wanderer's Ballad
+26. Рыцарская Честь,26. A Knight's Honor
+27. Хрустальный Источник,27. The Crystal Spring
+28. Ностальгия Героев,28. Heroes' Nostalgia
+29. Древние Руины,29. Ancient Ruins
+30. Утренний Луг,30. Morning Meadow
+31. Кельтский Праздник,31. Celtic Festival
+32. Туманные Топи,32. The Misty Fens
+33. Триумф Королевства,33. The Kingdom's Triumph
+34. Лунная Роща,34. Moonlit Grove
+35. Зов Битвы,35. Call to Battle
+36. Колыбельная Фей,36. Fairy Lullaby
+37. Пик Дракона,37. Dragon Peak
+38. Песнь Менестреля,38. The Minstrel's Song
+39. Храм Света,39. Temple of Light
+40. Великая Сказка,40. The Grand Tale
+«В боях никто не пал — возвращать некому. Приходите после сражений!»,«No one has fallen in battle — there is no one to bring back. Come after a fight!»
 "«Врата открыты, паладин! Спешите на восток — разбейте атамана в его логове и верните Венец Королеве Фей!»","«The gates are open, paladin! Hasten east — crush the chieftain in his lair and return the Crown to the Fairy Queen!»"
 "«Да здравствует сэр Аларик, величайший защитник Королевства!»","«Long live Sir Alaric, the greatest defender of the Kingdom!»"
 "«Костяные Врата ждут вас, паладин! Разрушьте цитадель Лича на востоке!»","«The Bone Gates await you, paladin! Destroy the Lich's citadel in the east!»"
 «Лесные духи-лисы желают путешествовать с вами: %d шт. (по %d золота). Казна: %d.»,«The fox spirits wish to travel with you: %d available (at %d gold each). Treasury: %d.»
 "«Приветствую, благородный рыцарь! Мельница работает в поте лица, примите 500 золотых монет на содержание гарнизона!»","«Welcome, noble knight! The mill works from dawn to dusk — take 500 gold coins for your garrison's upkeep!»"
+"«Сказки Королевства» — ламповая сказочная RPG, вдохновленная классикой Heroes of Might and Magic 3 и King's Bounty («Легенда о рыцаре»).
+
+Особенности игры:
+• Никаких скучных замков и рутины строительства!
+• Уютные сказочные персонажи, водяные мельницы и сундуки с сокровищами.
+• Тактические пошаговые бои на гексах с живой книгой магии героя.
+• 40 уникальных музыкальных тем (клавесин HoMM2 и оркестровая классика).
+• Полная поддержка мобильного управления и сенсорных экранов!","«Kingdom Tales» is a cozy fairy-tale RPG inspired by the classics Heroes of Might and Magic 3 and King's Bounty: The Legend.
+
+Features:
+• No dull castles and no building chores!
+• Cozy fairy-tale characters, watermills and treasure chests.
+• Turn-based tactical battles on hexes with the hero's living spellbook.
+• 40 unique music themes (HoMM2 harpsichord and orchestral classics).
+• Full support for mobile controls and touch screens!"
 «Слава паладину! Топи снова чисты от скверны нежити!»,«Glory to the paladin! The Fens are once again cleansed of the undead blight!»
 «Слава сэру Аларику! Лес снова полон света и птичьего пения. Вы избавили нас от напасти!»,«Glory to Sir Alaric! The forest is full of light and birdsong once more. You have delivered us from peril!»
+"«Товары на сегодня распроданы, добрый рыцарь! Загляните на следующей неделе!»","«Sold out for today, good knight! Come back next week!»"
+"«Торг здесь прост, сэр рыцарь: цены честные, товары редкие!»
+
+","«My trading is simple, sir knight: honest prices, rare goods!»
+
+"
 Авангард Разбойников,The Bandit Vanguard
 Авангард разбойников преграждает дорогу за Железными Вратами!,A bandit vanguard blocks the road beyond the Iron Gates!
+Аларик (ур. 1),Alaric (lvl 1)
 Аларик сокрушает %s Огненным Шаром! Урон: %d (Потери: %d),Alaric crushes %s with a Fireball! Damage: %d (Losses: %d)
 Алтарь Очищения Топей,Altar of the Cleansed Fens
 Алтарь Преображения Войск,Altar of Transfiguration
@@ -115,7 +182,7 @@ Aetherial streams saturate the hero's mind. The mana pool is fully restored and 
 
 The growth of forest archers is doubled. 10 fairy archers join your army free of charge!"
 Атака (+1),Attack (+1)
-Атаман Разбойников,The Bandit Chieftain
+Атаман Разбойников (Венец Фей),The Bandit Chieftain (Fairy Queen's Crown)
 "Атаман разбойников повержен, и вся долина избавлена от зла!
 
 Священный Венец озаряет ваши доспехи древним золотым светом!
@@ -127,15 +194,19 @@ The sacred Crown bathes your armor in ancient golden light!
 Hurry — bring the Crown to the Fairy Queen in the Sacred Grove (27, 4) in the north-east, to celebrate the great victory and complete the campaign!"
 БЛАГОСЛОВЕНИЕ!,BLESSING!
 Базовый,Basic
+Барочная пассакалья 3/4 на клавесине и волшебная челеста,A baroque passacaglia in 3/4 on harpsichord with a magical celesta
 Без единой потери,Without a Single Loss
 Бесконечный отпор,Unlimited Retaliation
 Благодарю вас!,Our thanks!
 Благодарю!,Thank you!
 Благодать Похода,March Grace
+Благородные валторны и струнные,Noble French horns and strings
+"Благородный контрапункт на клавесине, лютня и королевские фанфары","Noble harpsichord counterpoint, lute and royal fanfares"
 Благословение,Blessing
 Благословение (%d р.),Blessing (%d r.)
 Благословленные королевой лучницы. Стреляют дважды за один выстрел!,Blessed archers of the queen. They fire twice with every shot!
 Богатая казна,A Wealthy Treasury
+Бодрая кельтская джига и волынка,A spirited Celtic jig and bagpipes
 Боевой дух: 15% шанс крит. удара (+30% урона) и шанс дополнительного хода при атаке: 5% + 10% за уровень навыка.,Morale: a 15% chance of a critical strike (+30% damage) and a chance of an extra turn when attacking: 5% + 10% per skill level.
 Боевой рог королевских герольдов. Всё войско начинает каждый бой на +2 инициативы быстрее!,The war horn of the royal heralds. Your entire army begins every battle at +2 initiative!
 "Болезнь (-25%% атк., %d р.)","Disease (-25%% att., %d r.)"
@@ -149,19 +220,35 @@ Hurry — bring the Crown to the Fairy Queen in the Sacred Grove (27, 4) in the 
 «Welcome, Sir Alaric! The Ancient Lich rose from the sunken crypts and drowned the land in eternal fog. He sealed the pass with the Bone Gates.
 
 Take this Bone Key! Cut your way through the undead, destroy the Lich and cleanse the ancient Druid Altar!»"
-Болотная нежить,Swamp undead
 Болотная нежить преграждает путь сквозь трясину!,Swamp undead block the way across the mire!
 Болотные Зомби,Swamp Zombies
-Болотный дозор,The Fen Pickets
+Болотные Зомби (Северная гать),Swamp Zombies (North Causeway)
+Бродячий торговец,The Wandering Merchant
 Бронзовые створки распахнуты. Дорога на Пик Дракона свободна!,The bronze doors swing open. The road to Dragon Peak is clear!
 "Быстрый и свирепый хищник, способный молниеносно настигать стрелков.",A swift and fierce predator that can run down shooters in a flash.
+"Быстрый разведчик лесов.
+
+• Атака: 3  |  Защита: 3
+• Магия: 2  |  Ход: 48 очков
+• Навык: Логистика, Поиск пути
+• Войско: 8 Грифонов, 14 Фей
+• Предмет: Сапоги Странника (+8 MP)","A swift scout of the woods.
+
+• Attack: 3  |  Defense: 3
+• Power: 2  |  Movement: 48 points
+• Skills: Logistics, Pathfinding
+• Army: 8 Griffins, 14 Fairies
+• Item: Wanderer's Boots (+8 MP)"
+В Главное Меню,To Main Menu
 В Королевскую Цитадель!,To the Royal Citadel!
 В Священную Рощу!,To the Sacred Grove!
+В войске нет свободных слотов. Объедините или разделите отряды в панели «Войско Героя».,No free slots in the army. Merge or split stacks in the Hero's Army panel.
 В глубине склепа вы находите драгоценные реликвии древних времен!,Deep in the crypt you find precious relics of ancient times!
 В наличии: %d страж(а) (по %d золота). Казна: %d.,Available: %d guardian(s) (at %d gold each). Treasury: %d.
 В путь,Onward
 В путь!,Onward!
 ВКЛЮЧЕНО (x2),ON (x2)
+ВЫБЕРИТЕ КЛАСС ГЕРОЯ,CHOOSE YOUR HERO'S CLASS
 "Ваша армия стремительно сокрушила врага (%s)!
 
 Потери войска:
@@ -208,6 +295,8 @@ Change your tactics, pick a different army and try again!"
 Великая Сказка,The Great Tale
 Великий магический взор пронзает пелену тумана! Окрестные земли и тайные тропы открыты вашему взору!,A mighty magical gaze pierces the veil of fog! The surrounding lands and hidden paths lie open before you!
 Великолепно!,Magnificent!
+"Величавая ренессансная поступь, нежный клавесин и басовая лютня","A stately Renaissance stride, a gentle harpsichord and a bass lute"
+Величественные медные и размах гор,Majestic brass and the sweep of the mountains
 Венец Королевы Фей,Fairy Queen's Crown
 Верховный Архимаг,Archmage Supreme
 "Верховный друид предлагает помощь природы:
@@ -217,12 +306,16 @@ Change your tactics, pick a different army and try again!"
 
 Available: %d forest druids (at %d gold each)
 Treasury: %d gold"
+"Веселый средневековый танец, лютня","A merry medieval dance, lute"
+Виртуозная токката в духе Скарлатти с быстрыми репетициями нот,A virtuoso Scarlatti-style toccata with rapid repeated notes
+"Виртуозный клавесин, пасторальная флейта, хрустальные колокольчики","Virtuoso harpsichord, pastoral flute, crystal bells"
 Владыка Огня повержен,The Fire Lord Felled
 Во славу Королевства!,For the glory of the Kingdom!
 Возвращение Венца,Return of the Crown
 Возмездие,Retribution
 Воины,Warriors
 Войско Героя,Hero's Army
+Войско полно,Army full
 "Волшебный фонтан освещает поляну мягким лазурным сиянием.
 
 Герой восполняет всю ману и ощущает прилив колдовских сил (+1 к Силе Магии)!","A magical fountain bathes the glade in a soft azure glow.
@@ -230,6 +323,7 @@ Treasury: %d gold"
 The hero's mana is fully restored, and a surge of sorcerous power courses through him (+1 Spell Power)!"
 Волшебство,Sorcery
 Восставшие стрелки из древних курганов. Не ведают страха и усталости.,Risen archers of the ancient barrows. They know neither fear nor weariness.
+Восстанавливает +20% воинов во всех отрядах вашей армии прямо в походе.,Restores +20% of the warriors in every stack of your army right on the march.
 Восстанавливает 60 ед. здоровья (+16 за каждую Силу Магии) раненым воинам дружественного отряда.,Restores 60 health (+16 per point of Spell Power) to the wounded warriors of a friendly stack.
 Восстанавливает герою дополнительно +10 маны каждый новый день.,Restores an extra +10 mana to the hero each new day.
 Вперед,Forward
@@ -238,6 +332,8 @@ The hero's mana is fully restored, and a surge of sorcerous power courses throug
 Победа пока не одержана.","The enemy will hold its position,
 and you can attack it again.
 Victory has not yet been won."
+Враг разбит и рассеян!,The enemy is routed and scattered!
+Вражеский Дозор (Орда),Enemy Pickets (Horde)
 Вражеский дозор пытается перерезать дорогу!,An enemy picket tries to cut off the road!
 Вражеский отряд,Enemy stack
 "Вражеский отряд преграждает путь (%s)!
@@ -245,6 +341,9 @@ Victory has not yet been won."
 Они готовы вступить в схватку!","An enemy detachment blocks the path (%s)!
 Scouts estimate the enemy force: [A horde of 20-40 fighters].
 They are ready for a fight!"
+Вражеский отряд преграждает путь!,An enemy detachment blocks the way!
+Врата (Нужен ключ),Gates (Key needed)
+Врата (Открыты),Gates (Open)
 Врата из гигантских ребер распахнуты. Путь свободен!,The gates of giant ribs swing open. The way is clear!
 Все грифоны уже наняты на этой неделе!,All griffins have already been hired this week!
 Все друиды уже присоединились к вашему войску на этой неделе!,All druids have already joined your army this week!
@@ -254,6 +353,7 @@ They are ready for a fight!"
 Новые добровольцы прибудут с началом новой недели (День 8).","All fairy archers have already been hired this week!
 
 New volunteers will arrive with the new week (Day 8)."
+Вторичные Навыки:,Secondary Skills:
 "Вы вставляете ключ Лесника в замковую скважину. Раздается гулкий щелчок — массивные железные створки со скрипом распахиваются!
 
 Проход в Долину Разбойников открыт!","You slide the Forester's key into the lock. A hollow click rings out — the massive iron gates groan open!
@@ -273,14 +373,21 @@ The way to the Lich's Citadel is open!"
 Rewards received:
 Gold: +%d
 Hero experience: +%d"
+Выберите вторичный навык для изучения:,Choose a secondary skill to learn:
+Выберите главу для начала сказочного похода:,Choose a chapter to begin your fairy-tale journey:
+Выберите уровень сложности и настройте составы противоборствующих армий:,Choose a difficulty level and set up the opposing armies:
 Выберите цель для заклинания: %s (ПКМ/Esc для отмены),Choose a target for the spell: %s (RMB/Esc to cancel)
+Выбрать: %s,Choose: %s
 Выделить в новый отряд: %d,Split into a new stack: %d
 Выделить в новый отряд: 1,Split into a new stack: 1
 Выйти в главное меню,Exit to main menu
 Выступить в поход!,Begin the campaign!
+Герой,Hero
 Герой уже сотворил заклинание в этом раунде!,The hero has already cast a spell this round!
 Герой: %s (%s),Hero: %s (%s)
+Герой: Сэр Аларик (Паладин),Hero: Sir Alaric (Paladin)
 Гл. %d • День %d,Ch. %d • Day %d
+Гл. 1: День 1,Ch. 1: Day 1
 "Главарь разбойников повержен!
 
 ★ ВЫ ВЕРНУЛИ ВЕНЕЦ КОРОЛЕВЫ ФЕЙ! ★
@@ -300,6 +407,7 @@ Gold: +%d
 Experience: +%d"
 Глухая оборона (+30% защ.),Stalwart Defense (+30% def.)
 Гнездо Владыки Огня! Красный Дракон расправляет пылающие крылья!,The Fire Lord's eyrie! The Red Dragon spreads its blazing wings!
+Гнездовье (Доступно: %d),Roost (Available: %d)
 Гнездовье Королевских Грифонов,The Royal Griffin Roost
 Гоблины,Goblins
 "Гордые грифоны готовы взмыть в бой:
@@ -310,11 +418,15 @@ Experience: +%d"
 Available: %d griffins (at %d gold each)
 Treasury: %d gold"
 Горн тихо потрескивает. Кузнецы уже оснастили ваше войско.,The forge crackles softly. The smiths have already outfitted your army.
+Готовьтесь к бою!,Prepare for battle!
 Грифоны,Griffins
 Грифоны отвечают на все удары без устали. Отправляйте их первыми в гущу боя!,Griffins retaliate against every blow without tiring. Send them into the thick of battle first!
 Да будет так!,So be it!
 "Дарует крылья ветров союзному отряду, увеличивая скорость перемещения на +3 гекса.","Grants the winds' wings to an allied stack, increasing movement speed by +3 hexes."
 Двойной выстрел,Double Shot
+Действие 1,Action 1
+Действие 2,Action 2
+До встречи,Farewell
 "Добро пожаловать в земли Сказочного Леса!
 
 Шайки разбойников атаковали Священную Рощу и похитили священный Венец Королевы Фей. Без него древняя магия леса увядает.
@@ -331,10 +443,14 @@ Bandit gangs attacked the Sacred Grove and stole the sacred Crown of the Fairy Q
 2. Visit the Forester's Hut (7, 18) in the south for the Gate Key.
 3. Defeat the Chieftain at the Lair (28, 11) and return the Crown to the Fairy Queen (27, 4)!"
 Доведите свой поход до седьмого дня.,Bring your campaign to its seventh day.
+Дозор (Разбит),Pickets (Routed)
 Дозор Стрелков,The Archers' Pickets
+Дорийский напев лесной флейты над струящимися аккордами клавесина,A Dorian forest-flute tune over flowing harpsichord chords
 Доспех,Armor
 Достигните 5 уровня.,Reach level 5.
 Драконье дыхание пробивает строй на 2 гекса — не выстраивайтесь в линию!,Dragon breath pierces 2 hexes through a line — never stand single-file!
+Драконьи Слуги (Кратер),The Dragon's Servants (Crater)
+Драматическая барочная кульминация с органом и мажорным разрешением,A dramatic baroque climax with organ and a major-key resolution
 Древни,Treants
 Древни регенерируют каждый раунд — затягивайте бой на их стороне невыгодно.,Treants regenerate every round — dragging out a fight against them is unwise.
 Древние письмена потускнели. Обелиск уже даровал вам свою благодать.,The ancient script has dimmed. The Obelisk has already bestowed its blessing on you.
@@ -343,7 +459,6 @@ Bandit gangs attacked the Sacred Grove and stole the sacred Crown of the Fairy Q
 Лес защищает свои древние секреты!","An Ancient Treant has woken from its age-long sleep and bars the way to a cache deep in the thicket!
 Scouts report: [Wardens (3 treants, 10 wolves)].
 The forest guards its ancient secrets!"
-Древний Лич,The Ancient Lich
 "Древний Лич развеян в прах, и животворный свет возвращается в болота!
 
 ★ ИТОГИ ГЛАВЫ 2: ★
@@ -378,6 +493,7 @@ Visit the Druid Altar to complete Chapter 2!
 Reward:
 Gold: +%d
 Experience: +%d"
+Древний Обелиск,The Ancient Obelisk
 Древний Обелиск Силы,The Ancient Obelisk of Power
 Древний склеп пуст.,The ancient crypt is empty.
 "Друиды благодарят сэра Аларика:
@@ -385,6 +501,7 @@ Experience: +%d"
 «Спасибо за избавление, паладин! Проклятие снято навсегда!»","The druids thank Sir Alaric:
 
 «Thank you for our deliverance, paladin! The curse is lifted forever!»"
+Ждать,Wait
 Железные Врата Ущелья,The Iron Gates of the Gorge
 "Жуткие личи и скелеты охраняют проклятые сокровища древнего склепа!
 Разведка доносит: [Тьма (4 лича, 20 скелетов, 12 зомби)].","Dread liches and skeletons guard the cursed treasures of the ancient crypt!
@@ -392,22 +509,29 @@ Scouts report: [Darkness (4 liches, 20 skeletons, 12 zombies)]."
 ЗАМЕДЛЕНИЕ!,SLOWED!
 Забрать 1000 золота в казну,Take 1000 gold for the treasury
 Забрать сокровища (+1200 золота),Take the treasure (+1200 gold)
+Завершение дня,End of Day
 Завершите всю кампанию.,Complete the entire campaign.
 Завершите вторую главу кампании.,Complete the second chapter of the campaign.
 Завершите первую главу кампании.,Complete the first chapter of the campaign.
+Завершить день,End day
 Завершить кампанию,Complete the campaign
+Загадочный хор предков и глубокий гонг,A mysterious ancestral choir and a deep gong
 Загрузить игру из выбранного слота,Load the game from the chosen slot
+"Задорный галоп 6/8, прыгающий клавесин и средневековая лютня","A lively 6/8 gallop, a bouncing harpsichord and a medieval lute"
 Заклинание %s можно применить только к вражескому отряду!,The spell %s can only target an enemy stack!
 Заклинание %s можно применить только к союзному отряду!,The spell %s can only target an allied stack!
 Заклинание героя действует один раз за раунд — но не тратит ход отряда!,The hero's spell acts once per round — and costs no stack its turn!
 Закрыть,Close
+Закрыть (Esc),Close (Esc)
 Замедление,Slow
 Запас маны: %d / %d 🔮  •  Сила Магии: %d,Mana pool: %d / %d 🔮  •  Spell Power: %d
-Засада Разбойников,The Bandit Ambush
+Запас маны: 40/40 🔮  •  Сила Магии: 3,Mana pool: 40/40 🔮  •  Spell Power: 3
+Засада Разбойников (Тракт),The Bandit Ambush (Highway)
 Засада разбойников на южном тракте атакует из кустов!,A bandit ambush on the southern road attacks from the bushes!
 Затонувший Склеп,The Sunken Crypt
 Зачарованный Лес спасён,The Enchanted Forest Saved
 Защита (+1),Defense (+1)
+Звонкий высокий спинет и сказочные колокольчики фей,A bright high spinet and fairy-tale bells
 Звуки:,Sound:
 "Зловещие Костяные Врата наглухо сомкнуты. От них веет смертельным холодом.
 
@@ -421,6 +545,8 @@ Scouts report: [A horde of 18 swamp zombies].
 They shamble straight along the log-walk!"
 Знание (+1),Knowledge (+1)
 Золото из сундука можно обменять на опыт — иногда опыт ценнее казны.,Chest gold can be traded for experience — sometimes experience is worth more than gold.
+Золото: 1500,Gold: 1500
+Игривый стаккато-танец клавесина и флейтовый дуэт,A playful staccato harpsichord dance and a flute duet
 "Из густых зарослей у южного тракта свистят стрелы разбойничьей засады!
 Разведка доносит: [Отряд (18 гоблинов, 8 волков)].
 Бандиты перекрыли дорогу к хижине лесника!","Arrows from a bandit ambush whistle from the thickets by the southern road!
@@ -431,9 +557,13 @@ The brigands have blocked the way to the forester's hut!"
 Они охраняют восточную долину атамана!","A heavy bandit vanguard advances from the pass rocks!
 Scouts report: [A horde of 25 goblins, 12 wolves].
 They guard the chieftain's eastern valley!"
+Изумрудный Обелиск,The Emerald Obelisk
 Изучить надгробные руны (+800 опыта),Study the tomb runes (+800 experience)
+Изящный 3/4 менуэт с мордентами клавесина и щипковой лютней,A graceful 3/4 minuet with harpsichord mordents and a plucked lute
+"Искрящиеся шестнадцатые переборы клавесина, словно струи воды","Sparkling harpsichord sixteenths, like streams of water"
 Испить из источника,Drink from the spring
 "Используйте Ключ Лесника, чтобы открыть Железные Врата (14, 11) в Долину.","Use the Forester's Key to open the Iron Gates (14, 11) into the Valley."
+Исследовать местность,Explore the area
 "Исследуйте огненный перевал и откройте Огненные Врата (14, 11)!","Explore the fiery pass and open the Fire Gates (14, 11)!"
 Исцеление,Heal
 Исцеление: отряд %s восстанавливает %d ед. здоровья!,Heal: the stack %s restores %d health!
@@ -444,12 +574,17 @@ They guard the chieftain's eastern valley!"
 Каменные Стражи,Stone Guardians
 Квест: Похищенный Венец,Quest: The Stolen Crown
 Квест: Проклятые Топи,Quest: The Cursed Fens
+Клад Дракона,The Dragon's Hoard
+Классический баховский полифонический диалог двух голосов,A classic Bach-style polyphonic dialogue of two voices
+Классический клавесин в духе HoMM3,Classic harpsichord in the spirit of HoMM3
 Клинок из закаленной звездной стали. Прибавляет +4 к Атаке паладина.,A blade of quenched star-steel. Adds +4 to the paladin's Attack.
+Книга Заклинаний,Spellbook
 Кованые врата распахнуты настежь. Дорога через горный перевал свободна!,The wrought-iron gates stand wide open. The road through the mountain pass is clear!
 Колдун,Caster
 Колдун (тёмное пламя по густым строям),Caster (dark flame at the thickest ranks)
 Колесо мерно вращается в потоке воды. Мельник уже одарил ваше войско на этой неделе.,The wheel turns steadily in the stream. The miller has already gifted your army this week.
 Кольцо,Ring
+Королева Фей благодарит паладина...,The Fairy Queen thanks the paladin...
 "Королева Фей со скорбью в голосе молвит:
 
 «Атаман разбойников украл наш священный Венец... Без него наш народ слабеет, а деревья чахнут.
@@ -484,15 +619,17 @@ Are you ready to march into the second chapter of the campaign?"
 
 «Light and harmony have returned to the fairy-tale forest. Thank you for your loyalty and courage, Sir Alaric! You will forever be our great hero and savior!»"
 Королевская Цитадель,The Royal Citadel
+Королевская Цитадель Победы,The Royal Citadel of Victory
 Королевские Грифоны,Royal Griffins
 Королевские Феи,Royal Fairies
-Костяная Стража,The Bone Guard
+Костяная Стража Врат,The Bone Gate Guard
 "Костяная гвардия Некрополя заступила дорогу перед Костяными Вратами!
 Разведка доносит: [Орда (22 скелета-лучника, 14 зомби)].","The Necropolis bone guard has blocked the road before the Bone Gates!
 Scouts report: [A horde of 22 skeleton archers, 14 zombies]."
 Костяная стража охраняет подступы к Некрополю!,The bone watch guards the approaches to the Necropolis!
 Костяные Врата Некрополя,The Necropolis Bone Gates
 Красный Дракон,The Red Dragon
+Красный Дракон (Панцирь Стража),The Red Dragon (Warden's Carapace)
 "Красный Дракон повержен в легендарном поединке!
 
 ★ ТРИУМФ НАД ПЛАМЕНЕМ! ★
@@ -534,15 +671,20 @@ Every threat to the Kingdom is ended, the relics returned, and peace reigns over
 
 The King grants you the highest title of «Marshal of the Realm»!"
 Круг Болотных Друидов,The Circle of Swamp Druids
+Круг Друидов (Доступно: %d),Druid Circle (Available: %d)
 Крылатые конники рощи фей. Стремительны и первыми перехватывают вражеских стрелков!,"Winged riders of the fairy grove. Swift, and always the first to intercept enemy shooters!"
 Крылатые пегасы готовы служить: %d шт. (по %d золота). Казна: %d.,Winged pegasi stand ready to serve: %d available (at %d gold each). Treasury: %d.
 Кузница Горных Владык,The Forge of Mountain Lords
 Культ Дракона,The Dragon Cult
-Лавовые Хищники,The Lava Predators
+Купить: %s (%d зол.),Buy: %s (%d gold)
+Купить: %s ×%d (%d зол.),Buy: %s x%d (%d gold)
+Лавовые Хищники (Плато),The Lava Predators (Plateau)
 Лавовые хищники бросаются на защиту цитадели!,The lava predators leap to defend the citadel!
 "Лавовые хищники кружат над плато у Королевской Цитадели!
 Разведка доносит: [Стая (12 грифонов, 22 гоблина)].","Lava predators circle the plateau by the Royal Citadel!
 Scouts report: [A flock of 12 griffins, 22 goblins]."
+Лагерь атамана (Сожжен),The Chieftain's Camp (Burned)
+Ламповое тактическое приключение,A cozy tactical adventure
 Легендарная реликвия волшебного леса. Дарует +2 ко всем параметрам и +4 очка хода!,A legendary relic of the enchanted forest. Grants +2 to every stat and +4 movement points!
 Легендарный владыка огнедышащих пиков. Огненное дыхание пробивает на 2 гекса сквозь строй врагов!,The legendary lord of the fire-breathing peaks. Its fiery breath pierces 2 hexes through enemy lines!
 "Легендарный владыка пламени повержен! Панцирь Древнего Стража сияет на ваших плечах!
@@ -550,7 +692,7 @@ Scouts report: [A flock of 12 griffins, 22 goblins]."
 Вступайте в Королевскую Цитадель (27, 4) для коронации и триумфального завершения Великой Кампании!","The legendary lord of flame is vanquished! The Ancient Warden's Carapace shines upon your shoulders!
 
 Enter the Royal Citadel (27, 4) for your coronation and the triumphant conclusion of the Great Campaign!"
-Легион Смерти,The Legion of Death
+Легион Смерти (Северный дозор),The Legion of Death (North Pickets)
 Легион Смерти преграждает дорогу к Алтарю Друидов!,The Legion of Death blocks the road to the Druid Altar!
 "Легион Тьмы патрулирует дорогу к Алтарю Друидов!
 Разведка доносит: [Орда (24 скелета-лучника, 18 зомби)].","A Legion of Darkness patrols the road to the Druid Altar!
@@ -558,18 +700,22 @@ Scouts report: [A horde of 24 skeleton archers, 18 zombies]."
 Лесные Друиды,Forest Druids
 Лесные Разбойники,Forest Bandits
 Лесные волки,Forest Wolves
-Лесные разбойники,Forest Bandits
 Лесные разбойники преграждают путь! Битва началась!,Forest bandits block the way! The battle begins!
 Летун,Flyer
 Лидерство,Leadership
 Лисы-Оборотни,Fox Shifters
 Лич Некромант,Lich Necromancer
 Логистика,Logistics
+Логово Атамана,The Chieftain's Lair
 Логово Атамана Разбойников,The Bandit Chieftain's Lair
 Логово Главаря Разбойников! Атаман и его приспешники идут в атаку!,The Bandit Chieftain's lair! The Chieftain and his henchmen charge!
+Логово Дракона (Повержен),The Dragon's Lair (Slain)
 МИНИ-КАРТА,MINI-MAP
 МОЛНИЯ -%d,LIGHTNING -%d
+Магматический Источник,The Magma Spring
 Мана: %d / %d,Mana: %d / %d
+Мана: 40 / 40,Mana: 40 / 40
+Мана: 40/40,Mana: 40/40
 Марш прерван,March halted
 "Массивные Железные Врата наглухо заперты стальным засовом. Из-за скал доносится вой лютых волков.
 
@@ -577,14 +723,31 @@ Scouts report: [A horde of 24 skeleton archers, 18 zombies]."
 
 You need the Gate Key! (Visit the Forester's Hut in the south)."
 Массивный геральдический щит с грифоном. Прибавляет +4 к Защите войска.,A massive heraldic shield bearing a griffin. Adds +4 to the army's Defense.
+"Мастер тайной магии.
+
+• Атака: 2  |  Защита: 2
+• Магия: 6  |  Знание: 6 (80 MP)
+• Навык: Волшебство (+25% урон чар)
+• Войско: 4 Грифона, 24 Феи
+• Предмет: Перстень Архимага","A master of secret magic.
+
+• Attack: 2  |  Defense: 2
+• Power: 6  |  Knowledge: 6 (80 MP)
+• Skill: Sorcery (+25% spell damage)
+• Army: 4 Griffins, 24 Fairies
+• Item: Archmage's Ring"
 "Мастера кузнечного дела перековывают ваши доспехи и мечи!
 
 +2 к Атаке, +2 к Защите паладина!","The master smiths reforge your armor and blades!
 
 +2 Attack, +2 Defense for the paladin!"
+Мельница (+500 золота в неделю),Mill (+500 gold per week)
+Мельница (Посещено),Mill (Visited)
+Мерцающие колокольчики и фортепиано,Shimmering bells and piano
 Метко поражает врагов зачарованными стрелами издалека.,Strikes foes from afar with enchanted arrows.
 Меч Доблести,Sword of Valor
 Мистицизм,Mysticism
+Мистический эмбиент-пад и колокольчики,A mystical ambient pad and bells
 Могучий зверь с телом льва и крыльями орла. Отвечает на все удары без ограничений!,A mighty beast with the body of a lion and the wings of an eagle. It retaliates against every blow without limit!
 Молния,Lightning
 Мудрецы священных дубрав. Разит молниями природы на дальнем расстоянии.,Sages of the sacred oak groves. They hurl nature's lightning from afar.
@@ -603,15 +766,17 @@ You need the Gate Key! (Visit the Forester's Hut in the south)."
 → East: the Iron Gates and the Bandit Valley
 
 [Tip: Space — search the spot beneath your horse, E — next day]"
+Навык 1,Skill 1
+Навык 2,Skill 2
 Навык Лидерства даёт отрядам шанс на дополнительный ход. Прокачивайте!,Leadership gives your stacks a chance of an extra turn. Level it up!
 Надеть: %s %s [%s],Equip: %s %s [%s]
 "Нажмите, чтобы выбрать для обмена местами (или используйте ▲▼)",Click to select for swapping places (or use ▲▼)
+Назад,Back
 Нанять Каменного Стража (%d зол.),Hire a Stone Guardian (%d gold)
 Нанять всех доступных (%d фей за %d зол.),Hire all available (%d fairies for %d gold)
 Нанять грифонов (%d за %d зол.),Hire griffins (%d for %d gold)
 Нанять лис-оборотней (%d за %d зол.),Hire fox shifters (%d for %d gold)
 Нанять отряд (%d друидов за %d зол.),Hire the stack (%d druids for %d gold)
-Нанять отряд (%d фей за %d зол.),Hire the stack (%d fairies for %d gold)
 Нанять пегасов (%d за %d зол.),Hire pegasi (%d for %d gold)
 Нападение,Offense
 "Наполняет союзный отряд святой силой, гарантируя максимальный урон каждым ударом на 3 раунда.","Fills an allied stack with holy power, guaranteeing maximum damage with every strike for 3 rounds."
@@ -626,24 +791,30 @@ You need the Gate Key! (Visit the Forester's Hut in the south)."
 Неделя Магии,Week of Magic
 Неделя Фей,Week of the Fairies
 Неделя в походе,A Week on the March
-Недостаточно золота,Not enough gold
 Недостаточно золота (нужно %d зол.),Not enough gold (%d gold required)
 Недостаточно золота (нужно хотя бы %d зол.),Not enough gold (at least %d gold required)
 Недостаточно маны для сотворения заклинания!,Not enough mana to cast the spell!
+Нежная музыкальная шкатулка,A gentle music box
 Нет,No
+"Нисходящие минорные пассажи клавесина, пиццикато и полночный перезвон","Descending minor harpsichord runs, pizzicato and a midnight chime"
+Ностальгическая свирель и переборы струн,A nostalgic pipe and plucked strings
+О ПРОЕКТЕ,ABOUT THE PROJECT
 ОГОНЬ -%d,FIRE -%d
 ОСЛЕПЛЕНИЕ!,BLINDED!
 ОТРЯД,STACK
+Оборона,Defend
 "Обрушивает пылающую сферу на вражеский отряд, нанося 50 ед. урона (+14 за каждую Силу Магии).","Hurls a blazing sphere at an enemy stack, dealing 50 damage (+14 per point of Spell Power)."
 Обувь,Boots
 Общая громкость:,Master volume:
 Объединить одинаковые отряды,Merge identical stacks
+Объект,Object
 Обычные боевые навыки,Ordinary combat skills
 Огненная стража перевала атакует!,The pass's fire watch attacks!
 Огненное дыхание,Fire Breath
 Огненное дыхание (пробивает насквозь),Fire Breath (pierces through)
 Огненные Врата Ущелья,The Fire Gates of the Gorge
-Огненный Дозор,The Fire Watch
+Огненный Алтарь Силы,The Fire Altar of Power
+Огненный Дозор (Перевал),The Fire Watch (Pass)
 Огненный Шар,Fireball
 "Огненный дозор ущелья преграждает путь по горной тропе!
 Разведка доносит: [Орда (24 гоблина, 16 волков)].","The gorge's fire watch blocks the mountain trail!
@@ -653,10 +824,13 @@ Scouts report: [A horde of 24 goblins, 16 wolves]."
 Око Орла,Eye of the Eagle
 "Оковывает врага инеем, уменьшая его скорость на 50% на 3 раунда.","Binds the enemy in frost, reducing its speed by 50% for 3 rounds."
 "Окружает союзный отряд куполом света, поглощающим 40 ед. урона (+10 за каждую Силу Магии) на 3 раунда.",Wraps an allied stack in a dome of light that absorbs 40 damage (+10 per point of Spell Power) for 3 rounds.
+Описание встречи...,Encounter description...
 Оплетающие корни,Entangling Roots
+Определите путь и специализацию вашего полководца:,Choose the path and specialty of your commander:
 Опустить ниже,Move down
 Опутан корнями (0 скор.),Rooted (0 speed)
 Опыт: %d / %d,Experience: %d / %d
+Опыт: 0 / 1000,Experience: 0 / 1000
 Орда болотных зомби медленно поднимается из тины!,A horde of swamp zombies slowly rises from the muck!
 Орда нежити восстает из могил болот!,A horde of undead rises from the bog graves!
 Оружие,Weapon
@@ -667,7 +841,9 @@ Scouts report: [A horde of 24 goblins, 16 wolves]."
 "Ослепляет вражеский отряд яркой вспышкой. Отряд не может ходить, пока не получит урон (до 3 раундов).",Blinds an enemy stack with a brilliant flash. The stack cannot act until it takes damage (up to 3 rounds).
 "Откройте Костяные Врата (14, 11) с помощью ключа ведьмы.","Open the Bone Gates (14, 11) with the witch's key."
 Открыто подвигов: %d из %d,Deeds unlocked: %d of %d
+Открыть сундук!,Open the chest!
 Отложить действие до конца раунда (клавиша W),Postpone the action to the end of the round (key W)
+Отмена,Cancel
 Отойти,Step away
 Отражение %d%%,Reflection %d%%
 Отражение (%d%% ближнего урона),Reflection (%d%% of melee damage)
@@ -678,6 +854,7 @@ Scouts report: [A horde of 26 goblins, 14 wolves].
 They are blocking the approaches to the Sacred Fairy Grove!"
 Отряд уже ждал в этом раунде и обязан действовать!,This stack has already waited this round and must act!
 Отряд: %s (всего: %d),Stack: %s (total: %d)
+Отряд: Грифоны (всего: 6),Stack: Griffins (total: 6)
 Отступить,Retreat
 Отступить из боя?,Retreat from battle?
 Отступить назад,Fall back
@@ -687,6 +864,7 @@ They are blocking the approaches to the Sacred Fairy Grove!"
 ПРОЗРЕНИЕ!,SEE AGAIN!
 Паладин Королевства,Paladin of the Kingdom
 Панцирь Древнего Стража,Ancient Warden's Carapace
+Пасторальная дудочка и птичьи трели,A pastoral pipe and birdsong
 Первая победа,First Blood
 "Перед вами вздымаются багровые скалы Огненного Пика!
 
@@ -732,14 +910,17 @@ They guard the Archmage's Ring!"
 Плащ Странника,Wanderer's Mantle
 Плащ из туманной пряжи странников: воины в ближнем бою 15% шансом вдвое уменьшают получаемый урон.,"A cloak woven from wanderers' mist: in melee, warriors have a 15% chance to halve the damage they take."
 Победите Красного Дракона.,Defeat the Red Dragon.
+Победные фанфары и литавры,Victorious fanfares and timpani
 "Побеждите в бою, не потеряв ни одного воина.",Win a battle without losing a single warrior.
 Повелитель тлетворных топей. Колдует тёмное пламя по самым густым строям врага!,The lord of the noisome fens. He casts dark flame upon the thickest enemy ranks!
 Поднять выше,Move up
 Поиск пути,Pathfinding
 Поклониться,Bow
+Полнозвучная симфоническая увертюра,A full-bodied symphonic overture
 Понятно,Understood
 "Посетите Хижину Болотной Ведьмы (6, 17), чтобы получить Костяной Ключ.","Visit the Swamp Witch's Hut (6, 17) to obtain the Bone Key."
 "Посетите Хижину Лесника (7, 18) на юге, чтобы узнать о беде и получить Ключ от Врат.","Visit the Forester's Hut (7, 18) in the south to learn of the trouble and receive the Gate Key."
+"Посетите Хижину Лесника (7, 18) на юге.","Visit the Forester's Hut (7, 18) in the south."
 Потери: -%d,Losses: -%d
 Походное заклинание: исцеляет раненых в походе и пополняет все отряды армии на +20% воинов!,Adventure spell: heals those wounded on the march and replenishes every stack by +20% warriors!
 Походное заклинание: рассеивает туман войны на обширной территории вокруг героя (радиус 9)!,Adventure spell: dispels the fog of war over a wide area around the hero (radius 9)!
@@ -756,7 +937,9 @@ They guard the Archmage's Ring!"
 Принять ключ и отправиться в поход,Take the key and set out
 Принять работу кузнецов,Accept the smiths' work
 Принять силу предков,Accept the ancestors' strength
+"Пробуждение лесной чащи, птичьи трели флейты и рассветный клавесин","The forest awakening, birdlike flute trills and a dawn harpsichord"
 Продвинутый,Advanced
+Продолжить,Continue
 Продолжить поход,Continue the journey
 Продолжить путь,Continue on
 Пройти к логову Дракона,Proceed to the Dragon's lair
@@ -764,7 +947,7 @@ They guard the Archmage's Ring!"
 Прославленный герой,A Renowned Hero
 Пусто,Empty
 Путевой Камень,Waystone
-Разбойничий дозор,Brigand Pickets
+Пышные арпеджированные аккорды клавесина и праздничный шаг,Lush arpeggiated harpsichord chords and a festive step
 "Развевает все тёмные чары с союзного отряда (слепота, яд, корни, замедление) и удваивает его боевой дух на 3 раунда.","Sweeps away all dark curses from an allied stack (blindness, poison, roots, slow) and doubles its morale for 3 rounds."
 "Разведка докладывает: силы противника (%s) слишком велики для авторасчета без тяжелых потерь!
 
@@ -773,33 +956,69 @@ They guard the Archmage's Ring!"
 It is recommended to fight the battle personally in the arena, or to hire reinforcements."
 Развеянная тьма,Darkness Dispelled
 Раздать крестьянам (+600 опыта),Give to the peasants (+600 experience)
+Разделение отряда,Split Stack
+Разделить,Split
 Разделить отряд,Split stack
+Рассеивает пелену тумана войны в радиусе 9 клеток вокруг отряда героя.,Lifts the fog of war within 9 tiles around the hero's party.
 Раунд %d,Round %d
+Раунд 1,Round 1
 Регенерация (+20 HP в раунд),Regeneration (+20 HP per round)
 Регенерация +%d,Regeneration +%d
 Режим автобоя выключен. Ручное управление.,Auto-battle disabled. Manual control.
+Реликвии и Ключи:,Relics and Keys:
 Реликвия,Relic
+Ритмичный стаккато-клавесин и удалой мотив стрелков Шервуда,A rhythmic staccato harpsichord and a daring Sherwood archers' tune
 Рог Доблести,Horn of Valor
+Романтичный клавесин и мягкая щипковая виуэла менестреля,A romantic harpsichord and a minstrel's soft plucked vihuela
 Роща Волшебных Фей,The Grove of Magic Fairies
+Роща Королевы Фей,The Fairy Queen's Grove
+Роща Лесных Лучниц,The Forest Archers' Grove
+Роща Фей (Доступно: %d),Fairy Grove (Available: %d)
+Рунический Столп Огня,The Runic Pillar of Fire
 "Руны гаснут: стражи Обелиска пали в бою, и древние изваяния признали вашу доблесть. Один из Каменных Стражей готов следовать за вами!","The runes fade: the Obelisk's guards have fallen in battle, and the ancient statues acknowledge your valor. One of the Stone Guardians is ready to follow you!"
 Русский,Русский
 Рыцарь Аларик,Sir Alaric
 Рыцарь Аларик достигает %d уровня!,Sir Alaric reaches level %d!
+СКАЗКИ КОРОЛЕВСТВА,KINGDOM TALES
 СЛАВНАЯ ПОБЕДА!,GLORIOUS VICTORY!
+СЮЖЕТНАЯ КАМПАНИЯ,STORY CAMPAIGN
 Сапоги Странника,Wanderer's Boots
 Сапоги из мягкой эльфийской кожи. Даруют +8 очков хода герою каждый новый день.,Boots of soft elven leather. Grant the hero +8 movement points each new day.
 "Сапфировое кольцо с древними рунами. Дарует +2 к Силе Магии, +2 к Знанию и +20 к макс. мане.","A sapphire ring etched with ancient runes. Grants +2 Spell Power, +2 Knowledge and +20 max mana."
+"Сбалансированный воин.
+
+• Атака: 4  |  Защита: 3
+• Магия: 3  |  Знание: 4
+• Навык: Лидерство (+30% крит)
+• Войско: 6 Грифонов, 18 Фей
+• Предмет: Меч Доблести (+4 Атк)","A well-balanced warrior.
+
+• Attack: 4  |  Defense: 3
+• Power: 3  |  Knowledge: 4
+• Skill: Leadership (+30% crit)
+• Army: 6 Griffins, 18 Fairies
+• Item: Sword of Valor (+4 Att)"
 Светлые Пегасы,Radiant Pegasi
+Свойства отряда,Stack details
+"Святилище (+1 Магия, мана)","Shrine (+1 Spell Power, mana)"
+Святилище (Мана),Shrine (Mana)
 Святилище Маны,The Mana Shrine
+Святилище Триумфа,Shrine of Triumph
+Святыня Силы (+характеристики),Sanctum of Power (+attributes)
 Священная Роща Королевы Фей,The Fairy Queen's Sacred Grove
-"Священная энергия наполняет лагерь рыцаря! Раненые воины исцелены, и ряды войска пополнены (+20% бойцов во всех отрядах)!",Sacred energy fills the knight's camp! The wounded are healed and the ranks replenished (+20% warriors in every stack)!
+Священная энергия возвращает павших в боях в строй: %d воинов!,Sacred energy returns the battle-fallen to the ranks: %d warriors!
 "Священное сияние окутывает алтарь.
 
 Все отряды вашего войска уже достигли высшей ступени развития!","Holy radiance envelops the altar.
 
 Every stack of your army has already reached its highest form!"
+Священный Источник Жизни,The Sacred Spring of Life
+Священный Источник Маны,The Sacred Mana Spring
+Священный орган и светлые гармонии,A sacred organ and bright harmonies
+Серебряные переливы челесты и ручей,Silvery celesta ripples and a brook
 Сила Магии (+1),Spell Power (+1)
-Скелеты Топей,The Fen Skeletons
+"Сказочные флейты, арфа и мягкий ветер","Fairy-tale flutes, harp and a gentle wind"
+Скелеты Топей (Южный тракт),The Fen Skeletons (South Road)
 Скелеты-лучники,Skeleton Archers
 Скелеты-лучники натягивают тетиву среди камышей!,Skeleton archers draw their bowstrings among the reeds!
 "Скелеты-лучники поднимают костяные луки среди болотного мха!
@@ -811,11 +1030,12 @@ They have blocked the trail to the Witch's Hut!"
 Следопыт Торн,Thorn the Ranger
 "Слепой враг пропускает ход, пока не получит урон. Ослепляйте самых опасных!",A blinded enemy skips its turn until it takes damage. Blind the most dangerous foes!
 Слить,Merge
+Сложность кампании:,Campaign difficulty:
+Сложность:,Difficulty:
 "Слот: %s (Свободен)
 Выберите артефакт в рюкзаке ниже","Slot: %s (Empty)
 Choose an artifact from the satchel below"
 Слоты сохранений (1-3):,Save slots (1-3):
-Слуги Дракона,The Dragon's Servants
 "Слуги дракона не подпускают никого к жерлу вулкана!
 Разведка доносит: [Орда (25 гоблинов, 16 волков, 4 древня)].","The dragon's servants let no one near the volcano's maw!
 Scouts report: [A horde of 25 goblins, 16 wolves, 4 treants]."
@@ -824,6 +1044,9 @@ Scouts report: [A horde of 25 goblins, 16 wolves, 4 treants]."
 Случайный Отряд Врага,Random Enemy Detachment
 Снижает штраф за бездорожье: трава стоит 1 очко хода вместо 2.,Reduces the off-road penalty: grass costs 1 movement point instead of 2.
 Соберите 5000 золота.,Amass 5000 gold.
+Событие,Event
+Сокровище Склепа,The Crypt Treasure
+Сокровище Ущелья,The Gorge Treasure
 "Сокрушите Атамана разбойников (28, 11) на востоке долины и верните похищенный Венец!","Crush the Bandit Chieftain (28, 11) in the east of the valley and reclaim the stolen Crown!"
 Сокрушите Атамана разбойников.,Defeat the Bandit Chieftain.
 "Сокрушите Древнего Лича в Цитадели (28, 11) на востоке топей!","Crush the Ancient Lich at the Citadel (28, 11) in the east of the fens!"
@@ -837,6 +1060,8 @@ Scouts report: [A horde of 25 goblins, 16 wolves, 4 treants]."
 
 What will you do?"
 Старая Водяная Мельница,The Old Watermill
+Старая Мельница,The Old Mill
+Старинная баллада бродячего барда (плавный бесшовный луп),An old wandering bard's ballad (smooth seamless loop)
 "Старый лесничий взволнован:
 
 «Беда, сэр Аларик! Шайка разбойников из ущелья похитила древний Венец Королевы Фей! Без него гибнет вся магия нашего леса. Бандиты заперли ущелье Железными Вратами.
@@ -846,7 +1071,8 @@ What will you do?"
 «Trouble, Sir Alaric! A bandit gang from the gorge has stolen the ancient Crown of the Fairy Queen! Without it all the magic of our forest is dying. The bandits sealed the gorge with the Iron Gates.
 
 Here is the wrought Gate Key! Drive off the chieftain and carry the Crown to the Fairy Grove in the north of the valley!»"
-Стая Волков,The Wolf Pack
+Статистика отряда...,Stack stats...
+Стая Волков (Мельница),The Wolf Pack (Mill)
 Стая голодных лесных волков скалит клыки и идет на перехват!,A pack of hungry forest wolves bares its fangs and moves to intercept!
 "Стая свирепых серых волков окружила подходы к старой мельнице!
 Разведка доносит: [Стая (16 волков)].
@@ -856,7 +1082,7 @@ Bloodthirsty, they will not let you reach the mill!"
 Страж Королевства,Kingdom's Warden
 "Страж Королевства (2/3): +2 Атака, +2 Защита","Kingdom's Warden (2/3): +2 Attack, +2 Defense"
 "Страж Королевства (3/3): +4 Атака, +4 Защита, +4 Очка хода","Kingdom's Warden (3/3): +4 Attack, +4 Defense, +4 Movement"
-Страж Рощи,The Grove Warden
+Страж Рощи (Древень),The Grove Warden (Treant)
 Страж Рощи — могучий Древень и его духи-оборотни пробудились!,The Grove Warden — a mighty treant and its fox-spirit kin — have awakened!
 Стража Врат,The Gate Watch
 Стража Обелиска,The Obelisk Guard
@@ -864,8 +1090,7 @@ Bloodthirsty, they will not let you reach the mill!"
 "Стража Огненных Врат охраняет вход в цитадель перевала!
 Разведка доносит: [Орда (22 скелета, 25 гоблинов, 14 волков)].","The Fire Gate watch guards the entrance to the citadel of the pass!
 Scouts report: [A horde of 22 skeletons, 25 goblins, 14 wolves]."
-Стража ущелья,The Gorge Watch
-Стражи Гробниц,The Tomb Wardens
+Стражи Гробниц (Южный дозор),The Tomb Wardens (South Pickets)
 Стражи вулканического ущелья бросаются в бой!,The guardians of the volcanic gorge rush into battle!
 Странник Просторов,Wanderer of the Expanse
 "Странник Просторов (2/2): +6 Очков хода, +2 Атака","Wanderer of the Expanse (2/2): +6 Movement, +2 Attack"
@@ -874,13 +1099,28 @@ Scouts report: [A horde of 22 skeletons, 25 goblins, 14 wolves]."
 Стрелок,Shooter
 Стрелок (дальность 5 гексов),Shooter (range 5 hexes)
 Стрельба,Archery
+Строгий старинный контрапункт с проведением темы во всех голосах,Strict old-style counterpoint with the theme passing through every voice
+Сундук (+1000 зол / +600 опыта),Chest (+1000 gold / +600 XP)
+Сундук в мху,The Mossy Chest
+Сундук в пепле,The Chest in the Ashes
+Сундук в траве,The Chest in the Grass
 Сундук с Сокровищами,The Treasure Chest
+Сундук у мельницы,The Chest by the Mill
+Сундук утопленника,The Drowned Man's Chest
+Сэр Аларик,Sir Alaric
+Сэр Аларик достигает 2 уровня!,Sir Alaric reaches level 2!
+Таинственный низкий гул и капли,A mysterious low hum and dripping water
+Тайник в чащобе,The Thicket Cache
 Топи очищены,The Fens Cleansed
+Торжественные медные духовые и барабаны,Solemn brass and drums
 Трупный яд,Corpse Poison
 Трупный яд (ослабляет атаку),Corpse Poison (weakens attack)
 Тяжело ступающие мертвецы болот. Удары заражают врага трупным ядом (-25% к атаке)!,Heavy-treading dead of the marshes. Their blows infect the enemy with corpse poison (-25% attack)!
 "У героя еще остались очки хода (%d/%d).
 Вы действительно хотите завершить день?","The hero still has movement points left (%d/%d).
+Do you really want to end the day?"
+"У героя еще остались очки хода (36/36).
+Вы действительно хотите завершить день?","The hero still has movement points (36/36).
 Do you really want to end the day?"
 УСКОРЕНИЕ!,HASTED!
 Увеличивает запас очков хода на +8 каждый день.,Adds +8 movement points every day.
@@ -888,22 +1128,32 @@ Do you really want to end the day?"
 Увеличивает урон всех стрелков в войске на 20%.,Increases the damage of all shooters in the army by 20%.
 Увеличивает урон отрядов в ближнем бою на 15%.,Increases the melee damage of all stacks by 15%.
 Увеличить масштаб,Zoom in
+Указатель Огненного Перевала,Signpost to the Fiery Pass
+Указатель Проклятых Топей,Signpost to the Cursed Fens
 Уклонение %d%%,Evasion %d%%
 Уклонение (%d%% шанс вдвое снизить ближний урон),Evasion (%d%% chance to halve melee damage)
 "Укрепляет плоть союзного отряда магией земли, даруя +5 к Защите на 3 раунда.","Hardens an allied stack's flesh with earth magic, granting +5 Defense for 3 rounds."
 Улучшить %s -> %s (%d шт. за %d зол.),Upgrade %s -> %s (%d warriors for %d gold)
 Уменьшить масштаб,Zoom out
 Уничтожьте Древнего Лича.,Destroy the Ancient Lich.
+Упрощённые анимации (для слабых устройств),Reduced animations (for slower devices)
 Уровень: %d (Глава %d),Level: %d (Chapter %d)
+Уровень: 1 (Глава 1),Level: 1 (Chapter 1)
+Урон: %d-%d (Потери: %d-%d),Damage: %d-%d (Losses: %d-%d)
 Ускорение,Haste
 Ускорение (%d р.),Haste (%d r.)
 Файл сохранения не найден,Save file not found
 Феи-лучницы,Fairy Archers
+Характеристики:,Attributes:
 Хижина Болотной Ведьмы,The Swamp Witch's Hut
+Хижина Лесника,The Forester's Hut
 Хижина Старого Лесника,The Old Forester's Hut
+Хижина хранителя квеста,The quest-giver's hut
 Хитрые лесные духи. 25% шанс увернуться от ближнего удара (урон вдвое меньше)!,Cunning forest spirits. A 25% chance to evade a melee blow (damage halved)!
 "Ход отряда: %s (%d воинов). [W - Ждать%s, D - Защита, A - Авто, B - Магия]","Stack's turn: %s (%d warriors). [W - Wait%s, D - Defend, A - Auto, B - Spells]"
 Ход: %d/%d,Movement: %d/%d
+Ход: 24/24,Movement: 24/24
+Хорошо,Very well
 Хранитель Чащобы,Warden of the Wildwood
 "Хранительница рощи приветствует паладина:
 
@@ -916,8 +1166,11 @@ Do you really want to end the day?"
 
 Available: %d fairy archers (at %d gold each)
 Your treasury: %d gold"
+"Хроматические барочные фигуры, стеклянные колокольчики и орган","Chromatic baroque figures, glass bells and organ"
 Центрировать камеру на герое,Center camera on hero
 Цитадель Древнего Лича,The Ancient Lich's Citadel
+Цитадель Лича (Кольцо Архимага),The Lich's Citadel (Archmage's Ring)
+Цитадель Лича (Разрушена),The Lich's Citadel (Destroyed)
 Цитадель Тьмы! Древний Лич поднимает нежить из болотных могил!,The Citadel of Darkness! The Ancient Lich raises the undead from the bog graves!
 Чародейка Элеонора,Eleanor the Sorceress
 "Черный владыка топей обращен в прах! Перстень Архимага в ваших руках!
@@ -925,7 +1178,8 @@ Your treasury: %d gold"
 Спешите к Алтарю Друидов (27, 4) на северо-востоке, чтобы завершить очищение края и получить благословение природы!","The dark lord of the fens is turned to dust! The Archmage's Ring is in your hands!
 
 Hasten to the Druid Altar (27, 4) in the north-east to complete the cleansing of the land and receive nature's blessing!"
-Шайка Гоблинов,The Goblin Gang
+ШТРАФ 50%,PENALTY 50%
+Шайка Гоблинов (Сундук),The Goblin Gang (Chest)
 Шайка гоблинов-грабителей бросается в атаку!,A gang of goblin robbers charges to the attack!
 "Шайка лесных гоблинов-грабителей делит золото возле сундука!
 Разведка доносит: [Орда (24 гоблина, 6 волков)].
@@ -936,12 +1190,14 @@ They drop their loot and grab their axes!"
 Щит,Shield
 Щит Заступника,Aegis Shield
 Щит Света,Shield of Light
+Экран Героя (H),Hero Screen (H)
 Эксперт,Expert
 "Элитная личная гвардия Атамана охраняет Древний Обелиск и сокровищницу!
 Разведка доносит: [Орда (3 древня, 20 гоблинов, 10 волков)].","The Chieftain's elite personal guard watches over the Ancient Obelisk and its treasure house!
 Scouts report: [A horde of 3 treants, 20 goblins, 10 wolves]."
 Элитная стража Обелиска и её каменные исполины защищают древние сокровища!,The Obelisk's elite guard and its stone colossi defend the ancient treasures!
 Элитные белые грифоны королевской гвардии. Повышенная скорость и сокрушительный ответный удар!,Elite white griffins of the royal guard. Increased speed and a crushing counterattack!
+Энергичный ритм и боевой марш,An energetic rhythm and a battle march
 "Этот сундук охраняет %s!
 
 Враги замечают ваше приближение, обнажают оружие и нападают на вас!
@@ -961,19 +1217,28 @@ Defeat the guards first to claim the treasure!"
 леди Элеонора,Lady Eleanor
 мастер Торн,Master Thorn
 сэр Аларик,Sir Alaric
+тир,tier
+— Рюкзак (Нажмите для экипировки) —,— Satchel (Click to equip) —
+— Снаряжение на Герое —,— Hero's Equipment —
 "• %s: потеряно %d
 ","• %s: lost %d
 "
 "• Без потерь! Безупречная тактическая победа!
 ","• No losses! A flawless tactical victory!
 "
+• Нет артефактов,• No artifacts
 • Нет сюжетных реликвий,• No story relics
 • Рюкзак пуст (ищите реликвии на карте),• The satchel is empty (look for relics on the map)
+ℹ️ Об игре,ℹ️ About
 ↩️ В Меню,↩️ Menu
 ⏩ Ускорение боя: %s,⏩ Battle speed: %s
 ⏳ Ждал,⏳ Waited
 ⏳ Ждать,⏳ Wait
+⏳ Завершить день,⏳ End day
 ⏳ Отряд выжидает удобного момента...,⏳ The stack bides its time...
+── 🎻 СИМФОНИЧЕСКИЕ И СКАЗОЧНЫЕ ТЕМЫ (HMM3 & ОРКЕСТР) ──,── 🎻 SYMPHONIC AND FAIRY-TALE THEMES (HMM3 & ORCHESTRA) ──
+── 🏰 ТЕМЫ В СТИЛЕ HEROES OF MIGHT & MAGIC II (КЛАВЕСИН И РЕНЕССАНС) ──,── 🏰 HEROES OF MIGHT & MAGIC II STYLE THEMES (HARPSICHORD AND RENAISSANCE) ──
+▶ Играть,▶ Play
 ★ ВЕЛИКАЯ КАМПАНИЯ ЗАВЕРШЕНА! В Королевстве настал золотой век!,★ THE GREAT CAMPAIGN IS COMPLETE! A golden age has dawned over the Kingdom!
 ★ ВЕНЕЦ КОРОЛЕВЫ ФЕЙ ДОБЫТ! ★,★ THE FAIRY QUEEN'S CROWN IS RECLAIMED! ★
 ★ ГЛАВА 1 ЗАВЕРШЕНА! Отправляйтесь в Проклятые Топи (Глава 2)!,★ CHAPTER 1 COMPLETE! Set out for the Cursed Fens (Chapter 2)!
@@ -983,14 +1248,19 @@ Defeat the guards first to claim the treasure!"
 ★ ГЛАВА 3: ПИК ДРАКОНА ★,★ CHAPTER 3: DRAGON PEAK ★
 ★ ДРЕВНИЙ ЛИЧ СОКРУШЕН! ★,★ THE ANCIENT LICH IS CRUSHED! ★
 ★ КРАСНЫЙ ДРАКОН ПОВЕРЖЕН! ★,★ THE RED DRAGON IS VANQUISHED! ★
+★ НОВЫЙ УРОВЕНЬ! ★,★ LEVEL UP! ★
+★ ПОХОДНЫЕ ЗАКЛИНАНИЯ (карта мира):,★ ADVENTURE SPELLS (world map):
+★ Сделать основной,★ Set as main theme
 ☠ %s читает заклинание тёмного пламени...,☠ %s begins chanting the dark flame...
 ☠ ТЬМА -%d,☠ DARKNESS -%d
 ☠ Тёмное пламя %s поражает %s на %d урона! (Потери: %d),☠ %s's dark flame strikes %s for %d damage! (Losses: %d)
 ☣ БОЛЕЗНЬ! (-25% АТАКИ),☣ DISEASE! (-25% ATTACK)
 ☣ Трупный яд заражает %s: атака снижена на 25%% на 2 раунда!,☣ Corpse poison infects %s: attack reduced by 25%% for 2 rounds!
 ⚔ %s осенен печатью Возмездия: ближние атакующие получат 25%% урона ответно (3 раунда)!,⚔ %s is sealed with Retribution: melee attackers will suffer 25%% of the damage in return (3 rounds)!
+⚔ %s: %d-%d урона (потери %d-%d). Тапните ещё раз для атаки!,⚔ %s: %d-%d damage (losses %d-%d). Tap again to attack!
 "⚔ [РУКОПАШНАЯ (СТРЕЛОК В УПОР, ШТРАФ -50%%)]: Урон %d-%d (Потери: %d-%d)%s","⚔ [MELEE (SHOOTER AT CLOSE RANGE, PENALTY -50%%)]: Damage %d-%d (Losses: %d-%d)%s"
 ⚔ [РУКОПАШНАЯ АТАКА]: Урон %d-%d (Потери: %d-%d)%s,⚔ [MELEE ATTACK]: Damage %d-%d (Losses: %d-%d)%s
+⚔ БОСС,⚔ BOSS
 ⚔ БРОСИТЬ ВЫЗОВ ДРАКОНУ!,⚔ DEFY THE DRAGON!
 ⚔ В БОЙ С ОХРАНОЙ!,⚔ FIGHT THE GUARDS!
 ⚔ В БОЙ! (Тактическая арена),⚔ TO BATTLE! (Tactical arena)
@@ -998,6 +1268,7 @@ Defeat the guards first to claim the treasure!"
 ⚔ В поход: Глава 3 (Пик Дракона) ⚔,⚔ On the march: Chapter 3 (Dragon Peak) ⚔
 ⚔ ВОЗМЕЗДИЕ -%d,⚔ RETRIBUTION -%d
 ⚔ ВОЗМЕЗДИЕ!,RETRIBUTION!
+⚔ ИЗУЧЕННЫЕ БОЕВЫЕ ЗАКЛИНАНИЯ (для тактического боя):,⚔ LEARNED COMBAT SPELLS (for tactical battle):
 ⚔ ОХРАНА СОКРОВИЩ!,⚔ TREASURE GUARDS!
 ⚔ Очистить Топи от скверны!,⚔ Cleanse the Fens of blight!
 ⚔ Перевал открыт,⚔ The pass is open
@@ -1008,8 +1279,16 @@ Defeat the guards first to claim the treasure!"
 Оружие","⚔️
 Weapon"
 ⚔️ Атака: %d (+%d%% урон)%s,⚔️ Attack: %d (+%d%% damage)%s
+⚔️ Атака: 4 (+20% урон),⚔️ Attack: 4 (+20% damage)
+⚔️ В БОЙ НА АРЕНУ!,⚔️ TO THE ARENA!
+⚔️ ВРАЖЕСКОЕ ВОЙСКО,⚔️ ENEMY ARMY
 ⚔️ Демонстрационный бой [%s]: %s!,⚔️ Demonstration battle [%s]: %s!
+⚔️ Мятежная гвардия,⚔️ The Rebel Guard
+⚔️ Новое приключение,⚔️ New adventure
 ⚔️ Остаться в бою,⚔️ Stay in battle
+⚔️ ТАКТИЧЕСКИЙ БОЙ (ДЕМОНСТРАЦИОННАЯ АРЕНА),⚔️ TACTICAL BATTLE (DEMONSTRATION ARENA)
+⚙️ НАСТРОЙКИ,⚙️ SETTINGS
+⚙️ Настройки,⚙️ Settings
 ⚠️ Отряд %s уже выжидал в этом раунде и обязан действовать!,⚠️ Stack %s has already waited this round and must act!
 ⚠️ Отряд %s уже ждал в этом раунде и обязан действовать!,⚠️ Stack %s has already waited this round and must act!
 ⚠️ СИЛЫ НЕРАВНЫ!,⚠️ THE ODDS ARE UNEVEN!
@@ -1022,7 +1301,10 @@ Weapon"
 ⚡ Сломанная стрела! %s наносит %d урона (штраф 50%%) по %s! (Потери: %d),⚡ Broken arrow! %s deals %d damage (penalty 50%%) to %s! (Losses: %d)
 ✓ Игра сохранена!,✓ Game saved!
 ✦ %s: ОБМЕН ✦,✦ %s: SWAP ✦
+✦ КНИГА ЗАКЛИНАНИЙ ✦,✦ SPELLBOOK ✦
 ✦ Основной атрибут: +1 к %s!,✦ Primary stat: +1 to %s!
+✦ Основной атрибут: +1 к Атаке!,✦ Primary stat: +1 to Attack!
+✦ ТЕКУЩЕЕ ЗАДАНИЕ,✦ CURRENT QUEST
 ✨ %s ослеплен и пропускает ход!,✨ %s is blinded and skips the turn!
 ✨ ВДОХНОВЕНИЕ!,INSPIRATION!
 "✨ С отряда %s сняты тёмные чары, боевой дух удвоен на 3 раунда!",✨ Dark curses lifted from %s; morale doubled for 3 rounds!
@@ -1037,14 +1319,25 @@ Weapon"
 (Click to remove to satchel)"
 🌟 [БОЕВОЙ ДУХ]: Воодушевленный отряд %s получает дополнительный ход!,🌟 [HIGH MORALE]: The inspired stack %s gains an extra turn!
 🌟 БОЕВОЙ ДУХ! (+1 ХОД),🌟 HIGH MORALE! (+1 TURN)
+🌲 Глава 1: Похищенный Венец (Зачарованный Лес),🌲 Chapter 1: The Stolen Crown (The Enchanted Forest)
+🌲 Лесные разбойники,🌲 Forest Bandits
+🌿 Благодать Похода (15 маны),🌿 March Grace (15 mana)
 🌿 КОРНИ (0 ХОДОВ),🌿 ROOTED (0 MOVEMENT)
 "🌿 Корни древня оплетают %s, лишая возможности двигаться на 1 раунд!","🌿 The treant's roots entangle %s, robbing it of movement for 1 round!"
+🌿 Сотворить: Благодать,🌿 Cast: March Grace
 🌿 Сотворить: Благодать (15 🔮),🌿 Cast: March Grace (15 🔮)
 🍀 [УДАЧА]: Отряд %s наносит удвоенный сокрушительный урон!,🍀 [LUCK]: The stack %s deals double crushing damage!
 🍀 [УДАЧА]: Отряд %s совершает выстрел с удвоенным критическим уроном!,🍀 [LUCK]: The stack %s fires a shot with double critical damage!
 🍀 УДАЧА! (х2),🍀 LUCK! (x2)
 🍀 Удача: 15% шанс двойного урона у вашего войска. 🌟 Боевой дух даёт доп. ход (Лидерство).,🍀 Luck: your army has a 15% chance of double damage. 🌟 High Morale grants extra turns (Leadership).
 🎯 Прямой выстрел! %s поражает %s на %d урона! (Потери: %d),🎯 Direct hit! %s strikes %s for %d damage! (Losses: %d)
+🎲 Другой враг,🎲 Another foe
+🎲 Перемешать,🎲 Shuffle
+🎲 Случайный противник,🎲 Random opponent
+🎲 Случайный состав,🎲 Random lineup
+🎵 Музыкальная шкатулка,🎵 Music box
+🎼 МУЗЫКАЛЬНАЯ ШКАТУЛКА (40 ТЕМ),🎼 MUSIC BOX (40 THEMES)
+🎼 Музыка (40 тем),🎼 Music (40 themes)
 "🏆 Тренировочный поединок на Арене успешно завершен!
 Сложность: %s
 Противник: %s
@@ -1058,10 +1351,12 @@ You have demonstrated the outstanding tactical mastery of a true commander!"
 🏳️ Отступить,🏳️ Retreat
 🏹 [ПРЯМОЙ ВЫСТРЕЛ: Дистанция %d]: Урон %d-%d (Потери: %d-%d),🏹 [DIRECT SHOT: Distance %d]: Damage %d-%d (Losses: %d-%d)
 🏹 Второй выстрел! %s наносит %d урона по %s! (Потери: %d),🏹 Second shot! %s deals %d damage to %s! (Losses: %d)
+🏹 Стрелковый полк,🏹 Archer Regiment
 "👑
 Шлем","👑
 Helm"
 👑 ВЕЛИКИЙ ТРИУМФ ВСЕЙ КАМПАНИИ! 👑,👑 THE GREAT TRIUMPH OF THE WHOLE CAMPAIGN! 👑
+👑 ВЕЛИКИЙ ТРИУМФ! 👑,👑 A GREAT TRIUMPH! 👑
 "👑 ВЕРНИТЕ ВЕНЕЦ! Доставьте реликвию Королеве Фей в Священную Рощу (27, 4)!","👑 RETURN THE CROWN! Deliver the relic to the Fairy Queen at the Sacred Grove (27, 4)!"
 👑 Венец Королевы Фей,👑 Fairy Queen's Crown
 👑 К Великой Победе!,👑 Onward to victory!
@@ -1069,9 +1364,12 @@ Helm"
 👑 ПОБЕДА В ГЛАВЕ 1: ЗАЧАРОВАННЫЙ ЛЕС! 👑,👑 VICTORY IN CHAPTER 1: THE ENCHANTED FOREST! 👑
 👑 ПОБЕДА В ГЛАВЕ 2: ПРОКЛЯТЫЕ ТОПИ! 👑,👑 VICTORY IN CHAPTER 2: THE CURSED FENS! 👑
 "👑 ПОБЕДА! Доставьте трофеи в Королевскую Цитадель (27, 4)!","👑 VICTORY! Bring the trophies to the Royal Citadel (27, 4)!"
+👑 СЮДА!,👑 HERE!
 "👢
 Обувь","👢
 Boots"
+💀 Болотная нежить,💀 Swamp Undead
+💀 Глава 2: Проклятые Топи (Древний Лич и Склепы),💀 Chapter 2: The Cursed Fens (The Ancient Lich and the Crypts)
 💀 Легенда (Кошмар),💀 Legend (Nightmare)
 "💍
 Кольцо","💍
@@ -1083,16 +1381,31 @@ Ring"
 💾 Слот %d,💾 Slot %d
 💾 Сохранить игру,💾 Save game
 📂 Загрузить игру,📂 Load game
+📖 КОДЕКС СУЩЕСТВ,📖 CREATURE CODEX
+📖 Кодекс существ,📖 Creature Codex
 📜 АСТРОЛОГИ ОБЪЯВЛЯЮТ... 📜,📜 THE ASTROLOGERS PROCLAIM... 📜
+📜 ВЕДЬМА,📜 WITCH
 📜 Знание: %d (%d маны),📜 Knowledge: %d (%d mana)
+📜 Знание: 4 (40 маны),📜 Knowledge: 4 (40 mana)
+📜 КВЕСТ,📜 QUEST
 📜 ЛЕТОПИСЬ ПОДВИГОВ,📜 CHRONICLE OF DEEDS
 📜 Летопись подвигов,📜 Chronicle of Deeds
+📜 Продолжить поход,📜 Continue the journey
+"📜 Продолжить поход  [%s • Гл. %d, День %d • Ур. %d]","📜 Continue the journey  [%s • Ch. %d, Day %d • Lvl %d]"
 📯 Рог Доблести: всё войско начинает бой на +2 инициативы!,📯 Horn of Valor: the whole army begins the battle at +2 initiative!
 🔥 [ОГНЕННОЕ ДЫХАНИЕ]: Струя пламени пробивает строй и поражает %s на %d урона! (Потери: %d),🔥 [FIRE BREATH]: A jet of flame pierces the line and hits %s for %d damage! (Losses: %d)
+🔥 Глава 3: Пик Дракона (Огненный Владыка),🔥 Chapter 3: Dragon Peak (The Fire Lord)
+🔥 Огненные стражи (Дракон),🔥 Fire Guardians (Dragon)
+🔮 Око Орла (10 маны),🔮 Eye of the Eagle (10 mana)
 🔮 Сила Магии: %d%s,🔮 Spell Power: %d%s
+🔮 Сила Магии: 3,🔮 Spell Power: 3
+🔮 Сотворить: Око Орла,🔮 Cast: Eye of the Eagle
 🔮 Сотворить: Око Орла (10 🔮),🔮 Cast: Eye of the Eagle (10 🔮)
 🔴 Герой (Сложно),🔴 Hero (Hard)
+🗝 ВРАТА!,🗝 GATES!
 🗝 Ключ от Врат,🗝 Gate Key
+🗺️ Выбор Главы (Кампания),🗺️ Choose Chapter (Campaign)
+🚪 Выход,🚪 Exit
 🛑 Стоп,🛑 Stop
 🛡 %s окружен куполом света: поглощает %d ед. урона в течение 3 раундов!,🛡 %s is wrapped in a dome of light: absorbs %d damage for 3 rounds!
 🛡 ЩИТ -%d,🛡 SHIELD -%d
@@ -1100,12 +1413,19 @@ Ring"
 "🛡️
 Щит","🛡️
 Shield"
+🛡️ ВАШЕ ВОЙСКО,🛡️ YOUR ARMY
 🛡️ Защита,🛡️ Defend
 🛡️ Защита: %d (-%d%% урон)%s,🛡️ Defense: %d (-%d%% damage)%s
+🛡️ Защита: 3 (-9% урон),🛡️ Defense: 3 (-9% damage)
+🛡️ Сбалансированный,🛡️ Balanced
+🛡️ Тактическая арена (Бой),🛡️ Tactical Arena (Battle)
 🟡 Воитель (Нормально),🟡 Warrior (Normal)
 🟢 Новобранец (Легко),🟢 Recruit (Easy)
+🦅 Небесный полк (Грифоны),🦅 Sky Regiment (Griffins)
 "🦺
 Доспех","🦺
 Armor"
+🧙 Круг Друидов,🧙 Druid Circle
+🧳 Бродячий торговец,🧳 The Wandering Merchant
 🪞 %s отражает %d урона по %s!,🪞 %s reflects %d damage back at %s!
 🪞 ОТРАЖЕНИЕ -%d,🪞 REFLECTED -%d

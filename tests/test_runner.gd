@@ -1364,11 +1364,61 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Fallen/Grace restore, blocking objects, gate routing and hero forms verified!")
 
+	# 52. Английская локализация: меню, карта, бой и черты существ без русских строк
+	print("[TEST] 52. Testing English Localization Coverage...")
+	var saved_locale := TranslationServer.get_locale()
+	TranslationServer.set_locale("en")
+	assert(tr("СКАЗКИ КОРОЛЕВСТВА") == "KINGDOM TALES", "Main menu title must be translated")
+	assert(tr("⏳ Завершить день") == "⏳ End day", "End-day button (scene text) must be translated")
+	assert(tr("Старая Мельница") == "The Old Mill", "Map object names must be translated")
+	assert(tr("ШТРАФ 50%") == "PENALTY 50%", "Broken-arrow label on the battlefield must be translated")
+	var fairy_traits := UnitData.get_trait_string("royal_fairy")
+	assert(fairy_traits.contains("•") and not _has_cyrillic(fairy_traits), "Creature traits must be translated one by one")
+	# Карточка отряда собирается шаблоном и списками черт — после сборки не должно остаться русского
+	GameState.reset()
+	var card_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(card_arena)
+	for card_stack in card_arena.all_stacks:
+		card_arena._show_unit_info(card_stack)
+		assert(not _has_cyrillic(card_arena.unit_info_stats.text), "Unit card must be fully translated: " + card_arena.unit_info_stats.text.left(60))
+	card_arena.queue_free()
+	var untranslated := _untranslated_source_strings()
+	if not untranslated.is_empty():
+		print("  Untranslated (run tools/extract_strings.py and tools/build_csv.py): ", untranslated.slice(0, 10))
+	assert(untranslated.is_empty(), "Every Russian string in src/ must have an English translation")
+	TranslationServer.set_locale(saved_locale)
+	print("  -> English locale covers main menu, map, battle and creature traits!")
+
 	print("\n==========================================")
-	print("   ALL 51 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 52 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
 	get_tree().quit()
 
+func _has_cyrillic(text: String) -> bool:
+	return RegEx.create_from_string("[А-Яа-яЁё]").search(text) != null
 
+## Русские строки из src/ без английского перевода. Правила те же, что у
+## tools/extract_strings.py: литералы .gd и видимые свойства .tscn.
+func _untranslated_source_strings() -> Array[String]:
+	var en := TranslationServer.get_translation_object("en")
+	var literal := RegEx.create_from_string(r'"((?:[^"\\]|\\.)*)"')
+	var scene_prop := RegEx.create_from_string(r'(?m)^(?:text|tooltip_text|placeholder_text|title|dialog_text) = "((?:[^"\\]|\\.)*)"')
+	var missing: Array[String] = []
+	for path in _collect_source_files("res://src"):
+		var re := scene_prop if path.ends_with(".tscn") else literal
+		for m in re.search_all(FileAccess.get_file_as_string(path)):
+			var key := m.get_string(1).c_unescape()
+			if _has_cyrillic(key) and String(en.get_message(key)) == "" and not missing.has(key):
+				missing.append(key)
+	return missing
+
+func _collect_source_files(dir_path: String) -> Array[String]:
+	var result: Array[String] = []
+	for f in DirAccess.get_files_at(dir_path):
+		if f.ends_with(".gd") or f.ends_with(".tscn"):
+			result.append(dir_path.path_join(f))
+	for d in DirAccess.get_directories_at(dir_path):
+		result.append_array(_collect_source_files(dir_path.path_join(d)))
+	return result
