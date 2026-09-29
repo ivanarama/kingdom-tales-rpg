@@ -1697,14 +1697,16 @@ func _ready() -> void:
 		lay_typed.assign(lay)
 		var lay_seen := {}
 		for lay_h in lay_typed:
-			assert(HexGrid.is_in_bounds(lay_h, lay_bounds) and lay_h.x >= 2 and lay_h.x <= 8, "Obstacle %s must stay off the deployment columns" % lay_h)
+			assert(HexGrid.is_in_bounds(HexGrid.offset_to_axial(lay_h), lay_bounds) and lay_h.x >= 2 and lay_h.x <= 8, "Obstacle %s must stay off the deployment columns" % lay_h)
 			assert(not lay_seen.has(lay_h), "Duplicate obstacle %s" % lay_h)
 			lay_seen[lay_h] = true
-		# с любой клетки расстановки игрока можно дойти до любой клетки врага
+		# с любой клетки расстановки игрока можно дойти до любой клетки врага;
+		# раскладки заданы как (колонка, ряд), а бой считает в осевых координатах
+		var lay_axial := HexGrid.offsets_to_axial(lay_typed)
 		for lay_r in range(1, 6):
-			var lay_reach := HexGrid.get_reachable_hexes(Vector2i(0, lay_r), 40, lay_typed, lay_bounds)
+			var lay_reach := HexGrid.get_reachable_hexes(HexGrid.offset_to_axial(Vector2i(0, lay_r)), 40, lay_axial, lay_bounds)
 			for lay_r2 in range(1, 6):
-				assert(lay_reach.has(Vector2i(10, lay_r2)), "Obstacle layout must not cut the field in two")
+				assert(lay_reach.has(HexGrid.offset_to_axial(Vector2i(10, lay_r2))), "Obstacle layout must not cut the field in two")
 	assert(BattleArena.obstacle_layout("patrol_wolves", 1) == BattleArena.obstacle_layout("patrol_wolves", 1), "The same encounter always gets the same field")
 	var lay_variants := {}
 	for lay_id in ["patrol_wolves", "patrol_goblins", "patrol_forester", "patrol_grove", "patrol_1", "patrol_rogues", "patrol_obelisk", "patrol_2"]:
