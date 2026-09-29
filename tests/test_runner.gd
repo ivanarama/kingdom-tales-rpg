@@ -2042,6 +2042,19 @@ func _ready() -> void:
 	ab_arena.current_actor = ab_bpeg
 	await ab_arena._execute_attack(ab_bpeg, ab_bfoe, true)
 	assert((ab_bpeg.count - 1) * int(ab_bpeg.data["max_hp"]) + ab_bpeg.current_hp == ab_peg_hp and not ab_bfoe.has_retaliated, "Pegasi strike without retaliation in battle")
+	# ИИ за пегасов не боится ответного удара: пегасам не отвечают
+	var ab_saved_stacks = ab_arena.all_stacks
+	var ab_ai_peg := BattleStack.new()
+	ab_ai_peg.setup("royal_pegasus", 5, 1, Vector2i(5, 3))
+	var ab_ai_griffins := BattleStack.new()
+	ab_ai_griffins.setup("royal_griffin", 40, 0, Vector2i(4, 3))
+	var ab_ai_lone := BattleStack.new()
+	ab_ai_lone.setup("goblin", 1, 0, Vector2i(2, 3))
+	var ab_ai_field: Array[BattleStack] = [ab_ai_peg, ab_ai_griffins, ab_ai_lone]
+	ab_arena.all_stacks = ab_ai_field
+	var ab_ai_targets: Array[BattleStack] = [ab_ai_griffins, ab_ai_lone]
+	assert(ab_arena._select_ai_target(ab_ai_peg, ab_ai_targets) == ab_ai_griffins, "AI pegasi must not fear a retaliation they never get")
+	ab_arena.all_stacks = ab_saved_stacks
 	ab_arena.victory_dialog.show()
 	ab_arena.turn_queue.clear()
 	ab_arena.current_actor = null

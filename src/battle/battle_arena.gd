@@ -559,7 +559,7 @@ func _select_ai_target(actor: BattleStack, player_stacks: Array[BattleStack]) ->
 		score += cas * 30.0
 
 		# Ответный удар: в ближнем бою выжившие ответят — дорогая цель хуже дешёвой
-		if melee and (not target.has_retaliated or target.data.get("unlimited_retaliation", false)):
+		if melee and target.will_retaliate(actor):
 			var survivors: int = target.count - cas
 			if survivors > 0:
 				var ret := target.get_damage_range(actor, true)
