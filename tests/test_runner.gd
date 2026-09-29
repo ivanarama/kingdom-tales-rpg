@@ -2211,8 +2211,61 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Short music loops now rotate in chapter and battle playlists!")
 
+	# 72. Прямоугольное поле боя: кромки вертикальные, строй стоит колонной, поле на экране
+	print("[TEST] 72. Testing Rectangular Battlefield...")
+	var rf_bounds := Rect2i(0, 0, BattleArena.GRID_COLS, BattleArena.GRID_ROWS)
+	var rf_cells: Array[Vector2i] = HexGrid.field_cells(rf_bounds)
+	assert(rf_cells.size() == BattleArena.GRID_COLS * BattleArena.GRID_ROWS, "The field keeps cols x rows cells")
+	for rf_c in rf_cells:
+		assert(HexGrid.is_in_bounds(rf_c, rf_bounds), "Every field cell is in bounds")
+		assert(HexGrid.offset_to_axial(HexGrid.axial_to_offset(rf_c)) == rf_c, "Axial/offset conversion round-trips")
+	assert(not HexGrid.is_in_bounds(Vector2i(10, 6), rf_bounds), "The old parallelogram corner (10, 6) is off the field now")
+	var rf_w: float = BattleArena.HEX_SIZE * HexGrid.SQRT_3
+	for rf_col in [0, BattleArena.GRID_COLS - 1]:
+		var rf_xs: Array[float] = []
+		for rf_row in BattleArena.GRID_ROWS:
+			var rf_h := HexGrid.offset_to_axial(Vector2i(rf_col, rf_row))
+			rf_xs.append(HexGrid.hex_to_pixel(rf_h.x, rf_h.y, BattleArena.HEX_SIZE, Vector2.ZERO).x)
+		assert(rf_xs.max() - rf_xs.min() <= rf_w * 0.5 + 0.01, "Column %d is a vertical zigzag, not a diagonal" % rf_col)
+	# В бою: войско героя — в колонке 0, враги — в колонке из encounters.json, препятствия и ходы — на поле
+	GameState.reset()
+	GameState.player_army = [{"unit_id": "griffin", "count": 5}, {"unit_id": "fairy_archer", "count": 5}, {"unit_id": "wolf", "count": 5}, {"unit_id": "treant", "count": 2}, {"unit_id": "druid", "count": 3}]
+	GameState.pending_battle_id = "patrol_goblins"
+	var rf_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(rf_arena)
+	await get_tree().process_frame
+	for rf_s in rf_arena.all_stacks:
+		var rf_cell := HexGrid.axial_to_offset(rf_s.hex)
+		assert(rf_cell.x == (0 if rf_s.team == 0 else 10), "Armies stand at the field edges (%s is in column %d)" % [rf_s.unit_id, rf_cell.x])
+	for rf_o in rf_arena.obstacles:
+		assert(HexGrid.is_in_bounds(rf_o, rf_arena.field_bounds), "Obstacles stay on the field")
+	for rf_actor in [rf_arena.all_stacks[0], rf_arena.all_stacks[2]]:
+		rf_arena.current_actor = rf_actor
+		rf_arena._update_reachable_hexes()
+		assert(not rf_arena.reachable_hexes.is_empty(), "%s can move" % rf_actor.unit_id)
+		for rf_r in rf_arena.reachable_hexes:
+			assert(HexGrid.is_in_bounds(rf_r, rf_arena.field_bounds), "%s never leaves the field" % rf_actor.unit_id)
+	# Поле целиком на экране 1920x1080: между шкалой инициативы и панелью героя, по центру
+	var rf_min := Vector2(INF, INF)
+	var rf_max := Vector2(-INF, -INF)
+	for rf_c in rf_cells:
+		var rf_px := HexGrid.hex_to_pixel(rf_c.x, rf_c.y, BattleArena.HEX_SIZE, rf_arena.grid_origin)
+		rf_min = rf_min.min(rf_px)
+		rf_max = rf_max.max(rf_px)
+	assert(rf_min.x - rf_w * 0.5 >= 0.0 and rf_max.x + rf_w * 0.5 <= 1920.0, "The field fits the screen width")
+	assert(rf_min.y - BattleArena.HEX_SIZE >= 100.0 and rf_max.y + BattleArena.HEX_SIZE <= 860.0, "The field stays between the initiative bar and the hero panel")
+	assert(absf((rf_min.x + rf_max.x) * 0.5 - 960.0) < 80.0, "The field is centered")
+	rf_arena.victory_dialog.show()
+	rf_arena.turn_queue.clear()
+	rf_arena.current_actor = null
+	await get_tree().create_timer(0.6).timeout
+	rf_arena.queue_free()
+	await get_tree().process_frame
+	GameState.reset()
+	print("  -> The battlefield is a rectangle: armies form columns and every hex fits the screen!")
+
 	print("\n==========================================")
-	print("   ALL 71 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 72 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame

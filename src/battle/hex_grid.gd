@@ -76,9 +76,33 @@ static func get_reachable_hexes(start: Vector2i, max_steps: int, obstacles: Arra
 				
 	return reachable
 
+## Поле — прямоугольник, как в HoMM3: нечётные ряды сдвинуты на полгекса
+## вправо («odd-r»). Раньше границы задавались прямо в осевых координатах, и поле
+## было параллелограммом: строй шёл по диагонали, углы экрана пустовали.
+## Бой считает в осевых (q, r); данные и раскладки задают клетку как (колонка, ряд).
+static func offset_to_axial(cell: Vector2i) -> Vector2i:
+	return Vector2i(cell.x - (cell.y - (cell.y & 1)) / 2, cell.y)
+
+static func axial_to_offset(hex: Vector2i) -> Vector2i:
+	return Vector2i(hex.x + (hex.y - (hex.y & 1)) / 2, hex.y)
+
+static func offsets_to_axial(cells: Array) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for c in cells:
+		result.append(offset_to_axial(c))
+	return result
+
+## Все клетки поля (в осевых координатах), ряд за рядом.
+static func field_cells(bounds: Rect2i) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for row in range(bounds.position.y, bounds.end.y):
+		for col in range(bounds.position.x, bounds.end.x):
+			result.append(offset_to_axial(Vector2i(col, row)))
+	return result
+
+## bounds — прямоугольник в (колонка, ряд).
 static func is_in_bounds(hex: Vector2i, bounds: Rect2i) -> bool:
-	return hex.x >= bounds.position.x and hex.x < bounds.end.x and \
-		   hex.y >= bounds.position.y and hex.y < bounds.end.y
+	return bounds.has_point(axial_to_offset(hex))
 
 static func get_hex_points(center: Vector2, size: float) -> PackedVector2Array:
 	var points := PackedVector2Array()

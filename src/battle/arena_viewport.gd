@@ -199,10 +199,10 @@ func _draw() -> void:
 	# 1. Draw Hex Grid
 	for r in range(bounds.position.y, bounds.end.y):
 		for q in range(bounds.position.x, bounds.end.x):
-			var center = HexGrid.hex_to_pixel(q, r, hex_size, origin)
+			var hex = HexGrid.offset_to_axial(Vector2i(q, r)) # прямоугольное поле: q — колонка
+			var center = HexGrid.hex_to_pixel(hex.x, hex.y, hex_size, origin)
 			var points = HexGrid.get_hex_points(center, hex_size - 2.0)
 			
-			var hex = Vector2i(q, r)
 			var is_obs = arena.obstacles.has(hex)
 			var is_reachable = arena.reachable_hexes.has(hex)
 			var is_active = (arena.current_actor != null and arena.current_actor.hex == hex)
