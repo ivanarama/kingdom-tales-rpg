@@ -444,6 +444,15 @@ func merge_stacks(slot_a: int, slot_b: int) -> bool:
 		return true
 	return false
 
+## Распустить отряд: слот освобождается, воины уходят по домам — не в «Летопись
+## павших», «Благодать» их не вернёт. Последний отряд распустить нельзя.
+func dismiss_stack(slot_idx: int) -> bool:
+	if slot_idx < 0 or slot_idx >= player_army.size() or player_army.size() <= 1:
+		return false
+	player_army.remove_at(slot_idx)
+	state_changed.emit()
+	return true
+
 func swap_army_slots(slot_a: int, slot_b: int) -> bool:
 	if slot_a < 0 or slot_a >= player_army.size() or slot_b < 0 or slot_b >= player_army.size():
 		return false

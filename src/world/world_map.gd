@@ -1274,7 +1274,7 @@ func _reset_popup_buttons() -> void:
 func _show_army_full_popup() -> void:
 	SoundManager.play_sfx("click")
 	popup_title.text = tr("Войско полно")
-	popup_text.text = tr("В войске нет свободных слотов. Объедините или разделите отряды в панели «Войско Героя».")
+	popup_text.text = tr("В войске нет свободных слотов. Объедините одинаковые отряды или выберите лишний в панели «Войско Героя» и распустите его (✖).")
 	popup_btn1.text = tr("Понятно")
 	_reset_popup_buttons()
 	popup_btn1.pressed.connect(func(): popup_dialog.hide())
@@ -1479,6 +1479,15 @@ func _update_hud() -> void:
 			)
 			row.add_child(merge_btn)
 
+		# Распустить — у выбранного отряда (клик по карточке), если он не последний
+		if selected_army_slot == slot_idx and GameState.player_army.size() > 1:
+			var dismiss_btn = Button.new()
+			dismiss_btn.text = "✖"
+			dismiss_btn.tooltip_text = tr("Распустить отряд")
+			dismiss_btn.custom_minimum_size = Vector2(26, 28)
+			dismiss_btn.pressed.connect(func(): _confirm_dismiss_stack(slot_idx))
+			row.add_child(dismiss_btn)
+
 		# Click on card to select / swap (HoMM style)
 		card.gui_input.connect(func(event: InputEvent):
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -1505,6 +1514,29 @@ func _update_hud() -> void:
 
 		card.add_child(row)
 		army_container.add_child(card)
+
+## Распустить отряд — только после подтверждения: вернуть воинов будет нельзя.
+func _confirm_dismiss_stack(slot_idx: int) -> void:
+	if slot_idx < 0 or slot_idx >= GameState.player_army.size():
+		return
+	var slot = GameState.player_army[slot_idx]
+	var uname := tr(str(UnitData.get_unit(slot["unit_id"]).get("name", "")))
+	SoundManager.play_sfx("page_turn")
+	popup_title.text = tr("Распустить отряд?")
+	popup_text.text = tr("Отряд «%s» (×%d) покинет войско и вернётся по домам. Вернуть его будет нельзя.") % [uname, int(slot["count"])]
+	_reset_popup_buttons()
+	popup_btn1.text = tr("Распустить")
+	popup_btn1.pressed.connect(func():
+		if GameState.dismiss_stack(slot_idx):
+			SoundManager.play_sfx("click")
+		selected_army_slot = -1
+		popup_dialog.hide()
+		_update_hud()
+	)
+	popup_btn2.visible = true
+	popup_btn2.text = tr("Оставить")
+	popup_btn2.pressed.connect(func(): popup_dialog.hide())
+	_show_popup_dialog()
 
 func _open_split_dialog(slot_idx: int) -> void:
 	if slot_idx < 0 or slot_idx >= GameState.player_army.size():

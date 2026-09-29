@@ -256,6 +256,7 @@ Take this Bone Key! Cut your way through the undead, destroy the Lich and cleans
 В Королевскую Цитадель!,To the Royal Citadel!
 В Священную Рощу!,To the Sacred Grove!
 В войске нет свободных слотов. Объедините или разделите отряды в панели «Войско Героя».,No free slots in the army. Merge or split stacks in the Hero's Army panel.
+В войске нет свободных слотов. Объедините одинаковые отряды или выберите лишний в панели «Войско Героя» и распустите его (✖).,"There are no free slots in the army. Merge identical stacks, or select one in the Hero's Army panel and dismiss it (✖)."
 В глубине склепа вы находите драгоценные реликвии древних времен!,Deep in the crypt you find precious relics of ancient times!
 В наличии: %d страж(а) (по %d золота). Казна: %d.,Available: %d guardian(s) (at %d gold each). Treasury: %d.
 В путь,Onward
@@ -906,6 +907,7 @@ Scouts report: [A horde of 24 goblins, 16 wolves]."
 Ослепление,Blind
 Ослепление (%d р.),Blinded (%d r.)
 "Ослепляет вражеский отряд яркой вспышкой. Отряд не может ходить, пока не получит урон (до 3 раундов).",Blinds an enemy stack with a brilliant flash. The stack cannot act until it takes damage (up to 3 rounds).
+Оставить,Keep
 Оставить им кирки и припасы (100 золота),Leave them picks and supplies (100 gold)
 Оставь золото себе,Keep the gold
 "Откройте Костяные Врата (14, 11) с помощью ключа ведьмы.","Open the Bone Gates (14, 11) with the witch's key."
@@ -916,6 +918,7 @@ Scouts report: [A horde of 24 goblins, 16 wolves]."
 Отойти,Step away
 Отражение %d%%,Reflection %d%%
 Отражение (%d%% ближнего урона),Reflection (%d%% of melee damage)
+Отряд «%s» (×%d) покинет войско и вернётся по домам. Вернуть его будет нельзя.,The %s (×%d) will leave the army and go home. You won't be able to get them back.
 "Отряд опытных бандитских стрелков устроил заслон на северной тропе!
 Разведка доносит: [Орда (26 гоблинов, 14 волков)].
 Они блокируют подходы к Священной Роще Фей!","A band of seasoned bandit archers has set a roadblock on the northern trail!
@@ -1043,6 +1046,9 @@ It is recommended to fight the battle personally in the arena, or to hire reinfo
 Разделить,Split
 Разделить отряд,Split stack
 Разобрать завал (−4 очка хода),Clear the rubble (−4 movement points)
+Распустить,Dismiss
+Распустить отряд,Dismiss the stack
+Распустить отряд?,Dismiss the stack?
 Рассеивает пелену тумана войны в радиусе 9 клеток вокруг отряда героя.,Lifts the fog of war within 9 tiles around the hero's party.
 Раунд %d,Round %d
 Раунд 1,Round 1

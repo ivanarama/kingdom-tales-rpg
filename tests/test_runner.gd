@@ -2266,8 +2266,49 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> The battlefield is a rectangle: armies form columns and every hex fits the screen!")
 
+	# 73. Распустить отряд: освобождает слот, спрашивает подтверждение, последний не распускается
+	print("[TEST] 73. Testing Dismiss Stack...")
+	GameState.reset()
+	GameState.player_army = [{"unit_id": "griffin", "count": 5}, {"unit_id": "wolf", "count": 7}, {"unit_id": "goblin", "count": 9}]
+	assert(GameState.dismiss_stack(1) and GameState.player_army.size() == 2 and GameState.player_army[1]["unit_id"] == "goblin", "Dismissing frees the slot")
+	assert(GameState.fallen_units.is_empty(), "Dismissed warriors are not fallen: Grace does not bring them back")
+	assert(not GameState.dismiss_stack(5), "A missing slot cannot be dismissed")
+	GameState.player_army = [{"unit_id": "griffin", "count": 5}]
+	assert(not GameState.dismiss_stack(0) and GameState.player_army.size() == 1, "The last stack always stays")
+	# В панели войска: кнопка есть только у выбранного отряда, подтверждение, «Оставить» ничего не меняет
+	GameState.flags["chapter_intro_seen_1"] = true
+	GameState.player_army = [{"unit_id": "griffin", "count": 5}, {"unit_id": "wolf", "count": 7}]
+	var ds_wm = load("res://src/world/world_map.tscn").instantiate()
+	add_child(ds_wm)
+	await get_tree().process_frame
+	ds_wm.popup_dialog.hide()
+	var ds_find := func() -> Button:
+		for ds_b in ds_wm.army_container.find_children("*", "Button", true, false):
+			if ds_b.text == "✖" and not ds_b.is_queued_for_deletion():
+				return ds_b
+		return null
+	assert(ds_find.call() == null, "No dismiss button until a stack is selected")
+	ds_wm.selected_army_slot = 1
+	ds_wm._army_panel_sig = ""
+	ds_wm._update_hud()
+	var ds_btn: Button = ds_find.call()
+	assert(ds_btn != null, "The selected stack shows the dismiss button")
+	ds_btn.emit_signal("pressed")
+	assert(ds_wm.popup_dialog.visible and ds_wm.popup_btn2.visible, "Dismissing asks for confirmation")
+	ds_wm.popup_btn2.emit_signal("pressed")
+	assert(GameState.player_army.size() == 2, "'Keep' changes nothing")
+	ds_wm._confirm_dismiss_stack(1)
+	ds_wm.popup_btn1.emit_signal("pressed")
+	assert(GameState.player_army.size() == 1 and GameState.player_army[0]["unit_id"] == "griffin", "Confirmed: the wolves leave the army")
+	ds_wm._show_army_full_popup()
+	assert(ds_wm.popup_text.text == tr("В войске нет свободных слотов. Объедините одинаковые отряды или выберите лишний в панели «Войско Героя» и распустите его (✖)."), "The full-army hint explains how to free a slot")
+	ds_wm.queue_free()
+	await get_tree().process_frame
+	GameState.reset()
+	print("  -> Stacks can be dismissed with confirmation, the last one always stays!")
+
 	print("\n==========================================")
-	print("   ALL 72 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 73 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
