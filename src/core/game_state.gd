@@ -341,6 +341,30 @@ func add_units_to_army(unit_id: String, count: int) -> void:
 		player_army.append({"unit_id": unit_id, "count": count})
 		state_changed.emit()
 
+## Подаренные отряды (награды глав, Неделя Фей) не пропадают при полном войске:
+## свой стек или свободный слот → улучшенный стек той же линии → золото по цене найма.
+## Возвращает {"from", "unit_id" (куда влились; "" — не влились), "count", "gold"}.
+func grant_units(unit_id: String, count: int) -> Dictionary:
+	if can_add_units(unit_id):
+		add_units_to_army(unit_id, count)
+		return {"from": unit_id, "unit_id": unit_id, "count": count, "gold": 0}
+	var upgrade_id: String = UnitData.get_unit(unit_id).get("upgrade_to", "")
+	for slot in player_army:
+		if upgrade_id != "" and slot["unit_id"] == upgrade_id:
+			slot["count"] += count
+			state_changed.emit()
+			return {"from": unit_id, "unit_id": upgrade_id, "count": count, "gold": 0}
+	var gold_instead := count * unit_hire_price(unit_id)
+	add_gold(gold_instead)
+	return {"from": unit_id, "unit_id": "", "count": 0, "gold": gold_instead}
+
+## Цена найма одного воина: как в жилище из data/dwellings.json, иначе — как у торговца.
+func unit_hire_price(unit_id: String) -> int:
+	for reg in DwellingData.get_all().values():
+		if reg is Dictionary and str(reg.get("unit", "")) == unit_id:
+			return int(reg.get("cost", 50))
+	return 30 + int(UnitData.get_unit(unit_id).get("tier", 1)) * 35
+
 func upgrade_army_unit(slot_idx: int) -> bool:
 	if slot_idx < 0 or slot_idx >= player_army.size():
 		return false
@@ -591,7 +615,7 @@ func next_day() -> void:
 			var ev = events[ev_idx]
 			match ev.id:
 				"week_of_fairies":
-					add_units_to_army("fairy_archer", 10)
+					ev["granted"] = grant_units("fairy_archer", 10)
 					dwelling_stock["fairy_camp"] = dwelling_stock.get("fairy_camp", 0) + 14
 				"week_of_gold":
 					add_gold(1000)

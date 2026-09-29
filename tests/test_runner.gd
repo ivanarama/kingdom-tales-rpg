@@ -1876,8 +1876,57 @@ func _ready() -> void:
 			va_seen[va_slot] = va_id
 	print("  -> Royal griffins, royal fairies and druids have their own art!")
 
+	# 66. Полное войско: найм не забирает золото впустую, подаренные отряды не исчезают
+	print("[TEST] 66. Testing Full Army (hiring, gifted units, Week of Fairies)...")
+	GameState.reset()
+	GameState.flags["chapter_intro_seen_1"] = true
+	GameState.player_army = [
+		{"unit_id": "griffin", "count": 1},
+		{"unit_id": "wolf", "count": 1},
+		{"unit_id": "goblin", "count": 1},
+		{"unit_id": "druid", "count": 1},
+		{"unit_id": "treant", "count": 1}
+	]
+	GameState.gold = 3000
+	GameState.dwelling_stock["fairy_camp"] = 14
+	var fa_wm = load("res://src/world/world_map.tscn").instantiate()
+	add_child(fa_wm)
+	await get_tree().process_frame
+	fa_wm._open_dwelling_popup("fairy_camp")
+	fa_wm.popup_btn1.emit_signal("pressed")
+	assert(GameState.gold == 3000, "Full army: hiring fairies must not take the gold")
+	assert(GameState.player_army.size() == 5 and int(GameState.dwelling_stock["fairy_camp"]) == 14, "Full army: nothing hired, the stock stays")
+	assert(fa_wm.popup_title.text == tr("Войско полно"), "The player is told that the army is full")
+	GameState.player_army[0] = {"unit_id": "fairy_archer", "count": 1}
+	fa_wm._open_dwelling_popup("fairy_camp")
+	fa_wm.popup_btn1.emit_signal("pressed")
+	assert(GameState.gold == 3000 - 14 * 30 and GameState.player_army[0]["count"] == 15, "A fairy stack still accepts hired fairies")
+	# Подарок: улучшенный стек той же линии, иначе — золото по цене найма
+	GameState.player_army[0] = {"unit_id": "royal_fairy", "count": 5}
+	var fa_res: Dictionary = GameState.grant_units("fairy_archer", 10)
+	assert(fa_res["unit_id"] == "royal_fairy" and GameState.player_army[0]["count"] == 15, "Gifted fairies join the Royal Fairies when there is no slot")
+	var fa_gold := GameState.gold
+	fa_res = GameState.grant_units("griffin", 8)
+	assert(fa_res["gold"] == 8 * 65 and GameState.gold == fa_gold + 8 * 65, "No room at all: griffins are paid out at the nest price")
+	assert(GameState.player_army.size() == 5, "Gifts never push the army past 5 stacks")
+	fa_res = GameState.grant_units("royal_pegasus", 4)
+	assert(fa_res["gold"] == 4 * (30 + 35 * int(UnitData.get_unit("royal_pegasus")["tier"])), "Units without a dwelling are valued like the merchant does")
+	# Неделя Фей при полном войске без фей: феи не исчезают молча
+	GameState.player_army[0] = {"unit_id": "griffin", "count": 1}
+	GameState.day = 7
+	fa_gold = GameState.gold
+	GameState.next_day()
+	assert(GameState.last_astrologers_event.get("id", "") == "week_of_fairies", "Day 8 brings the Week of Fairies")
+	assert(GameState.gold == fa_gold + 10 * 30, "Fairies that found no room are paid out (10 x 30 gold)")
+	fa_wm._show_astrologers_popup(GameState.last_astrologers_event)
+	assert(fa_wm.popup_text.text.contains(str(10 * 30)), "The astrologers popup says what became of the fairies")
+	fa_wm.queue_free()
+	await get_tree().process_frame
+	GameState.reset()
+	print("  -> Full army: hiring keeps the gold, gifted units join or are paid out!")
+
 	print("\n==========================================")
-	print("   ALL 65 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 66 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame

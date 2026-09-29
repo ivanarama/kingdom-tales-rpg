@@ -67,6 +67,7 @@ Active effects: %s"
 %s (ур. %d),%s (lvl %d)
 %s атакует %s и наносит %d урона! (Потери: %d),%s attacks %s and deals %d damage! (Losses: %d)
 %s благословлен святым сиянием на 3 раунда!,%s is blessed with holy radiance for 3 rounds!
+%s влились в отряд «%s».,%s joined the %s stack.
 %s встает в глухую оборону (+30%% к защите)!,%s braces for a stalwart defense (+30%% defense)!
 %s ослеплен яркой вспышкой и не может действовать!,%s is blinded by a dazzling flash and cannot act!
 %s покрыт каменной броней (+5 к Защите на 3 раунда)!,%s is clad in stone hide (+5 Defense for 3 rounds)!
@@ -868,6 +869,7 @@ They are blocking the approaches to the Sacred Fairy Grove!"
 Отряд уже ждал в этом раунде и обязан действовать!,This stack has already waited this round and must act!
 Отряд: %s (всего: %d),Stack: %s (total: %d)
 Отряд: Грифоны (всего: 6),Stack: Griffins (total: 6)
+Отряду «%s» не нашлось места в войске — вместо него казна получает %d золота.,There was no room in the army for the %s — the treasury receives %d gold instead.
 Отступить,Retreat
 Отступить из боя?,Retreat from battle?
 Отступить назад,Fall back
