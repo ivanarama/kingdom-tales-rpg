@@ -47,6 +47,20 @@ JOBS = [
      (80, 10, 5), (205, 45, 25), (255, 185, 120)),
     ("assets/art/units/unit_griffin.png", "assets/art/units/unit_red_dragon.png",
      (80, 10, 5), (205, 45, 25), (255, 185, 120)),
+    # Временный арт новых существ до настоящих иллюстраций (ТЗ: docs/art/tz_creatures.md):
+    # жемчужные Единороги (пока — пегас), огненные Саламандры (волк), Магмовые големы (древень)
+    ("assets/art/ui/tokens/token_unit_pegasus.png", "assets/art/ui/tokens/token_unit_unicorn.png",
+     (70, 60, 105), (205, 195, 240), (255, 252, 255)),
+    ("assets/art/units/unit_pegasus.png", "assets/art/units/unit_unicorn.png",
+     (70, 60, 105), (205, 195, 240), (255, 252, 255)),
+    ("assets/art/ui/tokens/token_unit_wolf.png", "assets/art/ui/tokens/token_unit_lava_salamander.png",
+     (40, 5, 0), (225, 75, 20), (255, 225, 120)),
+    ("assets/art/units/unit_wolf.png", "assets/art/units/unit_lava_salamander.png",
+     (40, 5, 0), (225, 75, 20), (255, 225, 120)),
+    ("assets/art/ui/tokens/token_unit_treant.png", "assets/art/ui/tokens/token_unit_magma_golem.png",
+     (25, 10, 8), (150, 50, 20), (255, 170, 60)),
+    ("assets/art/units/unit_treant.png", "assets/art/units/unit_magma_golem.png",
+     (25, 10, 8), (150, 50, 20), (255, 170, 60)),
     # Дозаполнение иконок, чтобы у всех 10 заклинаний был различимый значок
     ("assets/art/spells/spell_haste.png", "assets/art/spells/spell_slow.png",
      (10, 35, 90), (80, 150, 235), (220, 240, 255)),

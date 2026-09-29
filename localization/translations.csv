@@ -529,6 +529,8 @@ Experience: +%d"
 «Спасибо за избавление, паладин! Проклятие снято навсегда!»","The druids thank Sir Alaric:
 
 «Thank you for our deliverance, paladin! The curse is lifted forever!»"
+Единороги,Unicorns
+Единороги ушли в лунный туман. Новые придут с началом недели.,The unicorns have vanished into the moonlit mist. More will come at the start of the week.
 Ждать,Wait
 Железные Врата Ущелья,The Iron Gates of the Gorge
 "Жуткие личи и скелеты охраняют проклятые сокровища древнего склепа!
@@ -725,6 +727,7 @@ The King grants you the highest title of «Marshal of the Realm»!"
 Купить: %s (%d зол.),Buy: %s (%d gold)
 Купить: %s ×%d (%d зол.),Buy: %s x%d (%d gold)
 Лавовые Хищники (Плато),The Lava Predators (Plateau)
+Лавовые саламандры,Lava Salamanders
 Лавовые хищники бросаются на защиту цитадели!,The lava predators leap to defend the citadel!
 "Лавовые хищники кружат над плато у Королевской Цитадели!
 Разведка доносит: [Стая (12 грифонов, 22 гоблина)].","Lava predators circle the plateau by the Royal Citadel!
@@ -756,9 +759,11 @@ Scouts report: [A horde of 24 skeleton archers, 18 zombies]."
 Логово Атамана Разбойников,The Bandit Chieftain's Lair
 Логово Главаря Разбойников! Атаман и его приспешники идут в атаку!,The Bandit Chieftain's lair! The Chieftain and his henchmen charge!
 Логово Дракона (Повержен),The Dragon's Lair (Slain)
+Лунная поляна Единорогов,Moonlit Glade of the Unicorns
 МИНИ-КАРТА,MINI-MAP
 МОЛНИЯ -%d,LIGHTNING -%d
 Магматический Источник,The Magma Spring
+Магмовые големы,Magma Golems
 Мана полностью восполнена,Mana fully restored
 Мана: %d / %d,Mana: %d / %d
 Мана: 40 / 40,Mana: 40 / 40
@@ -788,6 +793,7 @@ You need the Gate Key! (Visit the Forester's Hut in the south)."
 +2 к Атаке, +2 к Защите паладина!","The master smiths reforge your armor and blades!
 
 +2 Attack, +2 Defense for the paladin!"
+Медлительные великаны из остывающей лавы. Трещины на их теле затягиваются сами (+20 HP в раунд).,Slow giants of cooling lava. The cracks in their bodies close by themselves (+20 HP per round).
 Мельница (+500 золота в неделю),Mill (+500 gold per week)
 Мельница (Посещено),Mill (Visited)
 "Мерцание огоньков успокаивает. Вы чувствуете, как к вам возвращаются силы для чар.",The flickering lights are soothing. You feel your strength for spells returning.
@@ -907,6 +913,8 @@ Scouts report: [A horde of 24 goblins, 16 wolves]."
 Ослепление,Blind
 Ослепление (%d р.),Blinded (%d r.)
 "Ослепляет вражеский отряд яркой вспышкой. Отряд не может ходить, пока не получит урон (до 3 раундов).",Blinds an enemy stack with a brilliant flash. The stack cannot act until it takes damage (up to 3 rounds).
+Ослепляющий рог,Blinding Horn
+Ослепляющий рог (%d%% шанс ослепить цель),Blinding Horn (%d%% chance to blind the target)
 Оставить,Keep
 Оставить им кирки и припасы (100 золота),Leave them picks and supplies (100 gold)
 Оставь золото себе,Keep the gold
@@ -994,6 +1002,7 @@ They guard the Archmage's Ring!"
 Поднять выше,Move up
 Подъём нежити,Raise Dead
 Подъём нежити (раз в %d р.),Raise Dead (every %d rounds)
+Позвать единорогов (%d за %d зол.),Call the unicorns (%d for %d gold)
 "Позже, Мила","Later, Mila"
 Поиск пути,Pathfinding
 Пойти за огоньками (−4 очка хода),Follow the lights (−4 movement points)
@@ -1090,6 +1099,7 @@ It is recommended to fight the battle personally in the arena, or to hire reinfo
 • Army: 6 Griffins, 18 Fairies
 • Item: Sword of Valor (+4 Att)"
 Светлые Пегасы,Radiant Pegasi
+"Светлые хранители лунных полян. Сияние рога ослепляет врага: он пропускает ход, пока его не ранят.","Bright guardians of moonlit glades. The radiance of their horns blinds the foe, who skips turns until wounded."
 Свойства отряда,Stack details
 "Святилище (+1 Магия, мана)","Shrine (+1 Spell Power, mana)"
 Святилище (Мана),Shrine (Mana)
@@ -1107,6 +1117,17 @@ Every stack of your army has already reached its highest form!"
 Священный Источник Маны,The Sacred Mana Spring
 Священный орган и светлые гармонии,A sacred organ and bright harmonies
 Сейчас ходит отряд на золотой клетке. Синие клетки — куда он может пойти: нажмите на любую.,The stack on the golden tile is taking its turn. Blue tiles show where it can go: tap any of them.
+"Серебристый свет льётся на поляну, и единороги выходят навстречу:
+
+«Мы поможем тому, кто несёт свет в Проклятые Топи».
+
+Доступно: %d единорогов (по %d золота)
+Казна: %d золота","Silver light pours over the glade, and the unicorns step out to meet you:
+
+“We will help the one who brings light to the Cursed Marshes.”
+
+Available: %d unicorns (%d gold each)
+Treasury: %d gold"
 Серебряные переливы челесты и ручей,Silvery celesta ripples and a brook
 Сила Магии (+1),Spell Power (+1)
 "Сказочные флейты, арфа и мягкий ветер","Fairy-tale flutes, harp and a gentle wind"
@@ -1325,6 +1346,7 @@ Defeat the guards first to claim the treasure!"
 «Моя овечка Белянка убежала к южной чаще! Одна я туда идти боюсь…»","A young shepherdess wipes away her tears:
 
 “My little sheep Snowdrop ran off toward the southern thicket! I'm too scared to go there alone…”"
+"Юркие ящерки из огненных трещин Пика. Раскалённая шкура обжигает тех, кто бьёт вблизи (20% урона возвращается).",Nimble lizards from the fiery cracks of the Peak. Their red-hot hide burns those who strike up close (20% of the damage comes back).
 Я в пути!,I'm on my way!
 Я выполню долг!,I shall do my duty!
 Я найду Белянку!,I'll find Snowdrop!
@@ -1429,7 +1451,9 @@ Weapon"
 ✦ ТЕКУЩЕЕ ЗАДАНИЕ,✦ CURRENT QUEST
 ✨ %s ослеплен и пропускает ход!,✨ %s is blinded and skips the turn!
 ✨ ВДОХНОВЕНИЕ!,INSPIRATION!
+✨ ОСЛЕПЛЁН СИЯНИЕМ!,✨ BLINDED BY RADIANCE!
 "✨ С отряда %s сняты тёмные чары, боевой дух удвоен на 3 раунда!",✨ Dark curses lifted from %s; morale doubled for 3 rounds!
+"✨ Сияние рога ослепляет %s: отряд пропустит ход, пока его не ранят!",✨ The radiant horn blinds the %s: they will skip turns until wounded!
 ❌ Мало маны (нужно 10 🔮),❌ Not enough mana (10 🔮 required)
 ❌ Мало маны (нужно 15 🔮),❌ Not enough mana (15 🔮 required)
 "【%s】 %s

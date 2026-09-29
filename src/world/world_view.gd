@@ -117,6 +117,7 @@ func _load_textures() -> void:
 	icons["dragon_boss"] = icons["bandit_boss"]
 	icons["dragon_altar"] = icons["fairy_shrine"]
 	icons["griffin_roost"] = icons["fairy_dwelling"]
+	icons["unicorn_glade"] = icons["fairy_dwelling"]
 	icons["forge"] = icons["mill"]
 	
 	# Load dedicated creature & boss miniatures for adventure map
@@ -128,6 +129,8 @@ func _load_textures() -> void:
 		"skeleton_archer": "res://assets/art/ui/tokens/token_unit_skeleton_archer.png",
 		"swamp_zombie": "res://assets/art/ui/tokens/token_unit_swamp_zombie.png",
 		"griffin": "res://assets/art/ui/tokens/token_unit_griffin.png",
+		"lava_salamander": "res://assets/art/ui/tokens/token_unit_lava_salamander.png",
+		"magma_golem": "res://assets/art/ui/tokens/token_unit_magma_golem.png",
 		"bandit_boss": "res://assets/art/ui/tokens/token_boss_bandit.png",
 		"lich_boss": "res://assets/art/ui/tokens/token_boss_lich.png",
 		"dragon_boss": "res://assets/art/ui/tokens/token_boss_dragon.png"
@@ -154,7 +157,7 @@ func get_object_texture(obj: Dictionary) -> Texture2D:
 				return creature_tokens.get("wolf", icons.get("encounter"))
 			"patrol_goblins", "patrol_forester", "patrol_1", "patrol_rogues", "patrol_2":
 				return creature_tokens.get("goblin", icons.get("encounter"))
-			"patrol_grove", "patrol_obelisk", "dragon_patrol_caldera":
+			"patrol_grove", "patrol_obelisk":
 				return creature_tokens.get("treant", icons.get("encounter"))
 			"swamp_patrol_road", "swamp_patrol_east", "swamp_patrol", "patrol_swamp":
 				return creature_tokens.get("swamp_zombie", icons.get("encounter"))
@@ -162,8 +165,10 @@ func get_object_texture(obj: Dictionary) -> Texture2D:
 				return creature_tokens.get("skeleton_archer", icons.get("encounter"))
 			"swamp_patrol_ruins":
 				return creature_tokens.get("lich_boss", icons.get("encounter"))
-			"dragon_patrol_pass", "dragon_patrol_citadel", "dragon_patrol":
-				return creature_tokens.get("griffin", icons.get("encounter"))
+			"dragon_patrol_pass", "dragon_patrol":
+				return creature_tokens.get("lava_salamander", icons.get("encounter"))
+			"dragon_patrol_citadel", "dragon_patrol_caldera":
+				return creature_tokens.get("magma_golem", icons.get("encounter"))
 			_:
 				if GameState.current_chapter == 2:
 					return creature_tokens.get("swamp_zombie", icons.get("encounter"))
@@ -380,6 +385,7 @@ func _generate_chapter2_layout() -> void:
 	objects[Vector2i(14, 11)] = {"type": "bone_gate", "name": "Костяные Врата Некрополя", "id": "bone_gate"}
 	objects[Vector2i(27, 4)] = {"type": "druid_altar", "name": "Алтарь Очищения Топей", "id": "druid_altar"}
 	objects[Vector2i(26, 17)] = {"type": "obelisk", "name": "Изумрудный Обелиск", "id": "obelisk_swamp"}
+	objects[Vector2i(28, 15)] = {"type": "unicorn_glade", "name": "Лунная поляна Единорогов", "id": "unicorn_glade"}
 	objects[Vector2i(28, 11)] = {"type": "lich_boss", "name": "Цитадель Древнего Лича", "id": "lich_boss"}
 
 	# Chapter 2 Chests

@@ -2307,8 +2307,82 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Stacks can be dismissed with confirmation, the last one always stays!")
 
+	# 74. Новые существа: Единороги (поляна в гл. 2) и огненные враги Пика Дракона
+	print("[TEST] 74. Testing New Creatures (unicorns, lava salamanders, magma golems)...")
+	for nc_id in ["unicorn", "lava_salamander", "magma_golem"]:
+		var nc_u: Dictionary = UnitData.get_unit(nc_id)
+		assert(not nc_u.is_empty(), "Unit %s must exist" % nc_id)
+		assert(ResourceLoader.exists(nc_u["token_path"]) and ResourceLoader.exists(nc_u["sprite_path"]), "%s must have a token and a sprite" % nc_id)
+		assert(UnitData.get_trait_string(nc_id) != "Пехота ближнего боя", "%s shows its ability in the codex" % nc_id)
+	# Английский кодекс: черты новых существ переводятся поштучно
+	var nc_locale := TranslationServer.get_locale()
+	TranslationServer.set_locale("en")
+	for nc_en_id in ["unicorn", "lava_salamander", "magma_golem"]:
+		assert(not _has_cyrillic(UnitData.get_trait_string(nc_en_id)), "%s traits must be translated in the codex" % nc_en_id)
+	TranslationServer.set_locale(nc_locale)
+	assert(float(UnitData.get_unit("unicorn")["blind_chance"]) > 0.0, "Unicorns blind with their horn")
+	assert(float(UnitData.get_unit("lava_salamander")["reflect"]) > 0.0 and int(UnitData.get_unit("magma_golem")["regeneration"]) > 0, "Salamanders burn back, golems regenerate")
+	# Пик Дракона охраняют свои огненные враги, а не грифоны и древни
+	var nc_fire := 0
+	for nc_enc in ["dragon_patrol_pass", "dragon_patrol_gate", "dragon_patrol_caldera", "dragon_patrol_citadel", "dragon_boss"]:
+		for nc_e in EncounterData.get_encounter(nc_enc)["enemies"]:
+			assert(nc_e["unit_id"] not in ["griffin", "treant", "goblin"], "%s must not be guarded by %s any more" % [nc_enc, nc_e["unit_id"]])
+			if nc_e["unit_id"] in ["lava_salamander", "magma_golem"]:
+				nc_fire += 1
+	assert(nc_fire >= 5, "Chapter 3 encounters use the new fire creatures")
+	# Лунная поляна: жилище гл. 2 из dwellings.json, запас 2 и +2 в неделю
+	assert(DwellingData.get_dwelling("unicorn_glade").get("unit", "") == "unicorn", "The glade hires unicorns")
+	GameState.reset()
+	GameState.start_chapter(2)
+	GameState.flags["chapter_intro_seen_2"] = true
+	assert(int(GameState.dwelling_stock.get("unicorn_glade", 0)) == 2, "The glade starts with 2 unicorns")
+	var nc_wm = load("res://src/world/world_map.tscn").instantiate()
+	add_child(nc_wm)
+	await get_tree().process_frame
+	var nc_glade: Dictionary = nc_wm.world_view.objects.get(Vector2i(28, 15), {})
+	assert(nc_glade.get("type", "") == "unicorn_glade", "The glade stands on the chapter 2 map")
+	assert(nc_wm.world_view.get_object_texture({"type": "encounter", "id": "dragon_patrol_caldera"}) == nc_wm.world_view.creature_tokens.get("magma_golem"), "Chapter 3 patrols show the new tokens on the map")
+	GameState.gold = 1000
+	GameState.player_army = [{"unit_id": "griffin", "count": 5}]
+	nc_wm._trigger_object(nc_glade)
+	nc_wm.popup_btn1.emit_signal("pressed")
+	assert(GameState.player_army.size() == 2 and GameState.player_army[1]["unit_id"] == "unicorn" and GameState.player_army[1]["count"] == 2, "Two unicorns join for 300 gold")
+	assert(GameState.gold == 1000 - 2 * 150, "Unicorns cost 150 gold each")
+	nc_wm.queue_free()
+	await get_tree().process_frame
+	GameState.day = 7
+	GameState.next_day()
+	assert(int(GameState.dwelling_stock.get("unicorn_glade", 0)) == 2, "A new week brings 2 more unicorns")
+	# В бою: удар рога ослепляет цель (шанс поднят до 100% для проверки)
+	GameState.reset()
+	GameState.player_army = [{"unit_id": "unicorn", "count": 6}]
+	GameState.pending_battle_id = "patrol_goblins"
+	var nc_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(nc_arena)
+	await get_tree().process_frame
+	var nc_uni: BattleStack = nc_arena.all_stacks[0]
+	var nc_foe: BattleStack = null
+	for nc_s in nc_arena.all_stacks:
+		if nc_s.team == 1:
+			nc_foe = nc_s
+			break
+	nc_uni.data = nc_uni.data.duplicate()
+	nc_uni.data["blind_chance"] = 1.0
+	nc_foe.hex = nc_uni.hex + Vector2i(1, 0)
+	nc_arena.current_actor = nc_uni
+	await nc_arena._execute_attack(nc_uni, nc_foe, true)
+	assert(nc_foe.is_alive() and nc_foe.is_blinded(), "The unicorn horn blinds the target")
+	nc_arena.victory_dialog.show()
+	nc_arena.turn_queue.clear()
+	nc_arena.current_actor = null
+	await get_tree().create_timer(0.6).timeout
+	nc_arena.queue_free()
+	await get_tree().process_frame
+	GameState.reset()
+	print("  -> Unicorns join from the moonlit glade and blind foes; the Dragon Peak has its own fire creatures!")
+
 	print("\n==========================================")
-	print("   ALL 73 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 74 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
