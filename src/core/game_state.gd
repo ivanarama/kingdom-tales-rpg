@@ -1075,6 +1075,8 @@ func load_game(path: String = SAVE_PATH) -> bool:
 	day = int(data.get("day", day))
 	move_points = int(data.get("move_points", move_points))
 	max_move_points = int(data.get("max_move_points", max_move_points))
+	# Сложность писалась в сохранение, но не читалась: после «Продолжить» кампания шла на «Воителе»
+	campaign_difficulty = str(data.get("campaign_difficulty", campaign_difficulty))
 	
 	skills = data.get("skills", skills)
 	
@@ -1163,6 +1165,17 @@ func get_difficulty_multipliers(diff: String) -> Dictionary:
 			return {"player": 0.80, "enemy": 2.20, "title": "💀 Легенда (Кошмар)"}
 		_:
 			return {"player": 1.00, "enemy": 1.00, "title": "🟡 Воитель (Нормально)"}
+
+## Удача и боевой дух врага: на «Новобранце» и «Воителе» их нет — бой остаётся уютным;
+## на «Герое» и «Легенде» враг тоже иногда бьёт вдвое и ходит ещё раз.
+func get_enemy_fortune(diff: String) -> Dictionary:
+	match diff:
+		"hard":
+			return {"luck": 0.10, "morale": 0.05}
+		"legendary":
+			return {"luck": 0.15, "morale": 0.10}
+		_:
+			return {"luck": 0.0, "morale": 0.0}
 
 func get_demo_player_preset_army(preset: String, diff: String = "normal") -> Array[Dictionary]:
 	var mult: float = get_difficulty_multipliers(diff)["player"]

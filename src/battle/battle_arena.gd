@@ -142,6 +142,11 @@ func _ready() -> void:
 	_init_battle()
 	BattleMood.apply_for_battle($Background, all_stacks) # топи и вулкан — своим настроением
 	log_combat("🍀 Удача: 15% шанс двойного урона у вашего войска. 🌟 Боевой дух даёт доп. ход (Лидерство).")
+	var fortune := GameState.get_enemy_fortune(_battle_difficulty())
+	if float(fortune["luck"]) > 0.0:
+		log_combat(tr("⚠ На этой сложности удача (%d%%) и боевой дух (%d%%) бывают и у врага.") % [
+			int(round(float(fortune["luck"]) * 100.0)), int(round(float(fortune["morale"]) * 100.0))
+		])
 	defend_btn = $CanvasLayer/HeroHUD/Parchment/DefendBtn
 	wait_btn = $CanvasLayer/HeroHUD/Parchment/WaitBtn
 	defend_btn.text = "🛡️ Защита"
@@ -710,7 +715,7 @@ func _execute_attack(attacker: BattleStack, defender: BattleStack, is_melee: boo
 		r_tw.tween_method(func(val: Vector2): arena_viewport.set_stack_offset(attacker, val), Vector2.ZERO, recoil_dir, 0.1).set_trans(Tween.TRANS_QUAD)
 		r_tw.tween_method(func(val: Vector2): arena_viewport.set_stack_offset(attacker, val), recoil_dir, Vector2.ZERO, 0.15).set_trans(Tween.TRANS_QUAD)
 		
-		var is_lucky = (attacker.team == 0 and randf() < 0.15)
+		var is_lucky = _roll_luck(attacker)
 		var arrow1_hit = false
 		arena_viewport.spawn_arrow(start_pos, end_pos, func():
 			SoundManager.play_sfx("arrow_hit")
@@ -784,26 +789,14 @@ func _execute_attack(attacker: BattleStack, defender: BattleStack, is_melee: boo
 		if _check_battle_end():
 			return
 			
-		# Morale check for shooters (only if battle still has active enemies)
-		if attacker.is_alive() and attacker.team == 0 and not attacker.had_morale_this_round and _has_living_enemies():
-			var m_chance = 0.05 + 0.10 * GameState.get_skill_level("leadership")
-			if randf() < m_chance:
-				if attacker.buff_inspiration_turns > 0:
-					m_chance *= 2.0
-				attacker.had_morale_this_round = true
-				attacker.has_acted = false
-				SoundManager.play_sfx("spell_cast")
-				_spawn_floating_text(attacker.hex, "🌟 БОЕВОЙ ДУХ! (+1 ХОД)", Color(1.0, 0.88, 0.2))
-				log_combat(tr("🌟 [БОЕВОЙ ДУХ]: Воодушевленный отряд %s получает дополнительный ход!") % tr(attacker.data.name))
-				_update_initiative_bar()
-				_update_reachable_hexes()
-				arena_viewport.queue_redraw()
-				return
+		# Боевой дух стрелков (у врага — только на высокой сложности)
+		if _try_morale(attacker):
+			return
 		_next_turn()
 		return
 
 	# Melee Attack: Lunge forward towards defender
-	var is_melee_lucky = (attacker.team == 0 and randf() < 0.15)
+	var is_melee_lucky = _roll_luck(attacker)
 	var lunge_vec = (end_pos - start_pos).normalized() * 32.0
 	var tw = create_tween()
 	tw.tween_method(func(val: Vector2): arena_viewport.set_stack_offset(attacker, val), Vector2.ZERO, lunge_vec, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -906,21 +899,9 @@ func _execute_attack(attacker: BattleStack, defender: BattleStack, is_melee: boo
 	if _check_battle_end():
 		return
 		
-	# Morale check for melee fighters (only if battle still has active enemies)
-	if attacker.is_alive() and attacker.team == 0 and not attacker.had_morale_this_round and _has_living_enemies():
-		var m_chance = 0.05 + 0.10 * GameState.get_skill_level("leadership")
-		if randf() < m_chance:
-			if attacker.buff_inspiration_turns > 0:
-				m_chance *= 2.0
-			attacker.had_morale_this_round = true
-			attacker.has_acted = false
-			SoundManager.play_sfx("spell_cast")
-			_spawn_floating_text(attacker.hex, "🌟 БОЕВОЙ ДУХ! (+1 ХОД)", Color(1.0, 0.88, 0.2))
-			log_combat(tr("🌟 [БОЕВОЙ ДУХ]: Воодушевленный отряд %s получает дополнительный ход!") % tr(attacker.data.name))
-			_update_initiative_bar()
-			_update_reachable_hexes()
-			arena_viewport.queue_redraw()
-			return
+	# Боевой дух бойцов ближнего боя (у врага — только на высокой сложности)
+	if _try_morale(attacker):
+		return
 			
 	await get_tree().create_timer(0.3).timeout
 	_next_turn()
@@ -1188,6 +1169,48 @@ func _has_living_players() -> bool:
 		if s.is_alive() and s.team == 0:
 			return true
 	return false
+
+func _battle_difficulty() -> String:
+	return GameState.demo_difficulty if GameState.is_demo_battle else GameState.campaign_difficulty
+
+## Удача — удвоенный урон: у войска героя 15%, у врага — только на «Герое» и «Легенде».
+## roll подставляют тесты; по умолчанию — случайное число.
+func _roll_luck(attacker: BattleStack, roll: float = -1.0) -> bool:
+	var chance: float = 0.15 if attacker.team == 0 else float(GameState.get_enemy_fortune(_battle_difficulty())["luck"])
+	return (randf() if roll < 0.0 else roll) < chance
+
+## Шанс боевого духа: у войска героя 5% + 10% за уровень Лидерства (Воодушевление
+## удваивает), у врага — только на «Герое» и «Легенде».
+func morale_chance(stack: BattleStack) -> float:
+	if stack.team == 1:
+		return float(GameState.get_enemy_fortune(_battle_difficulty())["morale"])
+	var chance := 0.05 + 0.10 * GameState.get_skill_level("leadership")
+	if stack.buff_inspiration_turns > 0:
+		chance *= 2.0 # раньше удвоение считалось уже после броска и ни на что не влияло
+	return chance
+
+## Боевой дух: после атаки отряд может сразу походить ещё раз. true — ход продлён:
+## _next_turn не вызываем, врагу ход возвращает ИИ, войску героя в автобое — автобой.
+func _try_morale(attacker: BattleStack, roll: float = -1.0) -> bool:
+	if not attacker.is_alive() or attacker.had_morale_this_round:
+		return false
+	if not (_has_living_enemies() if attacker.team == 0 else _has_living_players()):
+		return false
+	if (randf() if roll < 0.0 else roll) >= morale_chance(attacker):
+		return false
+	attacker.had_morale_this_round = true
+	attacker.has_acted = false
+	SoundManager.play_sfx("spell_cast")
+	_spawn_floating_text(attacker.hex, "🌟 БОЕВОЙ ДУХ! (+1 ХОД)", Color(1.0, 0.88, 0.2))
+	log_combat(tr("🌟 [БОЕВОЙ ДУХ]: Воодушевленный отряд %s получает дополнительный ход!") % tr(attacker.data.name))
+	_update_initiative_bar()
+	_update_reachable_hexes()
+	arena_viewport.queue_redraw()
+	if attacker.team == 1:
+		_handle_ai_turn()
+	elif is_auto_battling:
+		_execute_auto_turn_for_player()
+	return true
 
 func _check_battle_end() -> bool:
 	if victory_dialog.visible:
