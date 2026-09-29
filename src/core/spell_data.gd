@@ -9,7 +9,7 @@ static var SPELLS: Dictionary = {
 		"type": "target_enemy",
 		"category": "combat",
 		"icon_path": "res://assets/art/spells/spell_fireball.png",
-		"description": "Обрушивает пылающую сферу на вражеский отряд, нанося 50 ед. урона (+14 за каждую Силу Магии)."
+		"description": "Обрушивает пылающую сферу на вражеский отряд, нанося 50 ед. урона (+14 за каждую Силу Магии); соседние с ним вражеские отряды получают половину."
 	},
 	"heal": {
 		"id": "heal",
