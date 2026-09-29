@@ -2369,6 +2369,8 @@ func _ready() -> void:
 	nc_uni.data = nc_uni.data.duplicate()
 	nc_uni.data["blind_chance"] = 1.0
 	nc_foe.hex = nc_uni.hex + Vector2i(1, 0)
+	# Цель должна пережить удар, иначе слепоту не проверить: 6 единорогов порой вырезают всех 24 гоблинов
+	nc_foe.count = 200
 	nc_arena.current_actor = nc_uni
 	await nc_arena._execute_attack(nc_uni, nc_foe, true)
 	assert(nc_foe.is_alive() and nc_foe.is_blinded(), "The unicorn horn blinds the target")
