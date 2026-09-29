@@ -14,7 +14,7 @@ const COLOR_MOVE_REACHABLE := Color(0.3, 0.7, 1.0, 0.4)
 const COLOR_ATTACK_TARGET := Color(1.0, 0.35, 0.2, 0.55)
 const COLOR_ACTIVE_HEX := Color(1.0, 0.9, 0.3, 0.7)
 
-var grid_origin: Vector2 = Vector2(340, 220)
+var grid_origin: Vector2 = Vector2(396, 220) # прямоугольное поле — по центру экрана
 var field_bounds: Rect2i = Rect2i(0, 0, GRID_COLS, GRID_ROWS)
 
 var all_stacks: Array[BattleStack] = []
@@ -314,14 +314,14 @@ func _init_battle() -> void:
 	boss = BossMechanics.new(self)
 	
 	if GameState.is_demo_battle:
-		obstacles = [Vector2i(3, 2), Vector2i(7, 4), Vector2i(5, 5), Vector2i(4, 1)]
+		obstacles = HexGrid.offsets_to_axial([Vector2i(3, 2), Vector2i(7, 4), Vector2i(5, 5), Vector2i(4, 1)])
 		var p_army = GameState.demo_player_army if GameState.demo_player_army.size() > 0 else GameState.player_army
 		var p_hexes = [Vector2i(0, 1), Vector2i(0, 2), Vector2i(0, 3), Vector2i(0, 4), Vector2i(0, 5)]
 		for i in range(min(p_army.size(), p_hexes.size())):
 			var item = p_army[i]
 			if item.get("count", 0) > 0:
 				var stack = BattleStack.new()
-				stack.setup(item["unit_id"], item["count"], 0, p_hexes[i])
+				stack.setup(item["unit_id"], item["count"], 0, HexGrid.offset_to_axial(p_hexes[i]))
 				all_stacks.append(stack)
 		
 		var e_configs = GameState.demo_enemy_configs
@@ -333,7 +333,7 @@ func _init_battle() -> void:
 			]
 		for cfg in e_configs:
 			var stack = BattleStack.new()
-			stack.setup(cfg["unit_id"], cfg["count"], 1, cfg["hex"])
+			stack.setup(cfg["unit_id"], cfg["count"], 1, HexGrid.offset_to_axial(cfg["hex"]))
 			all_stacks.append(stack)
 			
 		battle_stats = {"rounds": 1, "dealt": 0, "taken": 0, "enemy_losses": 0, "player_losses": 0}
@@ -344,6 +344,9 @@ func _init_battle() -> void:
 	# Препятствия: у главы несколько раскладок, у боссов — свои
 	obstacles = obstacle_layout(GameState.pending_battle_id, GameState.current_chapter)
 	
+	# Раскладки и позиции из данных — (колонка, ряд) прямоугольного поля
+	obstacles = HexGrid.offsets_to_axial(obstacles)
+
 	# 1. Setup Player Stacks (support up to 5 stacks from army / split slots)
 	var player_army = GameState.player_army
 	var player_hexes = [
@@ -353,6 +356,7 @@ func _init_battle() -> void:
 		Vector2i(0, 4),
 		Vector2i(0, 5)
 	]
+	player_hexes = HexGrid.offsets_to_axial(player_hexes)
 	army_start_snapshot.clear()
 	for item in player_army:
 		if item["count"] > 0:
@@ -378,7 +382,7 @@ func _init_battle() -> void:
 
 	for cfg in enemy_configs:
 		var stack = BattleStack.new()
-		stack.setup(cfg["unit_id"], maxi(1, int(round(cfg["count"] * float(diff["enemy"])))), 1, cfg["hex"])
+		stack.setup(cfg["unit_id"], maxi(1, int(round(cfg["count"] * float(diff["enemy"])))), 1, HexGrid.offset_to_axial(cfg["hex"]))
 		all_stacks.append(stack)
 
 	# Rewards scale with enemy strength (tier & headcount); bosses override in _show_victory
@@ -500,7 +504,7 @@ func _update_reachable_hexes() -> void:
 		# Flying units ignore ground obstacles and can land anywhere reachable that is unblocked
 		for r in range(field_bounds.position.y, field_bounds.end.y):
 			for q in range(field_bounds.position.x, field_bounds.end.x):
-				var h = Vector2i(q, r)
+				var h = HexGrid.offset_to_axial(Vector2i(q, r))
 				if h == current_actor.hex or obstacles.has(h):
 					continue
 				var is_occ = false
@@ -1679,7 +1683,7 @@ func _update_mouse_hover(pos: Vector2) -> void:
 		if threat_stack.data.get("is_ranged", false):
 			for r in range(field_bounds.position.y, field_bounds.end.y):
 				for q in range(field_bounds.position.x, field_bounds.end.x):
-					var h = Vector2i(q, r)
+					var h = HexGrid.offset_to_axial(Vector2i(q, r))
 					if not obstacles.has(h):
 						threats.append(h)
 		else:
