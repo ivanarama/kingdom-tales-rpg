@@ -425,24 +425,59 @@ func add_fallen_units(unit_id: String, count: int) -> void:
 	fallen_units.append({"unit_id": unit_id, "count": count})
 
 ## «Благодать Похода»: возвращает павших, не больше (3 + Сила Магии) воинов
-## каждого вида. Возвращает сводку для попапа.
+## каждого вида. Отряд, павший целиком, встаёт в строй новым слотом, если есть место.
+## Возвращает сводку для попапа.
 func restore_fallen_units() -> Dictionary:
-	var cap := 3 + get_total_spellpower()
 	var total := 0
-	var per_stack: Array[String] = []
-	for slot in player_army:
-		var cap_left := cap
-		for f in fallen_units:
-			if f["unit_id"] == slot["unit_id"] and int(f["count"]) > 0 and cap_left > 0:
-				var take: int = mini(int(f["count"]), cap_left)
+	for plan in _fallen_restore_plan():
+		var uid: String = plan["unit_id"]
+		var take: int = plan["count"]
+		var placed := false
+		for slot in player_army:
+			if slot["unit_id"] == uid:
 				slot["count"] += take
+				placed = true
+				break
+		if not placed:
+			player_army.append({"unit_id": uid, "count": take})
+		for f in fallen_units:
+			if f["unit_id"] == uid:
 				f["count"] -= take
-				cap_left -= take
-				total += take
-		if total > 0 and cap_left < cap:
-			pass
+				break
+		total += take
 	fallen_units = fallen_units.filter(func(f): return int(f["count"]) > 0)
+	if total > 0:
+		state_changed.emit()
 	return {"restored": total}
+
+## Сколько воинов «Благодать» вернёт сейчас (для подсказки перед заклинанием).
+func restorable_fallen_count() -> int:
+	var total := 0
+	for plan in _fallen_restore_plan():
+		total += int(plan["count"])
+	return total
+
+## План возвращения: по каждому виду не больше (3 + Сила Магии); вид без слота в войске
+## возвращается, только пока есть свободные слоты.
+func _fallen_restore_plan() -> Array[Dictionary]:
+	var cap := 3 + get_total_spellpower()
+	var free_slots := 5 - player_army.size()
+	var plan: Array[Dictionary] = []
+	for f in fallen_units:
+		var take: int = mini(int(f["count"]), cap)
+		if take <= 0:
+			continue
+		var has_slot := false
+		for slot in player_army:
+			if slot["unit_id"] == f["unit_id"]:
+				has_slot = true
+				break
+		if not has_slot:
+			if free_slots <= 0:
+				continue
+			free_slots -= 1
+		plan.append({"unit_id": str(f["unit_id"]), "count": take})
+	return plan
 
 ## Форма обращения к герою в диалогах (падежи/род зависят от класса).
 func hero_form() -> String:

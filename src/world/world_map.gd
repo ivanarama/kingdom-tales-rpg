@@ -1656,13 +1656,8 @@ func _cast_scrying() -> void:
 	_show_popup_dialog()
 
 func _restorable_count() -> int:
-	var cap := 3 + (GameState.get_total_spellpower() if GameState.has_method("get_total_spellpower") else GameState.spellpower)
-	var total := 0
-	for slot in GameState.player_army:
-		for f in GameState.fallen_units:
-			if f["unit_id"] == slot["unit_id"]:
-				total += mini(int(f["count"]), cap)
-	return total
+	# та же логика, что у самого возвращения — включая отряды, павшие целиком
+	return GameState.restorable_fallen_count()
 
 func _cast_restoration() -> void:
 	var can_restore := _restorable_count()
