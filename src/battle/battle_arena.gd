@@ -1117,8 +1117,8 @@ func _show_victory(won: bool) -> void:
 		SoundManager.play_sfx("victory")
 		victory_title.text = "СЛАВНАЯ ПОБЕДА!"
 		if GameState.is_demo_battle:
-			victory_desc.text = "🏆 Тренировочный поединок на Арене успешно завершен!\nСложность: %s\nПротивник: %s\n\nВы продемонстрировали выдающееся тактическое мастерство полководца!" % [
-				GameState.demo_difficulty_title, GameState.demo_encounter_title
+			victory_desc.text = tr("🏆 Тренировочный поединок на Арене успешно завершен!\nСложность: %s\nПротивник: %s\n\nВы продемонстрировали выдающееся тактическое мастерство полководца!") % [
+				tr(GameState.demo_difficulty_title), tr(GameState.demo_encounter_title)
 			]
 			return
 		var reward_gold = pending_reward_gold
@@ -1129,23 +1129,23 @@ func _show_victory(won: bool) -> void:
 			GameState.has_fairy_crown = true
 			if not GameState.inventory_artifacts.has("crown_fairy") and not GameState.equipped_artifacts.values().has("crown_fairy"):
 				GameState.inventory_artifacts.append("crown_fairy")
-			victory_desc.text = "Главарь разбойников повержен!\n\n★ ВЫ ВЕРНУЛИ ВЕНЕЦ КОРОЛЕВЫ ФЕЙ! ★\nПолучен легендарный артефакт: Венец Королевы Фей!\nОтнесите его в Рощу Фей на севере!\n\nНаграда:\nЗолото: +%d\nОпыт: +%d" % [reward_gold, reward_xp]
+			victory_desc.text = tr("Главарь разбойников повержен!\n\n★ ВЫ ВЕРНУЛИ ВЕНЕЦ КОРОЛЕВЫ ФЕЙ! ★\nПолучен легендарный артефакт: Венец Королевы Фей!\nОтнесите его в Рощу Фей на севере!\n\nНаграда:\nЗолото: +%d\nОпыт: +%d") % [reward_gold, reward_xp]
 		elif GameState.pending_battle_id == "lich_boss":
 			reward_gold = 2500
 			reward_xp = 2200
 			GameState.flags["lich_defeated"] = true
 			if not GameState.inventory_artifacts.has("ring_arcana") and not GameState.equipped_artifacts.values().has("ring_arcana"):
 				GameState.inventory_artifacts.append("ring_arcana")
-			victory_desc.text = "Древний Лич сокрушен и обращен в прах!\n\n★ ПРОКЛЯТЫЕ ТОПИ ОЧИЩЕНЫ! ★\nПолучен могущественный артефакт: Перстень Архимага!\nПосетите Алтарь Друидов для завершения Главы 2!\n\nНаграда:\nЗолото: +%d\nОпыт: +%d" % [reward_gold, reward_xp]
+			victory_desc.text = tr("Древний Лич сокрушен и обращен в прах!\n\n★ ПРОКЛЯТЫЕ ТОПИ ОЧИЩЕНЫ! ★\nПолучен могущественный артефакт: Перстень Архимага!\nПосетите Алтарь Друидов для завершения Главы 2!\n\nНаграда:\nЗолото: +%d\nОпыт: +%d") % [reward_gold, reward_xp]
 		elif GameState.pending_battle_id == "dragon_boss":
 			reward_gold = 5000
 			reward_xp = 4000
 			GameState.flags["dragon_defeated"] = true
 			if not GameState.inventory_artifacts.has("armor_chitin") and not GameState.equipped_artifacts.values().has("armor_chitin"):
 				GameState.inventory_artifacts.append("armor_chitin")
-			victory_desc.text = "Красный Дракон повержен в легендарном поединке!\n\n★ ТРИУМФ НАД ПЛАМЕНЕМ! ★\nПолучен легендарный Панцирь Древнего Стража!\nВы покорили Пик Дракона и спасли Королевство!\n\nНаграда:\nЗолото: +%d\nОпыт: +%d" % [reward_gold, reward_xp]
+			victory_desc.text = tr("Красный Дракон повержен в легендарном поединке!\n\n★ ТРИУМФ НАД ПЛАМЕНЕМ! ★\nПолучен легендарный Панцирь Древнего Стража!\nВы покорили Пик Дракона и спасли Королевство!\n\nНаграда:\nЗолото: +%d\nОпыт: +%d") % [reward_gold, reward_xp]
 		else:
-			victory_desc.text = "Вы рассеяли вражеский отряд!\n\nПолучено награды:\nЗолото: +%d\nОпыт героя: +%d" % [reward_gold, reward_xp]
+			victory_desc.text = tr("Вы рассеяли вражеский отряд!\n\nПолучено награды:\nЗолото: +%d\nОпыт героя: +%d") % [reward_gold, reward_xp]
 			
 		# Летопись подвигов
 		GameState.unlock_feat("first_blood")
@@ -1170,7 +1170,7 @@ func _show_victory(won: bool) -> void:
 		GameState.add_gold(reward_gold)
 		GameState.add_xp(reward_xp)
 		
-		victory_desc.text += "\n\n⚔ Итоги боя: раундов %d | урон %d | потери врага %d | свои потери %d" % [
+		victory_desc.text += tr("\n\n⚔ Итоги боя: раундов %d | урон %d | потери врага %d | свои потери %d") % [
 			int(battle_stats.get("rounds", 0)), int(battle_stats.get("dealt", 0)),
 			int(battle_stats.get("enemy_losses", 0)), int(battle_stats.get("player_losses", 0))
 		]
@@ -1197,7 +1197,7 @@ func _show_victory(won: bool) -> void:
 		SoundManager.play_sfx("click")
 		victory_title.text = "ПОРАЖЕНИЕ..."
 		if GameState.is_demo_battle:
-			victory_desc.text = "Ваши воины пали на Арене!\nСложность: %s\n\nСмените тактику, подберите другой состав отрядов и попробуйте снова!" % GameState.demo_difficulty_title
+			victory_desc.text = tr("Ваши воины пали на Арене!\nСложность: %s\n\nСмените тактику, подберите другой состав отрядов и попробуйте снова!") % tr(GameState.demo_difficulty_title)
 			return
 		victory_desc.text = "Ваши воины были вынуждены отступить.\nВраг остался на своей позиции!\nПерегруппируйтесь и попробуйте снова!"
 		# Do NOT clear enemy flag on map!
@@ -1361,7 +1361,7 @@ func _setup_spell_buttons() -> void:
 		btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 		if ResourceLoader.exists(sdata.icon_path):
 			btn.texture_normal = load(sdata.icon_path)
-		btn.tooltip_text = "%s (%d маны)\n%s" % [tr(sdata.name), sdata.mana_cost, sdata.description]
+		btn.tooltip_text = tr("%s (%d маны)\n%s") % [tr(sdata.name), sdata.mana_cost, tr(sdata.description)]
 		btn.pressed.connect(func(): _on_spell_selected(spell_id))
 		cell.add_child(btn)
 		var lbl = Label.new()
@@ -1587,31 +1587,31 @@ func _show_unit_info(stack: BattleStack) -> void:
 	if ResourceLoader.exists(t_path):
 		unit_info_portrait.texture = load(t_path)
 		
-	var team_name = "Ваше войско" if stack.team == 0 else "Вражеский отряд"
+	var team_name = tr("Ваше войско") if stack.team == 0 else tr("Вражеский отряд")
 	var max_hp = stack.data.get("max_hp", 20)
 	var total_pool = (stack.count - 1) * max_hp + stack.current_hp
 	
 	var traits = []
 	if stack.data.get("is_ranged", false):
-		traits.append("Стрелок (дальность 5 гексов)")
+		traits.append(tr("Стрелок (дальность 5 гексов)"))
 	if stack.data.get("unlimited_retaliation", false):
-		traits.append("Бесконечный отпор")
+		traits.append(tr("Бесконечный отпор"))
 	if stack.data.get("breath_attack", false) or stack.unit_id == "red_dragon":
-		traits.append("Огненное дыхание (пробивает насквозь)")
+		traits.append(tr("Огненное дыхание (пробивает насквозь)"))
 	if stack.data.get("disease", false) or stack.unit_id == "swamp_zombie":
-		traits.append("Трупный яд (ослабляет атаку)")
+		traits.append(tr("Трупный яд (ослабляет атаку)"))
 	if stack.data.get("regeneration", 0) > 0 or stack.unit_id == "treant":
-		traits.append("Регенерация (+20 HP в раунд)")
+		traits.append(tr("Регенерация (+20 HP в раунд)"))
 	if stack.data.get("entangle", false) or stack.unit_id == "treant":
-		traits.append("Оплетающие корни")
+		traits.append(tr("Оплетающие корни"))
 	if float(stack.data.get("reflect", 0.0)) > 0.0:
 		traits.append(tr("Отражение (%d%% ближнего урона)") % int(round(100.0 * float(stack.data.get("reflect", 0.0)))))
 	if float(stack.data.get("dodge", 0.0)) > 0.0:
 		traits.append(tr("Уклонение (%d%% шанс вдвое снизить ближний урон)") % int(round(100.0 * float(stack.data.get("dodge", 0.0)))))
 	if stack.data.get("is_caster", false):
-		traits.append("Колдун (тёмное пламя по густым строям)")
+		traits.append(tr("Колдун (тёмное пламя по густым строям)"))
 	if traits.is_empty():
-		traits.append("Обычные боевые навыки")
+		traits.append(tr("Обычные боевые навыки"))
 		
 	var buffs = []
 	if stack.buff_bless_turns > 0:
@@ -1625,12 +1625,12 @@ func _show_unit_info(stack: BattleStack) -> void:
 	if stack.debuff_disease_turns > 0:
 		buffs.append(tr("Болезнь (-25%% атк., %d р.)") % stack.debuff_disease_turns)
 	if stack.debuff_entangle_turns > 0:
-		buffs.append("Опутан корнями (0 скор.)")
+		buffs.append(tr("Опутан корнями (0 скор.)"))
 	if stack.is_defending:
-		buffs.append("Глухая оборона (+30% защ.)")
-	var buffs_str = ", ".join(buffs) if buffs.size() > 0 else "Нет"
+		buffs.append(tr("Глухая оборона (+30% защ.)"))
+	var buffs_str = ", ".join(buffs) if buffs.size() > 0 else tr("Нет")
 	
-	unit_info_stats.text = "%s (%s)\nЧисленность: %d воинов\nЗдоровье верхнего воина: %d / %d HP\nВсего здоровья отряда: %d HP\n\nАтака: %d | Защита: %d\nУрон: %d-%d\nСкорость: %d | Инициатива: %d\n\nОсобенности: %s\nАктивные эффекты: %s" % [
+	unit_info_stats.text = tr("%s (%s)\nЧисленность: %d воинов\nЗдоровье верхнего воина: %d / %d HP\nВсего здоровья отряда: %d HP\n\nАтака: %d | Защита: %d\nУрон: %d-%d\nСкорость: %d | Инициатива: %d\n\nОсобенности: %s\nАктивные эффекты: %s") % [
 		tr(stack.data.name), team_name, stack.count,
 		stack.current_hp, max_hp, total_pool,
 		stack.data.get("attack", 4), stack.get_defense(),

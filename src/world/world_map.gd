@@ -525,10 +525,10 @@ func _find_guard_for_cell(cell: Vector2i) -> Dictionary:
 
 func _trigger_guarded_chest(guard: Dictionary, chest: Dictionary) -> void:
 	SoundManager.play_sfx("sword_hit")
-	var guard_name = guard.get("name", "Вражеский отряд")
+	var guard_name = tr(guard.get("name", "Вражеский отряд"))
 	var guard_id = guard.get("id", "")
 	popup_title.text = "⚔ ОХРАНА СОКРОВИЩ!"
-	popup_text.text = "Этот сундук охраняет %s!\n\nВраги замечают ваше приближение, обнажают оружие и нападают на вас!\nСначала одолейте охрану, чтобы забрать сокровища!" % guard_name
+	popup_text.text = tr("Этот сундук охраняет %s!\n\nВраги замечают ваше приближение, обнажают оружие и нападают на вас!\nСначала одолейте охрану, чтобы забрать сокровища!") % guard_name
 	
 	popup_btn1.text = "⚔ В БОЙ С ОХРАНОЙ!"
 	popup_btn1.pressed.connect(func():
@@ -764,7 +764,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				world_view.remove_object_by_id(obj_id)
 				popup_dialog.hide()
 				return
-			var en_name = obj.get("name", "Вражеский отряд")
+			var en_name = tr(obj.get("name", "Вражеский отряд"))
 			popup_title.text = en_name
 			popup_text.text = _get_encounter_desc(obj_id, en_name)
 			popup_btn1.text = "⚔ В БОЙ! (Тактическая арена)"
@@ -866,8 +866,8 @@ func _trigger_object(obj: Dictionary) -> void:
 				_update_quest_hud()
 				
 				victory_title.text = "👑 ПОБЕДА В ГЛАВЕ 1: ЗАЧАРОВАННЫЙ ЛЕС! 👑"
-				victory_text.text = "Королева Фей со слезами радости принимает священный Венец из рук сэра Аларика!\n\nИзумрудный свет озаряет древний лес, рассеивая последние чары тьмы. Но тревожные вести приходят из Топей Скорби: Древний Лич поднимает армии нежити!\n\n★ ИТОГИ ГЛАВЫ 1: ★\n• Дней в походе: %d\n• Золото в казне: %d монет\n• Уровень Героя: %d (%s)\n• Награда Королевы: 8 Королевских Грифонов!\n\nГотовы ли вы выступить во вторую главу кампании?" % [
-					GameState.day, GameState.gold, GameState.level, GameState.hero_title
+				victory_text.text = tr("Королева Фей со слезами радости принимает священный Венец из рук сэра Аларика!\n\nИзумрудный свет озаряет древний лес, рассеивая последние чары тьмы. Но тревожные вести приходят из Топей Скорби: Древний Лич поднимает армии нежити!\n\n★ ИТОГИ ГЛАВЫ 1: ★\n• Дней в походе: %d\n• Золото в казне: %d монет\n• Уровень Героя: %d (%s)\n• Награда Королевы: 8 Королевских Грифонов!\n\nГотовы ли вы выступить во вторую главу кампании?") % [
+					GameState.day, GameState.gold, GameState.level, tr(GameState.hero_title)
 				]
 				victory_continue_btn.text = "⚔ В поход: Глава 2 (Проклятые Топи) ⚔"
 				victory_dialog.move_to_front()
@@ -965,7 +965,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				popup_btn1.text = "Поклониться"
 				popup_btn1.pressed.connect(func(): popup_dialog.hide())
 			else:
-				popup_text.text = "Алтарь позволяет обучить ваших воинов тайным боевым искусствам:\n\n• Феи получают Двойной Выстрел (стреляют дважды за раунд!)\n• Грифоны получают Бесконечный Отпор на все атаки врагов!\n\nКазна: %d золота" % GameState.gold
+				popup_text.text = tr("Алтарь позволяет обучить ваших воинов тайным боевым искусствам:\n\n• Феи получают Двойной Выстрел (стреляют дважды за раунд!)\n• Грифоны получают Бесконечный Отпор на все атаки врагов!\n\nКазна: %d золота") % GameState.gold
 				if GameState.gold >= upgrade_cost:
 					popup_btn1.text = upgrade_name
 					var target_slot = upgrade_slot
@@ -1070,7 +1070,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				_update_hud()
 				_update_quest_hud()
 				victory_title.text = "👑 ПОБЕДА В ГЛАВЕ 2: ПРОКЛЯТЫЕ ТОПИ! 👑"
-				victory_text.text = "Древний Лич развеян в прах, и животворный свет возвращается в болота!\n\n★ ИТОГИ ГЛАВЫ 2: ★\n• Дней в походе: %d\n• Золото в казне: %d монет\n• Уровень Героя: %d\n• Награда: Перстень Архимага и отряд Друидов!\n\nГорные вестники приносят тревожную весть: на Пике Дракона пробудился древний властелин огня!" % [
+				victory_text.text = tr("Древний Лич развеян в прах, и животворный свет возвращается в болота!\n\n★ ИТОГИ ГЛАВЫ 2: ★\n• Дней в походе: %d\n• Золото в казне: %d монет\n• Уровень Героя: %d\n• Награда: Перстень Архимага и отряд Друидов!\n\nГорные вестники приносят тревожную весть: на Пике Дракона пробудился древний властелин огня!") % [
 					GameState.day, GameState.gold, GameState.level
 				]
 				victory_continue_btn.text = "⚔ В поход: Глава 3 (Пик Дракона) ⚔"
@@ -1101,7 +1101,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				_update_hud()
 				_update_quest_hud()
 				victory_title.text = "👑 ВЕЛИКИЙ ТРИУМФ ВСЕЙ КАМПАНИИ! 👑"
-				victory_text.text = "Красный Дракон повержен! Владыка небес склонился перед доблестью паладина Аларика!\n\nВсе угрозы Королевству устранены, реликвии возвращены, а мир воцарился во всех землях на тысячу лет!\n\n★ ИТОГИ ВЕЛИКОЙ КАМПАНИИ: ★\n• Пройдено глав: 3 из 3\n• Дней в походе: %d\n• Золото в казне: %d\n• Уровень Героя: %d\n• Артефакты: Полный комплект реликвий Королевства!\n\nКороль жалует вам высший титул «Маршал Королевства»!" % [
+				victory_text.text = tr("Красный Дракон повержен! Владыка небес склонился перед доблестью паладина Аларика!\n\nВсе угрозы Королевству устранены, реликвии возвращены, а мир воцарился во всех землях на тысячу лет!\n\n★ ИТОГИ ВЕЛИКОЙ КАМПАНИИ: ★\n• Пройдено глав: 3 из 3\n• Дней в походе: %d\n• Золото в казне: %d\n• Уровень Героя: %d\n• Артефакты: Полный комплект реликвий Королевства!\n\nКороль жалует вам высший титул «Маршал Королевства»!") % [
 					GameState.day, GameState.gold, GameState.level
 				]
 				victory_continue_btn.text = "Завершить кампанию"
@@ -1166,7 +1166,7 @@ func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable())
 			st["count"] -= lost
 			if lost > 0:
 				var u = UnitData.get_unit(st["unit_id"])
-				casualties_desc += "• %s: потеряно %d\n" % [u.get("name", "Воины"), lost]
+				casualties_desc += tr("• %s: потеряно %d\n") % [tr(u.get("name", "Воины")), lost]
 		if casualties_desc == "":
 			casualties_desc = "• Без потерь! Безупречная тактическая победа!\n"
 
@@ -1219,7 +1219,7 @@ func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable())
 			_show_dragon_defeated_popup()
 		else:
 			popup_title.text = "⚡ БЫСТРЫЙ БОЙ: ПОБЕДА!"
-			popup_text.text = "Ваша армия стремительно сокрушила врага (%s)!\n\nПотери войска:\n%s\nПолучено награды:\n💰 Золото: +%d\n⭐ Опыт: +%d%s" % [
+			popup_text.text = tr("Ваша армия стремительно сокрушила врага (%s)!\n\nПотери войска:\n%s\nПолучено награды:\n💰 Золото: +%d\n⭐ Опыт: +%d%s") % [
 				battle_name, casualties_desc, reward_gold, reward_xp, artifact_msg
 			]
 			if on_victory.is_valid():
@@ -1236,7 +1236,7 @@ func _execute_quick_combat(battle_id: String, on_victory: Callable = Callable())
 	else:
 		SoundManager.play_sfx("click")
 		popup_title.text = "⚠️ СИЛЫ НЕРАВНЫ!"
-		popup_text.text = "Разведка докладывает: силы противника (%s) слишком велики для авторасчета без тяжелых потерь!\n\nРекомендуется провести бой лично на арене или нанять подкрепление." % battle_name
+		popup_text.text = tr("Разведка докладывает: силы противника (%s) слишком велики для авторасчета без тяжелых потерь!\n\nРекомендуется провести бой лично на арене или нанять подкрепление.") % battle_name
 		popup_btn1.text = "Понятно"
 		popup_btn1.pressed.connect(func(): popup_dialog.hide())
 		popup_btn2.visible = false
@@ -1501,7 +1501,7 @@ func _on_end_day_pressed() -> void:
 	if GameState.move_points > 0:
 		SoundManager.play_sfx("page_turn")
 		if confirm_end_day_prompt:
-			confirm_end_day_prompt.text = "У героя еще остались очки хода (%d/%d).\nВы действительно хотите завершить день?" % [
+			confirm_end_day_prompt.text = tr("У героя еще остались очки хода (%d/%d).\nВы действительно хотите завершить день?") % [
 				GameState.move_points, GameState.max_move_points
 			]
 		if confirm_end_day_dialog:
@@ -1841,9 +1841,9 @@ func _update_hero_profile() -> void:
 		if GameState.equipped_artifacts.has(slot):
 			var a_id = GameState.equipped_artifacts[slot]
 			var art = ArtifactData.get_artifact(a_id)
-			slot_btn.text = "%s\n%s" % [art.get("icon", "⚔"), art.get("name", "")]
-			slot_btn.tooltip_text = "【%s】 %s\n%s\n\n(Клик — снять в рюкзак)" % [
-				ArtifactData.get_slot_title(slot), art.get("name", ""), art.get("description", "")
+			slot_btn.text = "%s\n%s" % [art.get("icon", "⚔"), tr(art.get("name", ""))]
+			slot_btn.tooltip_text = tr("【%s】 %s\n%s\n\n(Клик — снять в рюкзак)") % [
+				tr(ArtifactData.get_slot_title(slot)), tr(art.get("name", "")), tr(art.get("description", ""))
 			]
 			slot_btn.modulate = Color(1.0, 0.95, 0.7)
 			var s = slot
@@ -1855,7 +1855,7 @@ func _update_hero_profile() -> void:
 			)
 		else:
 			slot_btn.text = slot_icons.get(slot, "Пусто")
-			slot_btn.tooltip_text = "Слот: %s (Свободен)\nВыберите артефакт в рюкзаке ниже" % ArtifactData.get_slot_title(slot)
+			slot_btn.tooltip_text = tr("Слот: %s (Свободен)\nВыберите артефакт в рюкзаке ниже") % tr(ArtifactData.get_slot_title(slot))
 			slot_btn.modulate = Color(0.85, 0.85, 0.85, 0.85)
 
 	# Backpack Inventory Grid
@@ -1875,10 +1875,10 @@ func _update_hero_profile() -> void:
 				var btn = Button.new()
 				btn.text = tr("Надеть: %s %s [%s]") % [
 					art.get("icon", "✦"),
-					art.get("name", ""),
-					ArtifactData.get_slot_title(art.get("slot", ""))
+					tr(art.get("name", "")),
+					tr(ArtifactData.get_slot_title(art.get("slot", "")))
 				]
-				btn.tooltip_text = "%s\n%s\n\n(Клик — надеть на героя)" % [art.get("name", ""), art.get("description", "")]
+				btn.tooltip_text = tr("%s\n%s\n\n(Клик — надеть на героя)") % [tr(art.get("name", "")), tr(art.get("description", ""))]
 				btn.custom_minimum_size = Vector2(0, 30)
 				var target_art = a_id
 				btn.pressed.connect(func():
@@ -1900,12 +1900,12 @@ func _update_hero_profile() -> void:
 		var lbl = Label.new()
 		lbl.add_theme_font_size_override("font_size", 14)
 		lbl.add_theme_color_override("font_color", Color(0.22, 0.14, 0.06))
-		var l_str = lvl_names[clampi(s_lvl, 1, 3)]
+		var l_str = tr(lvl_names[clampi(s_lvl, 1, 3)])
 		lbl.text = "%s %s (%s)\n%s" % [
 			s_data.get("icon", "✦"),
-			s_data.get("name", skill_id),
+			tr(s_data.get("name", skill_id)),
 			l_str,
-			s_data.get("desc", "")
+			tr(s_data.get("desc", ""))
 		]
 		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 		hero_skills_vbox.add_child(lbl)
@@ -1929,8 +1929,8 @@ func _process_next_level_up() -> void:
 		var s1: Dictionary = GameState.ALL_SKILLS.get(opt1_id, {})
 		var cur_l1: int = GameState.get_skill_level(opt1_id)
 		var next_l1_name = lvl_names[clampi(cur_l1 + 1, 1, 3)]
-		level_skill_btn1.text = "%s %s (%s уровень)\n%s" % [
-			s1.get("icon", "✦"), s1.get("name", opt1_id), next_l1_name, s1.get("desc", "")
+		level_skill_btn1.text = tr("%s %s (%s уровень)\n%s") % [
+			s1.get("icon", "✦"), tr(s1.get("name", opt1_id)), tr(next_l1_name), tr(s1.get("desc", ""))
 		]
 		level_skill_btn1.visible = true
 		for c in level_skill_btn1.pressed.get_connections():
@@ -1950,8 +1950,8 @@ func _process_next_level_up() -> void:
 		var s2: Dictionary = GameState.ALL_SKILLS.get(opt2_id, {})
 		var cur_l2: int = GameState.get_skill_level(opt2_id)
 		var next_l2_name = lvl_names[clampi(cur_l2 + 1, 1, 3)]
-		level_skill_btn2.text = "%s %s (%s уровень)\n%s" % [
-			s2.get("icon", "✦"), s2.get("name", opt2_id), next_l2_name, s2.get("desc", "")
+		level_skill_btn2.text = tr("%s %s (%s уровень)\n%s") % [
+			s2.get("icon", "✦"), tr(s2.get("name", opt2_id)), tr(next_l2_name), tr(s2.get("desc", ""))
 		]
 		level_skill_btn2.visible = true
 		for c in level_skill_btn2.pressed.get_connections():
@@ -2808,4 +2808,4 @@ func _get_encounter_desc(obj_id: String, en_name: String) -> String:
 		"dragon_patrol_citadel":
 			return "Лавовые хищники кружат над плато у Королевской Цитадели!\nРазведка доносит: [Стая (12 грифонов, 22 гоблина)]."
 		_:
-			return "Вражеский отряд преграждает путь (%s)!\nРазведка оценивает силы противника: [Орда (20-40 бойцов)].\nОни готовы вступить в схватку!" % en_name
+			return tr("Вражеский отряд преграждает путь (%s)!\nРазведка оценивает силы противника: [Орда (20-40 бойцов)].\nОни готовы вступить в схватку!") % en_name

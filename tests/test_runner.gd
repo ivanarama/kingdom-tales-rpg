@@ -1374,6 +1374,14 @@ func _ready() -> void:
 	assert(tr("ШТРАФ 50%") == "PENALTY 50%", "Broken-arrow label on the battlefield must be translated")
 	var fairy_traits := UnitData.get_trait_string("royal_fairy")
 	assert(fairy_traits.contains("•") and not _has_cyrillic(fairy_traits), "Creature traits must be translated one by one")
+	# Карточка отряда собирается шаблоном и списками черт — после сборки не должно остаться русского
+	GameState.reset()
+	var card_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(card_arena)
+	for card_stack in card_arena.all_stacks:
+		card_arena._show_unit_info(card_stack)
+		assert(not _has_cyrillic(card_arena.unit_info_stats.text), "Unit card must be fully translated: " + card_arena.unit_info_stats.text.left(60))
+	card_arena.queue_free()
 	var untranslated := _untranslated_source_strings()
 	if not untranslated.is_empty():
 		print("  Untranslated (run tools/extract_strings.py and tools/build_csv.py): ", untranslated.slice(0, 10))
