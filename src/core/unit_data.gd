@@ -37,8 +37,8 @@ static var UNITS: Dictionary = {
 		"flying": true,
 		"unlimited_retaliation": true,
 		"natural_faces_left": false,
-		"token_path": "res://assets/art/ui/tokens/token_unit_griffin.png",
-		"sprite_path": "res://assets/art/units/unit_griffin.png",
+		"token_path": "res://assets/art/ui/tokens/token_unit_royal_griffin.png",
+		"sprite_path": "res://assets/art/units/unit_royal_griffin.png",
 		"description": "Элитные белые грифоны королевской гвардии. Повышенная скорость и сокрушительный ответный удар!"
 	},
 	"fairy_archer": {
@@ -77,8 +77,8 @@ static var UNITS: Dictionary = {
 		"double_shot": true,
 		"unlimited_retaliation": false,
 		"natural_faces_left": false,
-		"token_path": "res://assets/art/ui/tokens/token_unit_fairy_archer.png",
-		"sprite_path": "res://assets/art/units/unit_fairy_archer.png",
+		"token_path": "res://assets/art/ui/tokens/token_unit_royal_fairy.png",
+		"sprite_path": "res://assets/art/units/unit_royal_fairy.png",
 		"description": "Благословленные королевой лучницы. Стреляют дважды за один выстрел!"
 	},
 	"treant": {
@@ -196,8 +196,8 @@ static var UNITS: Dictionary = {
 		"flying": false,
 		"unlimited_retaliation": false,
 		"natural_faces_left": false,
-		"token_path": "res://assets/art/ui/tokens/token_unit_fairy_archer.png",
-		"sprite_path": "res://assets/art/units/unit_fairy_archer.png",
+		"token_path": "res://assets/art/ui/tokens/token_unit_druid.png",
+		"sprite_path": "res://assets/art/units/unit_druid.png",
 		"description": "Мудрецы священных дубрав. Разит молниями природы на дальнем расстоянии."
 	},
 	"lich": {

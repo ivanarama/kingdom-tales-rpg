@@ -52,6 +52,20 @@ JOBS = [
      (10, 35, 90), (80, 150, 235), (220, 240, 255)),
     ("assets/art/spells/spell_heal.png", "assets/art/spells/spell_restoration.png",
      (110, 70, 0), (250, 190, 50), (255, 245, 200)),
+    # Улучшенные и близкие отряды не должны выглядеть как базовые: белые Королевские
+    # Грифоны, сиреневые Королевские Феи, дубово-бурые Друиды (раньше — спрайт фей)
+    ("assets/art/ui/tokens/token_unit_griffin.png", "assets/art/ui/tokens/token_unit_royal_griffin.png",
+     (60, 50, 35), (215, 205, 180), (255, 252, 240)),
+    ("assets/art/units/unit_griffin.png", "assets/art/units/unit_royal_griffin.png",
+     (60, 50, 35), (215, 205, 180), (255, 252, 240)),
+    ("assets/art/ui/tokens/token_unit_fairy_archer.png", "assets/art/ui/tokens/token_unit_royal_fairy.png",
+     (45, 20, 70), (170, 120, 220), (250, 235, 255)),
+    ("assets/art/units/unit_fairy_archer.png", "assets/art/units/unit_royal_fairy.png",
+     (45, 20, 70), (170, 120, 220), (250, 235, 255)),
+    ("assets/art/ui/tokens/token_unit_fairy_archer.png", "assets/art/ui/tokens/token_unit_druid.png",
+     (40, 22, 8), (160, 95, 40), (245, 215, 150)),
+    ("assets/art/units/unit_fairy_archer.png", "assets/art/units/unit_druid.png",
+     (40, 22, 8), (160, 95, 40), (245, 215, 150)),
 ]
 
 
