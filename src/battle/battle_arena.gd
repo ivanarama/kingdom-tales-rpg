@@ -195,6 +195,11 @@ func _ready() -> void:
 	_build_retreat_confirm_dialog()
 	
 	_setup_spell_buttons()
+	# Первый бой кампании — с подсказками (один раз)
+	if BattleTutorial.should_show():
+		var tutorial := BattleTutorial.new()
+		$CanvasLayer.add_child(tutorial)
+		tutorial.setup(self)
 	_update_ui()
 	_start_round()
 

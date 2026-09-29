@@ -118,6 +118,7 @@ Active effects: %s"
 «В боях никто не пал — возвращать некому. Приходите после сражений!»,«No one has fallen in battle — there is no one to bring back. Come after a fight!»
 "«Врата открыты, паладин! Спешите на восток — разбейте атамана в его логове и верните Венец Королеве Фей!»","«The gates are open, paladin! Hasten east — crush the chieftain in his lair and return the Crown to the Fairy Queen!»"
 "«Да здравствует сэр Аларик, величайший защитник Королевства!»","«Long live Sir Alaric, the greatest defender of the Kingdom!»"
+"«Ждать» — сходить позже в этом раунде, «Защита» — +30% к защите до следующего хода. Удачи, полководец!","""Wait"" acts later in this round, ""Defend"" gives +30% Defense until the next turn. Good luck, commander!"
 "«Костяные Врата ждут вас, паладин! Разрушьте цитадель Лича на востоке!»","«The Bone Gates await you, paladin! Destroy the Lich's citadel in the east!»"
 «Лесные духи-лисы желают путешествовать с вами: %d шт. (по %d золота). Казна: %d.»,«The fox spirits wish to travel with you: %d available (at %d gold each). Treasury: %d.»
 "«Приветствую, благородный рыцарь! Мельница работает в поте лица, примите 500 золотых монет на содержание гарнизона!»","«Welcome, noble knight! The mill works from dawn to dusk — take 500 gold coins for your garrison's upkeep!»"
@@ -425,6 +426,7 @@ Treasury: %d gold"
 Грифоны,Griffins
 Грифоны отвечают на все удары без устали. Отправляйте их первыми в гущу боя!,Griffins retaliate against every blow without tiring. Send them into the thick of battle first!
 Да будет так!,So be it!
+Дальше ›,Next ›
 "Дарует крылья ветров союзному отряду, увеличивая скорость перемещения на +3 гекса.","Grants the winds' wings to an allied stack, increasing movement speed by +3 hexes."
 Двойной выстрел,Double Shot
 Действие 1,Action 1
@@ -585,6 +587,7 @@ They guard the chieftain's eastern valley!"
 Классический клавесин в духе HoMM3,Classic harpsichord in the spirit of HoMM3
 Клинок из закаленной звездной стали. Прибавляет +4 к Атаке паладина.,A blade of quenched star-steel. Adds +4 to the paladin's Attack.
 Книга Заклинаний,Spellbook
+"Книга магии — кнопка справа внизу: герой творит одно заклинание за раунд, и ход отряда на это не тратится.","The spellbook is the button at the bottom right: the hero casts one spell per round, and it costs no stack its turn."
 Кованые врата распахнуты настежь. Дорога через горный перевал свободна!,The wrought-iron gates stand wide open. The road through the mountain pass is clear!
 Колдун,Caster
 Колдун (тёмное пламя по густым строям),Caster (dark flame at the thickest ranks)
@@ -772,6 +775,7 @@ You need the Gate Key! (Visit the Forester's Hut in the south)."
 → East: the Iron Gates and the Bandit Valley
 
 [Tip: Space — search the spot beneath your horse, E — next day]"
+"Наведите курсор на врага — над ним появится прогноз урона и потерь, щелчок — атака. На телефоне первое касание показывает прогноз, второе — атакует.","Hover over an enemy to see the forecast of damage and losses; click to attack. On a phone, the first tap shows the forecast and the second attacks."
 Навык 1,Skill 1
 Навык 2,Skill 2
 Навык Лидерства даёт отрядам шанс на дополнительный ход. Прокачивайте!,Leadership gives your stacks a chance of an extra turn. Level it up!
@@ -955,6 +959,7 @@ They guard the Archmage's Ring!"
 Продолжить путь,Continue on
 Пройти к логову Дракона,Proceed to the Dragon's lair
 Пройти через врата,Pass through the gates
+Пропустить обучение,Skip the tutorial
 Прославленный герой,A Renowned Hero
 Пусто,Empty
 Путевой Камень,Waystone
@@ -1026,6 +1031,7 @@ Every stack of your army has already reached its highest form!"
 Священный Источник Жизни,The Sacred Spring of Life
 Священный Источник Маны,The Sacred Mana Spring
 Священный орган и светлые гармонии,A sacred organ and bright harmonies
+Сейчас ходит отряд на золотой клетке. Синие клетки — куда он может пойти: нажмите на любую.,The stack on the golden tile is taking its turn. Blue tiles show where it can go: tap any of them.
 Серебряные переливы челесты и ручей,Silvery celesta ripples and a brook
 Сила Магии (+1),Spell Power (+1)
 "Сказочные флейты, арфа и мягкий ветер","Fairy-tale flutes, harp and a gentle wind"
@@ -1106,6 +1112,7 @@ Scouts report: [A horde of 22 skeletons, 25 goblins, 14 wolves]."
 Странник Просторов,Wanderer of the Expanse
 "Странник Просторов (2/2): +6 Очков хода, +2 Атака","Wanderer of the Expanse (2/2): +6 Movement, +2 Attack"
 "Стрелки бьют вдвое слабее, если враг подошёл вплотную — прикрывайте фей-лучниц!",Shooters deal half damage when enemies close in — shield your fairy archers!
+"Стрелки бьют издалека, но дальше 5 клеток — вполсилы («сломанная стрела»). Враг вплотную к стрелку мешает ему стрелять.","Shooters strike from afar, but beyond 5 tiles at half strength (a ""broken arrow""). An enemy right next to a shooter keeps it from shooting."
 Стрелки разбойников преграждают путь к Роще Фей!,Bandit shooters block the way to the Fairy Grove!
 Стрелок,Shooter
 Стрелок (дальность 5 гексов),Shooter (range 5 hexes)
@@ -1404,6 +1411,7 @@ Ring"
 📜 Летопись подвигов,📜 Chronicle of Deeds
 📜 Продолжить поход,📜 Continue the journey
 "📜 Продолжить поход  [%s • Гл. %d, День %d • Ур. %d]","📜 Continue the journey  [%s • Ch. %d, Day %d • Lvl %d]"
+📜 Совет полководца (%d/%d),📜 Commander's tip (%d/%d)
 📯 Рог Доблести: всё войско начинает бой на +2 инициативы!,📯 Horn of Valor: the whole army begins the battle at +2 initiative!
 🔥 %s набирает воздух — уведите отряды с отмеченных клеток!,🔥 %s draws breath — move your stacks off the marked tiles!
 🔥 %s под огнём дракона — уходите с отмеченных клеток!,🔥 %s is in the dragon's line of fire — leave the marked tiles!

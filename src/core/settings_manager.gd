@@ -9,6 +9,7 @@ var music_volume: float = 0.8
 var sfx_volume: float = 1.0
 var locale: String = "ru" # "ru" | "en"
 var reduced_animations: bool = false # упрощённая графика для слабых устройств
+var battle_tutorial_done: bool = false # обучение в первом бою пройдено или пропущено
 
 func _ready() -> void:
 	load_settings()
@@ -36,6 +37,7 @@ func load_settings() -> void:
 	var loc = str(cfg.get_value("general", "locale", "ru"))
 	locale = "en" if loc == "en" else "ru"
 	reduced_animations = bool(cfg.get_value("general", "reduced_animations", false))
+	battle_tutorial_done = bool(cfg.get_value("general", "battle_tutorial_done", false))
 
 func save_settings() -> void:
 	var cfg = ConfigFile.new()
@@ -44,4 +46,5 @@ func save_settings() -> void:
 	cfg.set_value("audio", "sfx", sfx_volume)
 	cfg.set_value("general", "locale", locale)
 	cfg.set_value("general", "reduced_animations", reduced_animations)
+	cfg.set_value("general", "battle_tutorial_done", battle_tutorial_done)
 	cfg.save(PATH)
