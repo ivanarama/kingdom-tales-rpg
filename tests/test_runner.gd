@@ -1634,8 +1634,28 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> AI weighs retaliation and protects its shooters!")
 
+	# 58. Туман войны с мягким краем: полоса только внутри открытых клеток на границе тумана
+	print("[TEST] 58. Testing Soft Fog Edges...")
+	GameState.reset()
+	GameState.flags["chapter_intro_seen_1"] = true
+	var fog_map = load("res://src/world/world_map.tscn").instantiate()
+	add_child(fog_map)
+	await get_tree().process_frame
+	var fog_wv = fog_map.world_view
+	fog_wv.revealed_cells = {Vector2i(5, 5): true, Vector2i(6, 5): true, Vector2i(5, 6): true, Vector2i(0, 0): true}
+	var fog_e: Array[Vector2i] = fog_wv.fog_edges(Vector2i(5, 5))
+	assert(fog_e.has(Vector2i(-1, 0)) and fog_e.has(Vector2i(0, -1)), "Soft edge must face fogged neighbours")
+	assert(not fog_e.has(Vector2i(1, 0)) and not fog_e.has(Vector2i(0, 1)), "No edge toward open neighbours")
+	assert(fog_e.has(Vector2i(1, 1)), "Fog only on the diagonal must soften the corner")
+	assert(fog_wv.fog_edges(Vector2i(4, 4)).is_empty(), "A fogged cell gets no soft edge: the shroud stays opaque")
+	var fog_border: Array[Vector2i] = fog_wv.fog_edges(Vector2i(0, 0))
+	assert(not fog_border.has(Vector2i(-1, 0)) and not fog_border.has(Vector2i(0, -1)), "The map border is not fog")
+	fog_map.queue_free()
+	GameState.reset()
+	print("  -> Fog of war fades softly at its edges and stays opaque inside!")
+
 	print("\n==========================================")
-	print("   ALL 57 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 58 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
