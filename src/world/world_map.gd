@@ -692,7 +692,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				popup_dialog.hide()
 			)
 			
-		"fairy_dwelling", "druid_camp", "griffin_roost":
+		"fairy_dwelling", "druid_camp", "griffin_roost", "unicorn_glade":
 			_open_dwelling_popup(obj_id)
 
 		"event":

@@ -308,6 +308,66 @@ static var UNITS: Dictionary = {
 		"sprite_path": "res://assets/art/units/unit_stone_guardian.png",
 		"description": "Ожившие изваяния древних обелисков. Отражают 30% урона от ответных и любых ближних ударов!"
 	},
+	"unicorn": {
+		"id": "unicorn",
+		"name": "Единороги",
+		"tier": 4,
+		"max_hp": 75,
+		"min_dmg": 14,
+		"max_dmg": 20,
+		"attack": 13,
+		"defense": 13,
+		"speed": 7,
+		"initiative": 14,
+		"is_ranged": false,
+		"flying": false,
+		"unlimited_retaliation": false,
+		"natural_faces_left": false,
+		"blind_chance": 0.2,
+		"token_path": "res://assets/art/ui/tokens/token_unit_unicorn.png",
+		"sprite_path": "res://assets/art/units/unit_unicorn.png",
+		"description": "Светлые хранители лунных полян. Сияние рога ослепляет врага: он пропускает ход, пока его не ранят."
+	},
+	"lava_salamander": {
+		"id": "lava_salamander",
+		"name": "Лавовые саламандры",
+		"tier": 2,
+		"max_hp": 26,
+		"min_dmg": 6,
+		"max_dmg": 9,
+		"attack": 8,
+		"defense": 6,
+		"speed": 6,
+		"initiative": 12,
+		"is_ranged": false,
+		"flying": false,
+		"unlimited_retaliation": false,
+		"natural_faces_left": false,
+		"reflect": 0.2,
+		"token_path": "res://assets/art/ui/tokens/token_unit_lava_salamander.png",
+		"sprite_path": "res://assets/art/units/unit_lava_salamander.png",
+		"description": "Юркие ящерки из огненных трещин Пика. Раскалённая шкура обжигает тех, кто бьёт вблизи (20% урона возвращается)."
+	},
+	"magma_golem": {
+		"id": "magma_golem",
+		"name": "Магмовые големы",
+		"tier": 4,
+		"max_hp": 95,
+		"min_dmg": 15,
+		"max_dmg": 21,
+		"attack": 13,
+		"defense": 16,
+		"speed": 3,
+		"initiative": 7,
+		"is_ranged": false,
+		"flying": false,
+		"unlimited_retaliation": false,
+		"natural_faces_left": false,
+		"regeneration": 20,
+		"token_path": "res://assets/art/ui/tokens/token_unit_magma_golem.png",
+		"sprite_path": "res://assets/art/units/unit_magma_golem.png",
+		"description": "Медлительные великаны из остывающей лавы. Трещины на их теле затягиваются сами (+20 HP в раунд)."
+	},
 	"fox_shifter": {
 		"id": "fox_shifter",
 		"name": "Лисы-Оборотни",
@@ -378,6 +438,8 @@ static func get_trait_string(id: String) -> String:
 		traits.append(_t("Подъём нежити"))
 	if int(u.get("firestorm", 0)) > 0:
 		traits.append(_t("Огненный шквал"))
+	if float(u.get("blind_chance", 0.0)) > 0.0:
+		traits.append(_t("Ослепляющий рог"))
 	return " • ".join(traits) if traits.size() > 0 else _t("Пехота ближнего боя")
 static func get_unit(id: String) -> Dictionary:
 	return UNITS.get(id, {})

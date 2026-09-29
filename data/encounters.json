@@ -46,9 +46,9 @@
 	"dragon_boss": {
 		"log": "Гнездо Владыки Огня! Красный Дракон расправляет пылающие крылья!",
 		"enemies": [
-			{"unit": "wolf", "count": 25, "hex": [10, 1]},
+			{"unit": "lava_salamander", "count": 19, "hex": [10, 1]},
 			{"unit": "red_dragon", "count": 3, "hex": [10, 3]},
-			{"unit": "treant", "count": 8, "hex": [10, 5]}
+			{"unit": "magma_golem", "count": 7, "hex": [10, 5]}
 		]
 	},
 	"patrol_1": {
@@ -138,44 +138,44 @@
 		"log": "Огненная стража перевала атакует!",
 		"enemies": [
 			{"unit": "skeleton_archer", "count": 20, "hex": [10, 1]},
-			{"unit": "griffin", "count": 8, "hex": [10, 4]}
+			{"unit": "lava_salamander", "count": 11, "hex": [10, 4]}
 		]
 	},
 	"dragon_patrol": {
 		"log": "Огненная стража перевала атакует!",
 		"enemies": [
 			{"unit": "skeleton_archer", "count": 20, "hex": [10, 1]},
-			{"unit": "griffin", "count": 8, "hex": [10, 4]}
+			{"unit": "lava_salamander", "count": 11, "hex": [10, 4]}
 		]
 	},
 	"patrol_dragon": {
 		"log": "Огненная стража перевала атакует!",
 		"enemies": [
 			{"unit": "skeleton_archer", "count": 20, "hex": [10, 1]},
-			{"unit": "griffin", "count": 8, "hex": [10, 4]}
+			{"unit": "lava_salamander", "count": 11, "hex": [10, 4]}
 		]
 	},
 	"dragon_patrol_gate": {
 		"log": "Стража Огненных Врат идет на таран!",
 		"enemies": [
 			{"unit": "skeleton_archer", "count": 22, "hex": [10, 1]},
-			{"unit": "goblin", "count": 25, "hex": [10, 3]},
+			{"unit": "lava_salamander", "count": 13, "hex": [10, 3]},
 			{"unit": "wolf", "count": 14, "hex": [10, 5]}
 		]
 	},
 	"dragon_patrol_caldera": {
 		"log": "Слуги дракона перекрывают путь к жерлу вулкана!",
 		"enemies": [
-			{"unit": "goblin", "count": 25, "hex": [10, 1]},
+			{"unit": "lava_salamander", "count": 13, "hex": [10, 1]},
 			{"unit": "wolf", "count": 16, "hex": [10, 3]},
-			{"unit": "treant", "count": 4, "hex": [10, 5]}
+			{"unit": "magma_golem", "count": 4, "hex": [10, 5]}
 		]
 	},
 	"dragon_patrol_citadel": {
 		"log": "Лавовые хищники бросаются на защиту цитадели!",
 		"enemies": [
-			{"unit": "griffin", "count": 12, "hex": [10, 2]},
-			{"unit": "goblin", "count": 22, "hex": [10, 4]}
+			{"unit": "magma_golem", "count": 5, "hex": [10, 2]},
+			{"unit": "lava_salamander", "count": 12, "hex": [10, 4]}
 		]
 	},
 	"swamp_patrol": {

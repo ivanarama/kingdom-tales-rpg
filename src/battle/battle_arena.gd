@@ -860,6 +860,11 @@ func _execute_attack(attacker: BattleStack, defender: BattleStack, is_melee: boo
 					defender.debuff_entangle_turns += 1 # цель походила: эффект продлевается
 				_spawn_floating_text(defender.hex, "🌿 КОРНИ (0 ХОДОВ)", Color(0.2, 0.85, 0.3), Vector2(0, -48))
 				log_combat(tr("🌿 Корни древня оплетают %s, лишая возможности двигаться на 1 раунд!") % tr(defender.data.name))
+			# Единороги: сияние рога ослепляет — цель пропускает ход, пока её не ранят
+			if float(attacker.data.get("blind_chance", 0.0)) > 0.0 and randf() < float(attacker.data["blind_chance"]):
+				defender.debuff_blind_turns = 2 if defender.has_acted else 1
+				_spawn_floating_text(defender.hex, "✨ ОСЛЕПЛЁН СИЯНИЕМ!", Color(0.9, 0.9, 1.0), Vector2(0, -64))
+				log_combat(tr("✨ Сияние рога ослепляет %s: отряд пропустит ход, пока его не ранят!") % tr(defender.data.name))
 		
 		arena_viewport.queue_redraw()
 		_check_battle_end()
@@ -1777,6 +1782,8 @@ func _show_unit_info(stack: BattleStack) -> void:
 	if stack.data.get("is_caster", false):
 		traits.append(tr("Колдун (тёмное пламя по густым строям)"))
 	traits.append_array(boss.trait_lines(stack.data))
+	if float(stack.data.get("blind_chance", 0.0)) > 0.0:
+		traits.append(tr("Ослепляющий рог (%d%% шанс ослепить цель)") % int(round(100.0 * float(stack.data["blind_chance"]))))
 	if traits.is_empty():
 		traits.append(tr("Обычные боевые навыки"))
 		

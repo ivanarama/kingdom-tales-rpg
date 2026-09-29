@@ -624,6 +624,7 @@ func next_day() -> void:
 		dwelling_stock["shrine_pegasus"] = dwelling_stock.get("shrine_pegasus", 0) + 2
 		dwelling_stock["forester_fox"] = dwelling_stock.get("forester_fox", 0) + 6
 		dwelling_stock["obelisk_guard"] = dwelling_stock.get("obelisk_guard", 0) + 1
+		dwelling_stock["unicorn_glade"] = dwelling_stock.get("unicorn_glade", 0) + 2
 		
 		# Astrologers proclaim... (Weekly events on day 8, 15, 22...)
 		if day > 1:
@@ -707,6 +708,7 @@ func start_chapter(chapter_num: int) -> void:
 		2:
 			hero_cell = Vector2i(3, 11)
 			dwelling_stock["druid_camp"] = 8
+			dwelling_stock["unicorn_glade"] = 2
 		3:
 			hero_cell = Vector2i(4, 16)
 			dwelling_stock["griffin_nest"] = 6
