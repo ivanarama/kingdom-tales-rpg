@@ -182,6 +182,7 @@ Aetherial streams saturate the hero's mind. The mana pool is fully restored and 
 
 The growth of forest archers is doubled. 10 fairy archers join your army free of charge!"
 Атака (+1),Attack (+1)
+Атаман Разбойников,The Bandit Chieftain
 Атаман Разбойников (Венец Фей),The Bandit Chieftain (Fairy Queen's Crown)
 "Атаман разбойников повержен, и вся долина избавлена от зла!
 
@@ -388,6 +389,7 @@ Hero experience: +%d"
 Герой: Сэр Аларик (Паладин),Hero: Sir Alaric (Paladin)
 Гл. %d • День %d,Ch. %d • Day %d
 Гл. 1: День 1,Ch. 1: Day 1
+"Главарь лесной вольницы. Пока над ним реет знамя, его люди бьются яростнее: +2 к атаке всем союзным отрядам. Сразите Атамана — и шайка дрогнет.","The leader of the forest outlaws. While his banner flies, his men fight fiercer: +2 Attack to all allied stacks. Strike down the Chieftain and the gang will falter."
 "Главарь разбойников повержен!
 
 ★ ВЫ ВЕРНУЛИ ВЕНЕЦ КОРОЛЕВЫ ФЕЙ! ★
@@ -543,6 +545,9 @@ You need the Bone Key! (Visit the Swamp Witch's Hut to the south-west)."
 Они бредут прямо по настилу гати!","A fetid stench of carrion heralds the approach of swamp zombies!
 Scouts report: [A horde of 18 swamp zombies].
 They shamble straight along the log-walk!"
+Знамя вожака (+%d атк.),Leader's banner (+%d att.)
+Знамя вожака (+%d к атаке союзников),Leader's banner (+%d Attack to allies)
+Знамя: +%d к атаке союзникам,Banner: +%d Attack to allies
 Знание (+1),Knowledge (+1)
 Золото из сундука можно обменять на опыт — иногда опыт ценнее казны.,Chest gold can be traded for experience — sometimes experience is worth more than gold.
 Золото: 1500,Gold: 1500
@@ -686,7 +691,7 @@ Scouts report: [A flock of 12 griffins, 22 goblins]."
 Лагерь атамана (Сожжен),The Chieftain's Camp (Burned)
 Ламповое тактическое приключение,A cozy tactical adventure
 Легендарная реликвия волшебного леса. Дарует +2 ко всем параметрам и +4 очка хода!,A legendary relic of the enchanted forest. Grants +2 to every stat and +4 movement points!
-Легендарный владыка огнедышащих пиков. Огненное дыхание пробивает на 2 гекса сквозь строй врагов!,The legendary lord of the fire-breathing peaks. Its fiery breath pierces 2 hexes through enemy lines!
+"Легендарный владыка огнедышащих пиков. Огненное дыхание пробивает на 2 гекса сквозь строй врагов, а раз в 3 раунда дракон набирает воздух и выжигает конус перед собой — отмеченные клетки видны заранее.","The legendary lord of the fire-breathing peaks. Its fiery breath pierces 2 hexes through enemy lines, and every 3 rounds the dragon draws breath and scorches a cone before it — the marked tiles are shown in advance."
 "Легендарный владыка пламени повержен! Панцирь Древнего Стража сияет на ваших плечах!
 
 Вступайте в Королевскую Цитадель (27, 4) для коронации и триумфального завершения Великой Кампании!","The legendary lord of flame is vanquished! The Ancient Warden's Carapace shines upon your shoulders!
@@ -819,6 +824,8 @@ You need the Gate Key! (Visit the Forester's Hut in the south)."
 "Огненный дозор ущелья преграждает путь по горной тропе!
 Разведка доносит: [Орда (24 гоблина, 16 волков)].","The gorge's fire watch blocks the mountain trail!
 Scouts report: [A horde of 24 goblins, 16 wolves]."
+Огненный шквал,Firestorm
+Огненный шквал (раз в %d р.),Firestorm (every %d rounds)
 Одержите первую победу в тактическом бою.,Win your first tactical battle.
 Ожившие изваяния древних обелисков. Отражают 30% урона от ответных и любых ближних ударов!,Animated statues of ancient obelisks. They reflect 30% of retaliation and any melee damage!
 Око Орла,Eye of the Eagle
@@ -912,8 +919,10 @@ They guard the Archmage's Ring!"
 Победите Красного Дракона.,Defeat the Red Dragon.
 Победные фанфары и литавры,Victorious fanfares and timpani
 "Побеждите в бою, не потеряв ни одного воина.",Win a battle without losing a single warrior.
-Повелитель тлетворных топей. Колдует тёмное пламя по самым густым строям врага!,The lord of the noisome fens. He casts dark flame upon the thickest enemy ranks!
+"Повелитель тлетворных топей. Колдует тёмное пламя по самым густым строям врага, а раз в 2 раунда поднимает из болота по скелету-лучнику за каждого лича.","The lord of the noisome fens. He casts dark flame upon the thickest enemy ranks, and every 2 rounds raises one skeleton archer from the bog for each lich."
 Поднять выше,Move up
+Подъём нежити,Raise Dead
+Подъём нежити (раз в %d р.),Raise Dead (every %d rounds)
 Поиск пути,Pathfinding
 Поклониться,Bow
 Полнозвучная симфоническая увертюра,A full-bodied symphonic overture
@@ -1368,6 +1377,7 @@ Helm"
 "👢
 Обувь","👢
 Boots"
+💀 %s поднимает нежить: %s +%d!,💀 %s raises the dead: %s +%d!
 💀 Болотная нежить,💀 Swamp Undead
 💀 Глава 2: Проклятые Топи (Древний Лич и Склепы),💀 Chapter 2: The Cursed Fens (The Ancient Lich and the Crypts)
 💀 Легенда (Кошмар),💀 Legend (Nightmare)
@@ -1393,9 +1403,14 @@ Ring"
 📜 Продолжить поход,📜 Continue the journey
 "📜 Продолжить поход  [%s • Гл. %d, День %d • Ур. %d]","📜 Continue the journey  [%s • Ch. %d, Day %d • Lvl %d]"
 📯 Рог Доблести: всё войско начинает бой на +2 инициативы!,📯 Horn of Valor: the whole army begins the battle at +2 initiative!
+🔥 %s набирает воздух — уведите отряды с отмеченных клеток!,🔥 %s draws breath — move your stacks off the marked tiles!
+🔥 %s под огнём дракона — уходите с отмеченных клеток!,🔥 %s is in the dragon's line of fire — leave the marked tiles!
 🔥 [ОГНЕННОЕ ДЫХАНИЕ]: Струя пламени пробивает строй и поражает %s на %d урона! (Потери: %d),🔥 [FIRE BREATH]: A jet of flame pierces the line and hits %s for %d damage! (Losses: %d)
+🔥 ВДОХ!,🔥 INHALE!
 🔥 Глава 3: Пик Дракона (Огненный Владыка),🔥 Chapter 3: Dragon Peak (The Fire Lord)
 🔥 Огненные стражи (Дракон),🔥 Fire Guardians (Dragon)
+🔥 Огненный шквал бьёт в пустоту — все успели уйти!,🔥 The firestorm scorches empty ground — everyone got clear!
+🔥 Огненный шквал обрушивается на отряды: %d!,🔥 The firestorm engulfs stacks: %d!
 🔮 Око Орла (10 маны),🔮 Eye of the Eagle (10 mana)
 🔮 Сила Магии: %d%s,🔮 Spell Power: %d%s
 🔮 Сила Магии: 3,🔮 Spell Power: 3

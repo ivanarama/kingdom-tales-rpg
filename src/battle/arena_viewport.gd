@@ -8,6 +8,7 @@ var stack_offsets: Dictionary = {} # BattleStack -> Vector2
 var stack_flashes: Dictionary = {} # BattleStack -> float
 var projectiles: Array[Dictionary] = [] # [{pos, end_pos, progress, speed, type, on_hit}]
 var special_effects: Array[Dictionary] = [] # [{type, pos, time, max_time, on_hit}]
+var stack_anchors: Dictionary = {} # BattleStack -> Vector2: центр полоски здоровья (для оверлеев боссов)
 
 var anim_timer: float = 0.0
 
@@ -200,6 +201,10 @@ func _draw() -> void:
 						# Green moss clump
 						draw_circle(center + Vector2(-12, 6), 6.0, Color(0.25, 0.55, 0.2, 0.85))
 				
+	# Способности боссов: клетки огненного шквала, круги рун, знамя
+	if arena.boss != null:
+		arena.boss.draw_ground(self)
+
 	# 2. Draw Target Highlights
 	if arena.pending_spell_id != "":
 		var sdata = SpellData.get_spell(arena.pending_spell_id)
@@ -219,6 +224,7 @@ func _draw() -> void:
 			draw_polyline(points, Color(1.0, 0.2, 0.1, 0.9), 3.0, true)
 		
 	# 3. Draw Living Stacks with Animated Sprites, Badges, and HP Bars
+	stack_anchors.clear()
 	for stack in arena.all_stacks:
 		if not stack.is_alive():
 			continue
@@ -313,11 +319,15 @@ func _draw() -> void:
 		# Health Bar (Top of unit)
 		var hp_bar_pos = center + Vector2(0, -target_h + hex_size * 0.45 - 8.0 + bob_y)
 		_draw_hp_bar(hp_bar_pos, stack.current_hp, stack.data.get("max_hp", 20))
+		stack_anchors[stack] = hp_bar_pos
 
 		# Status pips (active buffs/debuffs at a glance): над цифрами здоровья.
 		# hp_bar_pos уже абсолютная — прибавлять к ней center нельзя, иначе ряд уезжал вниз от отряда.
 		_draw_status_pips(hp_bar_pos + Vector2(0, -STATUS_PIPS_ROW_H * 2.0), stack)
 		
+	if arena.boss != null:
+		arena.boss.draw_overlay(self)
+
 	# 4. Hover Forecast & Broken Arrow Indicator
 	if arena.hovered_target != null and arena.hovered_target.is_alive():
 		var tgt_c = HexGrid.hex_to_pixel(arena.hovered_target.hex.x, arena.hovered_target.hex.y, hex_size, origin)
@@ -435,6 +445,8 @@ func _draw_status_pips(pos: Vector2, stack: BattleStack) -> void:
 		pips.append(Color(0.55, 0.7, 0.2))
 	if stack.debuff_entangle_turns > 0:
 		pips.append(Color(0.55, 0.35, 0.15))
+	if stack.aura_attack > 0:
+		pips.append(Color(0.85, 0.12, 0.1)) # знамя вожака
 	if pips.is_empty():
 		return
 	var n := pips.size()

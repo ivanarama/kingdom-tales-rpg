@@ -30,6 +30,7 @@ var debuff_blind_turns: int = 0
 var debuff_disease_turns: int = 0
 var debuff_entangle_turns: int = 0
 var shield_hp: int = 0 # поглощённый Щитом Света урон
+var aura_attack: int = 0 # прибавка к атаке от знамени союзного вожака (BossMechanics.before_turn)
 
 func setup(p_unit_id: String, p_count: int, p_team: int, p_hex: Vector2i) -> void:
 	unit_id = p_unit_id
@@ -128,6 +129,7 @@ func calculate_attack_damage(target: BattleStack, is_melee: bool, is_broken_arro
 	var att: int = data.get("attack", 4)
 	if debuff_disease_turns > 0:
 		att = maxi(1, int(att * 0.75))
+	att += aura_attack
 	if team == 0:
 		att += GameState.get_total_attack() if GameState.has_method("get_total_attack") else GameState.attack
 	if target.team == 0:
@@ -167,6 +169,7 @@ func get_damage_range(target: BattleStack, is_melee: bool, is_broken_arrow: bool
 	var att: int = data.get("attack", 4)
 	if debuff_disease_turns > 0:
 		att = maxi(1, int(att * 0.75))
+	att += aura_attack
 	if team == 0:
 		att += GameState.get_total_attack() if GameState.has_method("get_total_attack") else GameState.attack
 	if target.team == 0:

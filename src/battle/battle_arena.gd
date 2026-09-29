@@ -81,6 +81,7 @@ var auto_battle_btn: Button
 var defend_btn: Button
 var wait_btn: Button
 var retreat_btn: Button
+var boss: BossMechanics # способности боссов: знамя Атамана, подъём нежити, огненный шквал
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
@@ -245,6 +246,7 @@ func _build_retreat_confirm_dialog() -> void:
 func _init_battle() -> void:
 	all_stacks.clear()
 	obstacles.clear()
+	boss = BossMechanics.new(self)
 	
 	if GameState.is_demo_battle:
 		obstacles = [Vector2i(3, 2), Vector2i(7, 4), Vector2i(5, 5), Vector2i(4, 1)]
@@ -347,6 +349,7 @@ func _start_round() -> void:
 	for stack in all_stacks:
 		if stack.is_alive():
 			stack.reset_round()
+	boss.on_round_start()
 			
 	_rebuild_turn_queue()
 	_next_turn()
@@ -362,6 +365,7 @@ func _rebuild_turn_queue() -> void:
 	_update_initiative_bar()
 
 func _next_turn() -> void:
+	boss.before_turn()
 	hovered_target = null
 	hovered_is_broken = false
 	hovered_forecast.clear()
@@ -416,9 +420,13 @@ func _next_turn() -> void:
 				wait_btn.text = "⏳ Ждать"
 				wait_btn.tooltip_text = "Отложить действие до конца раунда (клавиша W)"
 		var wait_hint = " (Уже ждал)" if current_actor.has_waited else ""
-		log_combat(tr("Ход отряда: %s (%d воинов). [W - Ждать%s, D - Защита, A - Авто, B - Магия]") % [
-			tr(current_actor.data.name), current_actor.count, wait_hint
-		])
+		var fire_hint := boss.turn_hint(current_actor)
+		if fire_hint != "":
+			log_combat(fire_hint)
+		else:
+			log_combat(tr("Ход отряда: %s (%d воинов). [W - Ждать%s, D - Защита, A - Авто, B - Магия]") % [
+				tr(current_actor.data.name), current_actor.count, wait_hint
+			])
 		if is_auto_battling:
 			_execute_auto_turn_for_player()
 
@@ -512,6 +520,13 @@ func _select_ai_target(actor: BattleStack, player_stacks: Array[BattleStack]) ->
 func _handle_ai_turn() -> void:
 	await get_tree().create_timer(0.5).timeout
 	if not current_actor or not current_actor.is_alive():
+		_next_turn()
+		return
+	# Способность босса (вдох или выдох дракона) заменяет обычный ход
+	if boss.plan_turn(current_actor):
+		var actor := current_actor
+		await boss.take_turn(actor)
+		actor.has_acted = true
 		_next_turn()
 		return
 		
@@ -1610,6 +1625,7 @@ func _show_unit_info(stack: BattleStack) -> void:
 		traits.append(tr("Уклонение (%d%% шанс вдвое снизить ближний урон)") % int(round(100.0 * float(stack.data.get("dodge", 0.0)))))
 	if stack.data.get("is_caster", false):
 		traits.append(tr("Колдун (тёмное пламя по густым строям)"))
+	traits.append_array(boss.trait_lines(stack.data))
 	if traits.is_empty():
 		traits.append(tr("Обычные боевые навыки"))
 		
@@ -1628,12 +1644,14 @@ func _show_unit_info(stack: BattleStack) -> void:
 		buffs.append(tr("Опутан корнями (0 скор.)"))
 	if stack.is_defending:
 		buffs.append(tr("Глухая оборона (+30% защ.)"))
+	if stack.aura_attack > 0:
+		buffs.append(tr("Знамя вожака (+%d атк.)") % stack.aura_attack)
 	var buffs_str = ", ".join(buffs) if buffs.size() > 0 else tr("Нет")
 	
 	unit_info_stats.text = tr("%s (%s)\nЧисленность: %d воинов\nЗдоровье верхнего воина: %d / %d HP\nВсего здоровья отряда: %d HP\n\nАтака: %d | Защита: %d\nУрон: %d-%d\nСкорость: %d | Инициатива: %d\n\nОсобенности: %s\nАктивные эффекты: %s") % [
 		tr(stack.data.name), team_name, stack.count,
 		stack.current_hp, max_hp, total_pool,
-		stack.data.get("attack", 4), stack.get_defense(),
+		int(stack.data.get("attack", 4)) + stack.aura_attack, stack.get_defense(),
 		stack.data.get("min_dmg", 3), stack.data.get("max_dmg", 6),
 		stack.get_speed(), stack.get_initiative(),
 		", ".join(traits), buffs_str

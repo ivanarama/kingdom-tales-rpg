@@ -29,8 +29,9 @@
 	"bandit_boss": {
 		"log": "Логово Главаря Разбойников! Атаман и его приспешники идут в атаку!",
 		"enemies": [
-			{"unit": "goblin", "count": 35, "hex": [10, 1]},
-			{"unit": "wolf", "count": 18, "hex": [10, 3]},
+			{"unit": "goblin", "count": 30, "hex": [10, 1]},
+			{"unit": "wolf", "count": 18, "hex": [9, 3]},
+			{"unit": "bandit_chief", "count": 1, "hex": [10, 3]},
 			{"unit": "treant", "count": 5, "hex": [10, 5]}
 		]
 	},
