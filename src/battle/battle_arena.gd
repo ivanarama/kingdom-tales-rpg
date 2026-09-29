@@ -93,6 +93,7 @@ const BOSS_BATTLE_MUSIC := {
 
 static func battle_music_for(battle_id: String) -> String:
 	return BOSS_BATTLE_MUSIC.get(battle_id, BATTLE_MUSIC)
+const FIREBALL_SPLASH := 0.5 # доля урона огненного шара по соседним с целью вражеским отрядам
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
@@ -927,9 +928,24 @@ func _execute_spell(spell_id: String, target_stack: BattleStack) -> void:
 					battle_stats["dealt"] += int(res["damage"]) + int(res.get("absorbed", 0))
 					battle_stats["enemy_losses"] += int(res["casualties"])
 				_spawn_floating_text(target_stack.hex, tr("ОГОНЬ -%d") % res.damage, Color(1.0, 0.4, 0.1))
-				log_combat(tr("Аларик сокрушает %s Огненным Шаром! Урон: %d (Потери: %d)") % [
-					tr(target_stack.data.name), res.damage, res.casualties
+				log_combat(tr("%s сокрушает %s Огненным Шаром! Урон: %d (Потери: %d)") % [
+					tr(GameState.hero_name), tr(target_stack.data.name), res.damage, res.casualties
 				])
+				# Пламя перекидывается на соседние отряды той же стороны — свои под удар не попадают
+				var splash_hits := 0
+				for s in all_stacks:
+					if s == target_stack or not s.is_alive() or s.team != target_stack.team or HexGrid.distance(s.hex, target_stack.hex) != 1:
+						continue
+					var sres: Dictionary = s.take_damage(int(dmg * FIREBALL_SPLASH))
+					if s.team == 1:
+						battle_stats["dealt"] += int(sres["damage"]) + int(sres.get("absorbed", 0))
+						battle_stats["enemy_losses"] += int(sres["casualties"])
+					arena_viewport.flash_stack(s)
+					arena_viewport.spawn_holy_halo(HexGrid.hex_to_pixel(s.hex.x, s.hex.y, HEX_SIZE, grid_origin), Color(1.0, 0.5, 0.1))
+					_spawn_floating_text(s.hex, tr("ОГОНЬ -%d") % int(sres["damage"]), Color(1.0, 0.55, 0.15))
+					splash_hits += 1
+				if splash_hits > 0:
+					log_combat(tr("🔥 Пламя перекидывается на соседние отряды: %d") % splash_hits)
 				arena_viewport.queue_redraw()
 				fb_hit = true
 				_check_battle_end()

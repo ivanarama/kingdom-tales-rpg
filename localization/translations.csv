@@ -72,6 +72,7 @@ Active effects: %s"
 %s покрыт каменной броней (+5 к Защите на 3 раунда)!,%s is clad in stone hide (+5 Defense for 3 rounds)!
 %s получает ускорение (+3 к скорости)!,%s is hasted (+3 Speed)!
 %s скован леденящим инеем (скорость снижена на 50%% на 3 раунда)!,%s is bound by freezing frost (Speed halved for 3 rounds)!
+%s сокрушает %s Огненным Шаром! Урон: %d (Потери: %d),%s crushes %s with a Fireball! Damage: %d (Losses: %d)
 %s: %d воинов,%s: %d warriors
 01. Сад Волшебницы (HoMM2),01. The Sorceress's Garden (HoMM2)
 02. Замок Рыцаря (HoMM2),02. The Knight's Castle (HoMM2)
@@ -809,6 +810,7 @@ You need the Gate Key! (Visit the Forester's Hut in the south)."
 ОТРЯД,STACK
 Оборона,Defend
 "Обрушивает пылающую сферу на вражеский отряд, нанося 50 ед. урона (+14 за каждую Силу Магии).","Hurls a blazing sphere at an enemy stack, dealing 50 damage (+14 per point of Spell Power)."
+"Обрушивает пылающую сферу на вражеский отряд, нанося 50 ед. урона (+14 за каждую Силу Магии); соседние с ним вражеские отряды получают половину.","Hurls a blazing sphere at an enemy stack, dealing 50 damage (+14 per Spell Power); enemy stacks next to it take half."
 Обувь,Boots
 Общая громкость:,Master volume:
 Объединить одинаковые отряды,Merge identical stacks
@@ -1411,6 +1413,7 @@ Ring"
 🔥 Огненные стражи (Дракон),🔥 Fire Guardians (Dragon)
 🔥 Огненный шквал бьёт в пустоту — все успели уйти!,🔥 The firestorm scorches empty ground — everyone got clear!
 🔥 Огненный шквал обрушивается на отряды: %d!,🔥 The firestorm engulfs stacks: %d!
+🔥 Пламя перекидывается на соседние отряды: %d,🔥 The flames leap to neighbouring stacks: %d
 🔮 Око Орла (10 маны),🔮 Eye of the Eagle (10 mana)
 🔮 Сила Магии: %d%s,🔮 Spell Power: %d%s
 🔮 Сила Магии: 3,🔮 Spell Power: 3

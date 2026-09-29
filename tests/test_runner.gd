@@ -1654,8 +1654,39 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Fog of war fades softly at its edges and stays opaque inside!")
 
+	# 59. Огненный шар бьёт по площади: соседние вражеские отряды — вполсилы, свои не задеты
+	print("[TEST] 59. Testing Fireball Splash...")
+	GameState.reset()
+	var fb_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(fb_arena)
+	await get_tree().process_frame
+	var fb_target := BattleStack.new()
+	fb_target.setup("goblin", 20, 1, Vector2i(6, 3))
+	var fb_next := BattleStack.new()
+	fb_next.setup("wolf", 10, 1, Vector2i(7, 3))
+	var fb_far := BattleStack.new()
+	fb_far.setup("wolf", 10, 1, Vector2i(9, 1))
+	var fb_mine := BattleStack.new()
+	fb_mine.setup("griffin", 6, 0, Vector2i(5, 3))
+	var fb_field: Array[BattleStack] = [fb_target, fb_next, fb_far, fb_mine]
+	fb_arena.all_stacks = fb_field
+	var fb_before := {}
+	for fb_st in fb_field:
+		fb_before[fb_st] = _fb_pool(fb_st)
+	GameState.current_mana = GameState.max_mana
+	await fb_arena._execute_spell("fireball", fb_target)
+	var fb_main: int = fb_before[fb_target] - _fb_pool(fb_target)
+	var fb_splash: int = fb_before[fb_next] - _fb_pool(fb_next)
+	assert(fb_main > 0 and fb_splash > 0, "Fireball must hurt the target and its enemy neighbour")
+	assert(absi(fb_splash - int(fb_main * fb_arena.FIREBALL_SPLASH)) <= 1, "The neighbour takes half of the blast")
+	assert(_fb_pool(fb_far) == fb_before[fb_far], "A distant enemy stack is untouched")
+	assert(_fb_pool(fb_mine) == fb_before[fb_mine], "Own stacks next to the target are never burned")
+	fb_arena.queue_free()
+	GameState.reset()
+	print("  -> Fireball splashes onto neighbouring enemy stacks!")
+
 	print("\n==========================================")
-	print("   ALL 58 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 59 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -1718,4 +1749,7 @@ func _boss_find(ba, unit_id: String) -> BattleStack:
 	return null
 
 func _boss_pool(st: BattleStack) -> int:
+	return (st.count - 1) * int(st.data["max_hp"]) + st.current_hp
+
+func _fb_pool(st: BattleStack) -> int:
 	return (st.count - 1) * int(st.data["max_hp"]) + st.current_hp
