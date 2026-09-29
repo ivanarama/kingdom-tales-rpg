@@ -116,6 +116,7 @@ static var UNITS: Dictionary = {
 		"is_ranged": false,
 		"flying": false,
 		"unlimited_retaliation": false,
+		"pack_hunter": true,
 		"natural_faces_left": true,
 		"token_path": "res://assets/art/ui/tokens/token_unit_wolf.png",
 		"sprite_path": "res://assets/art/units/unit_wolf.png",
@@ -135,6 +136,7 @@ static var UNITS: Dictionary = {
 		"is_ranged": false,
 		"flying": false,
 		"unlimited_retaliation": false,
+		"cowardly": true,
 		"natural_faces_left": true,
 		"token_path": "res://assets/art/ui/tokens/token_unit_goblin.png",
 		"sprite_path": "res://assets/art/units/unit_goblin.png",
@@ -154,6 +156,7 @@ static var UNITS: Dictionary = {
 		"is_ranged": true,
 		"flying": false,
 		"unlimited_retaliation": false,
+		"ranged_resist": 0.25,
 		"natural_faces_left": false,
 		"token_path": "res://assets/art/ui/tokens/token_unit_skeleton_archer.png",
 		"sprite_path": "res://assets/art/units/unit_skeleton_archer.png",
@@ -195,6 +198,7 @@ static var UNITS: Dictionary = {
 		"is_ranged": true,
 		"flying": false,
 		"unlimited_retaliation": false,
+		"no_range_penalty": true,
 		"natural_faces_left": false,
 		"token_path": "res://assets/art/ui/tokens/token_unit_druid.png",
 		"sprite_path": "res://assets/art/units/unit_druid.png",
@@ -278,6 +282,7 @@ static var UNITS: Dictionary = {
 		"is_ranged": false,
 		"flying": true,
 		"unlimited_retaliation": false,
+		"no_retaliation": true,
 		"natural_faces_left": false,
 		"token_path": "res://assets/art/ui/tokens/token_unit_pegasus.png",
 		"sprite_path": "res://assets/art/units/unit_pegasus.png",
@@ -334,6 +339,17 @@ static func _t(text: String) -> String:
 static func get_trait_string(id: String) -> String:
 	var u := get_unit(id)
 	var traits: Array[String] = []
+	# Особые способности — первыми, чтобы их было видно в кодексе
+	if u.get("pack_hunter", false):
+		traits.append(_t("Стая"))
+	if u.get("cowardly", false):
+		traits.append(_t("Трусоватые"))
+	if float(u.get("ranged_resist", 0.0)) > 0.0:
+		traits.append(_t("Кости"))
+	if u.get("no_range_penalty", false):
+		traits.append(_t("Молния природы"))
+	if u.get("no_retaliation", false):
+		traits.append(_t("Стремительный налёт"))
 	if u.get("is_ranged", false):
 		traits.append(_t("Стрелок"))
 	if u.get("flying", false):
