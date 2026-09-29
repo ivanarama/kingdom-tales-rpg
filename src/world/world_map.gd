@@ -711,6 +711,9 @@ func _trigger_object(obj: Dictionary) -> void:
 					for conn in popup_btn2.pressed.get_connections():
 						popup_btn2.pressed.disconnect(conn.callable)
 					popup_btn2.pressed.connect(func():
+						if not GameState.can_add_units("fox_shifter"):
+							_show_army_full_popup()
+							return
 						if GameState.spend_gold(avail_fx * fx_cost):
 							SoundManager.play_sfx("coin")
 							GameState.dwelling_stock["forester_fox"] -= avail_fx
@@ -806,6 +809,9 @@ func _trigger_object(obj: Dictionary) -> void:
 					popup_text.text += "\n\n" + tr("В наличии: %d страж(а) (по %d золота). Казна: %d.") % [avail_sg, sg_cost, GameState.gold]
 					popup_btn1.text = tr("Нанять Каменного Стража (%d зол.)") % sg_cost
 					popup_btn1.pressed.connect(func():
+						if not GameState.can_add_units("stone_guardian"):
+							_show_army_full_popup()
+							return
 						if GameState.spend_gold(sg_cost):
 							SoundManager.play_sfx("coin")
 							GameState.dwelling_stock["obelisk_guard"] -= 1
@@ -844,6 +850,9 @@ func _trigger_object(obj: Dictionary) -> void:
 					for conn in popup_btn2.pressed.get_connections():
 						popup_btn2.pressed.disconnect(conn.callable)
 					popup_btn2.pressed.connect(func():
+						if not GameState.can_add_units("royal_pegasus"):
+							_show_army_full_popup()
+							return
 						if GameState.spend_gold(avail_pg * pg_cost):
 							SoundManager.play_sfx("coin")
 							GameState.dwelling_stock["shrine_pegasus"] -= avail_pg
@@ -858,8 +867,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				SoundManager.play_sfx("victory")
 				GameState.add_gold(2000)
 				GameState.add_xp(2000)
-				GameState.add_units_to_army("griffin", 8)
-				GameState.add_units_to_army("royal_pegasus", 4)
+				var ch1_granted := [GameState.grant_units("griffin", 8), GameState.grant_units("royal_pegasus", 4)]
 				GameState.quest_completed = true
 				GameState.unlock_feat("ch1_done")
 				_update_hud()
@@ -869,6 +877,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				victory_text.text = tr("Королева Фей со слезами радости принимает священный Венец из рук сэра Аларика!\n\nИзумрудный свет озаряет древний лес, рассеивая последние чары тьмы. Но тревожные вести приходят из Топей Скорби: Древний Лич поднимает армии нежити!\n\n★ ИТОГИ ГЛАВЫ 1: ★\n• Дней в походе: %d\n• Золото в казне: %d монет\n• Уровень Героя: %d (%s)\n• Награда Королевы: 8 Королевских Грифонов!\n\nГотовы ли вы выступить во вторую главу кампании?") % [
 					GameState.day, GameState.gold, GameState.level, tr(GameState.hero_title)
 				]
+				victory_text.text += _granted_note(ch1_granted)
 				victory_continue_btn.text = "⚔ В поход: Глава 2 (Проклятые Топи) ⚔"
 				victory_dialog.move_to_front()
 				victory_dialog.show()
@@ -1064,7 +1073,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				SoundManager.play_sfx("victory")
 				GameState.add_gold(3000)
 				GameState.add_xp(3000)
-				GameState.add_units_to_army("druid", 8)
+				var ch2_granted := [GameState.grant_units("druid", 8)]
 				GameState.quest_completed = true
 				GameState.unlock_feat("ch2_done")
 				_update_hud()
@@ -1073,6 +1082,7 @@ func _trigger_object(obj: Dictionary) -> void:
 				victory_text.text = tr("Древний Лич развеян в прах, и животворный свет возвращается в болота!\n\n★ ИТОГИ ГЛАВЫ 2: ★\n• Дней в походе: %d\n• Золото в казне: %d монет\n• Уровень Героя: %d\n• Награда: Перстень Архимага и отряд Друидов!\n\nГорные вестники приносят тревожную весть: на Пике Дракона пробудился древний властелин огня!") % [
 					GameState.day, GameState.gold, GameState.level
 				]
+				victory_text.text += _granted_note(ch2_granted)
 				victory_continue_btn.text = "⚔ В поход: Глава 3 (Пик Дракона) ⚔"
 				victory_dialog.show()
 				return
@@ -1258,6 +1268,20 @@ func _show_army_full_popup() -> void:
 	popup_btn1.pressed.connect(func(): popup_dialog.hide())
 	popup_btn2.visible = false
 	_show_popup_dialog()
+
+## Пояснение к подаренным отрядам, если они не встали в войско своим стеком (GameState.grant_units).
+func _granted_note(results: Array) -> String:
+	var lines: Array[String] = []
+	for r in results:
+		if not (r is Dictionary) or r.is_empty():
+			continue
+		var from_name := tr(str(UnitData.get_unit(str(r.get("from", ""))).get("name", "")))
+		var into: String = str(r.get("unit_id", ""))
+		if int(r.get("gold", 0)) > 0:
+			lines.append(tr("Отряду «%s» не нашлось места в войске — вместо него казна получает %d золота.") % [from_name, int(r["gold"])])
+		elif into != "" and into != str(r.get("from", "")):
+			lines.append(tr("%s влились в отряд «%s».") % [from_name, tr(str(UnitData.get_unit(into).get("name", "")))])
+	return "" if lines.is_empty() else "\n\n" + "\n".join(lines)
 
 ## Сила армии для быстрого боя по квадратичному закону Ланчестера (PR #4).
 func _army_power(army: Array, is_player: bool) -> float:
@@ -1530,7 +1554,7 @@ func _show_astrologers_popup(ev: Dictionary) -> void:
 	for conn in popup_btn2.pressed.get_connections():
 		popup_btn2.pressed.disconnect(conn.callable)
 	popup_title.text = "📜 АСТРОЛОГИ ОБЪЯВЛЯЮТ... 📜"
-	popup_text.text = ev.get("description", "")
+	popup_text.text = tr(ev.get("description", "")) + _granted_note([ev.get("granted", {})])
 	popup_btn1.text = "Да будет так!"
 	popup_btn1.pressed.connect(func(): popup_dialog.hide())
 	_show_popup_dialog()
@@ -2599,6 +2623,9 @@ func _open_dwelling_popup(obj_id: String) -> void:
 	else:
 		popup_btn1.text = tr(str(reg.get("hire_btn", ""))) % [max_can_buy, max_can_buy * cost]
 		popup_btn1.pressed.connect(func():
+			if not GameState.can_add_units(str(reg.get("unit", ""))):
+				_show_army_full_popup()
+				return
 			if GameState.spend_gold(max_can_buy * cost):
 				SoundManager.play_sfx("coin")
 				GameState.dwelling_stock[str(reg.get("stock_key", ""))] -= max_can_buy
