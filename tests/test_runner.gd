@@ -2112,8 +2112,78 @@ func _ready() -> void:
 	assert(GameState.veteran_wins.is_empty(), "A new game starts without veterans")
 	print("  -> Veteran regiments earn ranks, fight better and survive saves and upgrades!")
 
+	# 70. Сказочные встречи на карте и побочный квест «Овечка Белянка»
+	print("[TEST] 70. Testing Map Events & the Lost Sheep Side Quest...")
+	var me_all: Dictionary = MapEventData.get_all()
+	assert(me_all.size() > 5, "Map events must load from data/map_events.json")
+	for me_id in me_all:
+		if not (me_all[me_id] is Dictionary):
+			continue
+		var me_d: Dictionary = me_all[me_id]
+		var me_choices: Array = me_d.get("choices", [])
+		assert(str(me_d.get("title", "")) != "" and str(me_d.get("text", "")) != "" and me_choices.size() >= 1 and me_choices.size() <= 2, "Event %s needs a title, text and 1-2 choices" % me_id)
+		for me_c in me_choices:
+			assert(str(me_c.get("label", "")) != "" and str(me_c.get("result", "")) != "", "Every choice of %s needs a label and a result" % me_id)
+	for me_ch in [1, 2, 3]:
+		GameState.reset()
+		GameState.start_chapter(me_ch)
+		GameState.flags["chapter_intro_seen_%d" % me_ch] = true
+		var me_wm = load("res://src/world/world_map.tscn").instantiate()
+		add_child(me_wm)
+		await get_tree().process_frame
+		var me_visible: Array[Dictionary] = MapEventData.visible_for_chapter(me_ch, GameState.flags)
+		assert(me_visible.size() >= 2, "Chapter %d must have map events" % me_ch)
+		for me_ev in me_visible:
+			assert(me_wm.world_view.objects.get(me_ev["cell"], {}).get("id", "") == me_ev["id"], "Event %s must stand on its own free, passable cell" % me_ev["id"])
+		me_wm.queue_free()
+		await get_tree().process_frame
+	# Эффекты: золото, характеристики, очки хода (не ниже нуля)
+	GameState.reset()
+	var me_att: int = GameState.attack
+	var me_gold: int = GameState.gold
+	GameState.move_points = 2
+	var me_lines: Array[String] = GameState.apply_event_effects({"gold": -100, "attack": 1, "move_points": -3})
+	assert(GameState.gold == me_gold - 100 and GameState.attack == me_att + 1 and GameState.move_points == 0, "Event effects change gold, stats and movement (never below zero)")
+	assert(me_lines.size() == 3 and me_lines[0].contains("-100"), "Every effect is listed in the result")
+	# Цепочка квеста: просьба -> овечка на карте -> благодарность -> награда один раз
+	GameState.reset()
+	GameState.start_chapter(1)
+	GameState.flags["chapter_intro_seen_1"] = true
+	var me_map = load("res://src/world/world_map.tscn").instantiate()
+	add_child(me_map)
+	await get_tree().process_frame
+	var me_objs: Dictionary = me_map.world_view.objects
+	var me_shep := Vector2i(2, 10)
+	var me_sheep := Vector2i(12, 19)
+	assert(me_objs.get(me_shep, {}).get("id", "") == "ch1_shepherd" and not me_objs.has(me_sheep), "At first only the shepherdess asks for help")
+	me_map._trigger_object(me_objs[me_shep])
+	assert(me_map.popup_title.text == tr("Пастушка Мила") and me_map.popup_btn2.visible, "The shepherdess offers two choices")
+	me_map.popup_btn2.emit_signal("pressed")
+	assert(me_objs.get(me_shep, {}).get("id", "") == "ch1_shepherd", "'Later' keeps the shepherdess waiting")
+	me_map._trigger_object(me_objs[me_shep])
+	me_map.popup_btn1.emit_signal("pressed")
+	assert(GameState.flags.get("sheep_quest", false) and me_objs.get(me_sheep, {}).get("id", "") == "ch1_lost_sheep", "Accepting the quest puts the lost sheep on the map")
+	assert(me_objs.get(me_shep, {}).get("id", "") == "ch1_shepherd_wait", "The shepherdess waits for news")
+	me_map._trigger_object(me_objs[me_sheep])
+	me_map.popup_btn1.emit_signal("pressed")
+	assert(not me_objs.has(me_sheep) and me_objs.get(me_shep, {}).get("id", "") == "ch1_shepherd_thanks", "Found sheep: the shepherdess waits to thank the hero")
+	var me_gold2: int = GameState.gold
+	me_map._trigger_object(me_objs[me_shep])
+	me_map.popup_btn1.emit_signal("pressed")
+	assert(GameState.gold == me_gold2 + 300 and not me_objs.has(me_shep), "The reward is paid once and the quest leaves the map")
+	# Платный выбор без денег ничего не делает, встреча остаётся
+	GameState.gold = 0
+	var me_minstrel := Vector2i(28, 8)
+	me_map._trigger_object(me_objs[me_minstrel])
+	me_map.popup_btn1.emit_signal("pressed")
+	assert(GameState.gold == 0 and not GameState.flags.get("ch1_minstrel", false) and me_objs.has(me_minstrel), "Without gold the paid choice does nothing and the minstrel stays")
+	me_map.queue_free()
+	await get_tree().process_frame
+	GameState.reset()
+	print("  -> Map events stand on their cells, choices apply once, the Lost Sheep quest runs to its end!")
+
 	print("\n==========================================")
-	print("   ALL 69 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 70 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame

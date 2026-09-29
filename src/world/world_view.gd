@@ -103,6 +103,7 @@ func _load_textures() -> void:
 	icons["obelisk"] = load("res://assets/art/world/icon_artifact.png")
 	icons["merchant"] = load("res://assets/art/world/icon_artifact.png")
 	icons["fairy_shrine"] = load("res://assets/art/world/icon_quest.png")
+	icons["event"] = load("res://assets/art/world/icon_quest.png")
 	
 	# Chapter 2 & 3 aliases
 	icons["witch_hut"] = icons["forester"]
@@ -185,6 +186,18 @@ func _generate_map_layout() -> void:
 			_generate_chapter3_layout()
 		_:
 			_generate_chapter1_layout()
+	place_map_events()
+
+## Сказочные встречи из data/map_events.json: стоят на карте, пока не сделан выбор.
+## Вызывается и после выбора — цепочки квестов открывают следующий шаг.
+func place_map_events() -> void:
+	for c in objects.keys():
+		if objects[c].get("type", "") == "event":
+			objects.erase(c)
+	for ev in MapEventData.visible_for_chapter(GameState.current_chapter, GameState.flags):
+		var cell: Vector2i = ev["cell"]
+		if not objects.has(cell) and is_passable(cell):
+			objects[cell] = ev
 
 func _generate_chapter1_layout() -> void:
 	# 1. Outer dense perimeter
