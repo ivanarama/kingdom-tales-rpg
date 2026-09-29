@@ -95,6 +95,44 @@ static func battle_music_for(battle_id: String) -> String:
 	return BOSS_BATTLE_MUSIC.get(battle_id, BATTLE_MUSIC)
 const FIREBALL_SPLASH := 0.5 # доля урона огненного шара по соседним с целью вражеским отрядам
 
+## Раскладки препятствий по главам (пни, надгробия, обсидиан). Первая — прежняя.
+## Колонки 0 и 10 — места расстановки войск, поэтому препятствия только в 2..8.
+const OBSTACLE_LAYOUTS := {
+	1: [
+		[Vector2i(3, 2), Vector2i(7, 4), Vector2i(5, 5), Vector2i(4, 1)],
+		[Vector2i(4, 2), Vector2i(5, 2), Vector2i(6, 4), Vector2i(3, 5), Vector2i(7, 1)],
+		[Vector2i(2, 3), Vector2i(5, 3), Vector2i(8, 3), Vector2i(4, 5), Vector2i(6, 1)],
+	],
+	2: [
+		[Vector2i(4, 2), Vector2i(6, 4), Vector2i(3, 4), Vector2i(7, 2), Vector2i(5, 6)],
+		[Vector2i(3, 1), Vector2i(5, 3), Vector2i(7, 5), Vector2i(4, 5), Vector2i(6, 1)],
+		[Vector2i(4, 3), Vector2i(5, 3), Vector2i(6, 3), Vector2i(3, 6), Vector2i(7, 0)],
+	],
+	3: [
+		[Vector2i(4, 1), Vector2i(6, 5), Vector2i(5, 3), Vector2i(3, 3), Vector2i(7, 3)],
+		[Vector2i(3, 2), Vector2i(4, 4), Vector2i(6, 2), Vector2i(7, 4), Vector2i(5, 6)],
+		[Vector2i(5, 1), Vector2i(5, 2), Vector2i(4, 4), Vector2i(6, 4), Vector2i(2, 5), Vector2i(8, 1)],
+	],
+}
+## Поля боссов: частокол у лагеря Атамана, полукруг могил в склепе Лича, скалы у кратера.
+const BOSS_OBSTACLES := {
+	"bandit_boss": [Vector2i(7, 1), Vector2i(7, 2), Vector2i(8, 4), Vector2i(8, 5), Vector2i(4, 3)],
+	"lich_boss": [Vector2i(6, 1), Vector2i(5, 2), Vector2i(4, 4), Vector2i(5, 5), Vector2i(7, 5)],
+	"dragon_boss": [Vector2i(4, 2), Vector2i(6, 1), Vector2i(7, 3), Vector2i(6, 5), Vector2i(3, 5)],
+}
+
+## Препятствия боя: у босса своя раскладка, у остальных — одна из раскладок главы,
+## выбранная по id встречи (одна и та же встреча всегда выглядит одинаково).
+static func obstacle_layout(battle_id: String, chapter: int) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if BOSS_OBSTACLES.has(battle_id):
+		result.assign(BOSS_OBSTACLES[battle_id])
+		return result
+	var layouts: Array = OBSTACLE_LAYOUTS.get(chapter, OBSTACLE_LAYOUTS[1])
+	var idx := 0 if battle_id == "" else absi(battle_id.hash()) % layouts.size()
+	result.assign(layouts[idx])
+	return result
+
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
 
@@ -289,16 +327,8 @@ func _init_battle() -> void:
 		log_combat(tr("⚔️ Демонстрационный бой [%s]: %s!") % [GameState.demo_difficulty_title, GameState.demo_encounter_title])
 		return
 
-	# Chapter-specific obstacles
-	match GameState.current_chapter:
-		1:
-			obstacles = [Vector2i(3, 2), Vector2i(7, 4), Vector2i(5, 5), Vector2i(4, 1)]
-		2:
-			obstacles = [Vector2i(4, 2), Vector2i(6, 4), Vector2i(3, 4), Vector2i(7, 2), Vector2i(5, 6)]
-		3:
-			obstacles = [Vector2i(4, 1), Vector2i(6, 5), Vector2i(5, 3), Vector2i(3, 3), Vector2i(7, 3)]
-		_:
-			obstacles = [Vector2i(3, 2), Vector2i(7, 4), Vector2i(5, 5), Vector2i(4, 1)]
+	# Препятствия: у главы несколько раскладок, у боссов — свои
+	obstacles = obstacle_layout(GameState.pending_battle_id, GameState.current_chapter)
 	
 	# 1. Setup Player Stacks (support up to 5 stacks from army / split slots)
 	var player_army = GameState.player_army

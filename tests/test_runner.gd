@@ -1685,8 +1685,38 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Fireball splashes onto neighbouring enemy stacks!")
 
+	# 60. Поле боя: у глав несколько раскладок препятствий, у боссов — свои
+	print("[TEST] 60. Testing Battlefield Obstacle Layouts...")
+	var lay_bounds := Rect2i(0, 0, BattleArena.GRID_COLS, BattleArena.GRID_ROWS)
+	var lay_all: Array = []
+	for lay_ch in BattleArena.OBSTACLE_LAYOUTS:
+		lay_all.append_array(BattleArena.OBSTACLE_LAYOUTS[lay_ch])
+	lay_all.append_array(BattleArena.BOSS_OBSTACLES.values())
+	for lay in lay_all:
+		var lay_typed: Array[Vector2i] = []
+		lay_typed.assign(lay)
+		var lay_seen := {}
+		for lay_h in lay_typed:
+			assert(HexGrid.is_in_bounds(lay_h, lay_bounds) and lay_h.x >= 2 and lay_h.x <= 8, "Obstacle %s must stay off the deployment columns" % lay_h)
+			assert(not lay_seen.has(lay_h), "Duplicate obstacle %s" % lay_h)
+			lay_seen[lay_h] = true
+		# с любой клетки расстановки игрока можно дойти до любой клетки врага
+		for lay_r in range(1, 6):
+			var lay_reach := HexGrid.get_reachable_hexes(Vector2i(0, lay_r), 40, lay_typed, lay_bounds)
+			for lay_r2 in range(1, 6):
+				assert(lay_reach.has(Vector2i(10, lay_r2)), "Obstacle layout must not cut the field in two")
+	assert(BattleArena.obstacle_layout("patrol_wolves", 1) == BattleArena.obstacle_layout("patrol_wolves", 1), "The same encounter always gets the same field")
+	var lay_variants := {}
+	for lay_id in ["patrol_wolves", "patrol_goblins", "patrol_forester", "patrol_grove", "patrol_1", "patrol_rogues", "patrol_obelisk", "patrol_2"]:
+		lay_variants[str(BattleArena.obstacle_layout(lay_id, 1))] = true
+	assert(lay_variants.size() >= 2, "Chapter 1 battles must not all share one field")
+	var lay_lich: Array[Vector2i] = []
+	lay_lich.assign(BattleArena.BOSS_OBSTACLES["lich_boss"])
+	assert(BattleArena.obstacle_layout("lich_boss", 2) == lay_lich, "Bosses have their own field")
+	print("  -> Battlefields vary by encounter, bosses have their own, no layout blocks the way!")
+
 	print("\n==========================================")
-	print("   ALL 59 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 60 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
