@@ -161,15 +161,18 @@ func _raise_dead(lich: BattleStack) -> void:
 	])
 
 ## Ближайшая к origin свободная клетка поля; (-1, -1), если мест нет.
+## Перебор — по соседству origin с проверкой is_in_bounds, поэтому форма поля
+## (параллелограмм или прямоугольник) не важна.
 func _free_hex_near(origin: Vector2i) -> Vector2i:
 	var best := Vector2i(-1, -1)
 	var best_dist := 1 << 30
 	var b: Rect2i = arena.field_bounds
-	for r in range(b.position.y, b.end.y):
-		for q in range(b.position.x, b.end.x):
+	var reach: int = b.size.x + b.size.y
+	for r in range(origin.y - reach, origin.y + reach + 1):
+		for q in range(origin.x - reach, origin.x + reach + 1):
 			var h := Vector2i(q, r)
 			var d := HexGrid.distance(origin, h)
-			if d == 0 or d >= best_dist or arena.obstacles.has(h) or _stack_at(h) != null:
+			if d == 0 or d >= best_dist or not HexGrid.is_in_bounds(h, b) or arena.obstacles.has(h) or _stack_at(h) != null:
 				continue
 			best = h
 			best_dist = d

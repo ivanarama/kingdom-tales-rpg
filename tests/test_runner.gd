@@ -1409,7 +1409,7 @@ func _ready() -> void:
 	assert(cone.size() == 7, "Firestorm cone of length 3 must cover 1 + 3 + 3 tiles")
 	for cone_hex in [Vector2i(4, 3), Vector2i(3, 3), Vector2i(3, 4), Vector2i(4, 2), Vector2i(2, 3), Vector2i(2, 4), Vector2i(3, 2)]:
 		assert(cone.has(cone_hex), "Cone west of (5, 3) must cover %s" % cone_hex)
-	assert(BossMechanics.cone_cells(Vector2i(0, 3), Vector2i(-1, 0), 3, Rect2i(0, 0, 11, 7)).is_empty(), "Cone past the field edge must be empty")
+	assert(BossMechanics.cone_cells(Vector2i(0, 0), Vector2i(-1, 0), 3, Rect2i(0, 0, 11, 7)).is_empty(), "Cone past the field edge must be empty")
 	assert(BossMechanics.is_firestorm_round(2) and BossMechanics.is_firestorm_round(5), "Dragon inhales in rounds 2 and 5")
 	assert(not BossMechanics.is_firestorm_round(1) and not BossMechanics.is_firestorm_round(3), "No inhale in rounds 1 and 3")
 
