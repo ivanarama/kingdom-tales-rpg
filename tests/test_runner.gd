@@ -1925,8 +1925,66 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Full army: hiring keeps the gold, gifted units join or are paid out!")
 
+	# 67. Удача и боевой дух врага — только на высокой сложности; Воодушевление удваивает боевой дух
+	print("[TEST] 67. Testing Enemy Luck & Morale on Hard Difficulties...")
+	for ef_diff in ["easy", "normal"]:
+		var ef_calm: Dictionary = GameState.get_enemy_fortune(ef_diff)
+		assert(float(ef_calm["luck"]) == 0.0 and float(ef_calm["morale"]) == 0.0, "%s stays cozy: no enemy luck or morale" % ef_diff)
+	assert(float(GameState.get_enemy_fortune("legendary")["morale"]) > float(GameState.get_enemy_fortune("hard")["morale"]), "Legendary is harsher than hard")
+	GameState.reset()
+	GameState.campaign_difficulty = "hard"
+	GameState.player_army = [{"unit_id": "griffin", "count": 10}]
+	GameState.pending_battle_id = "patrol_goblins"
+	var ef_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(ef_arena)
+	await get_tree().process_frame
+	var ef_gr: BattleStack = ef_arena.all_stacks[0]
+	var ef_foe: BattleStack = null
+	for ef_s in ef_arena.all_stacks:
+		if ef_s.team == 1:
+			ef_foe = ef_s
+			break
+	assert(ef_arena._roll_luck(ef_foe, 0.0) and ef_arena._roll_luck(ef_gr, 0.0), "Hard: the enemy can be lucky too")
+	var ef_morale: float = 0.05 + 0.10 * GameState.get_skill_level("leadership")
+	assert(is_equal_approx(ef_arena.morale_chance(ef_gr), ef_morale), "Hero morale: 5% + 10% per Leadership level")
+	ef_gr.buff_inspiration_turns = 2
+	assert(is_equal_approx(ef_arena.morale_chance(ef_gr), ef_morale * 2.0), "Inspiration doubles the morale chance")
+	ef_gr.buff_inspiration_turns = 0
+	# Боевой дух врага: ИИ сразу использует дополнительный ход
+	ef_foe.hex = ef_gr.hex + Vector2i(1, 0)
+	ef_arena.current_actor = ef_foe
+	ef_arena.is_ai_turn = true
+	ef_foe.has_acted = true
+	var ef_pool := func(st: BattleStack) -> int: return (st.count - 1) * int(st.data["max_hp"]) + st.current_hp
+	var ef_hp_before: int = ef_pool.call(ef_gr)
+	assert(ef_arena._try_morale(ef_foe, 0.0), "Hard: enemy morale grants an extra move")
+	assert(not ef_foe.has_acted and ef_foe.had_morale_this_round, "The extra move is granted once per round")
+	var ef_wait := 0.0
+	while ef_wait < 3.0 and ef_pool.call(ef_gr) == ef_hp_before:
+		await get_tree().process_frame
+		ef_wait += get_process_delta_time()
+	assert(ef_pool.call(ef_gr) < ef_hp_before, "The AI uses the extra move right away instead of stalling")
+	# Уют: на «Воителе» у врага нет ни удачи, ни боевого духа
+	GameState.campaign_difficulty = "normal"
+	ef_foe.had_morale_this_round = false
+	assert(not ef_arena._roll_luck(ef_foe, 0.0) and not ef_arena._try_morale(ef_foe, 0.0), "Normal: no enemy luck or morale")
+	ef_arena.victory_dialog.show()
+	ef_arena.turn_queue.clear()
+	ef_arena.current_actor = null
+	await get_tree().create_timer(0.6).timeout
+	ef_arena.queue_free()
+	await get_tree().process_frame
+	# Сложность переживает перезапуск: load_game её раньше не читал
+	GameState.campaign_difficulty = "legendary"
+	GameState.save_game()
+	GameState.campaign_difficulty = "normal"
+	GameState.load_game()
+	assert(GameState.campaign_difficulty == "legendary", "Campaign difficulty must survive save/load")
+	GameState.reset()
+	print("  -> Enemy luck and morale only on hard difficulties; Inspiration really doubles morale!")
+
 	print("\n==========================================")
-	print("   ALL 66 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 67 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame

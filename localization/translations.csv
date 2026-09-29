@@ -337,6 +337,7 @@ The hero's mana is fully restored, and a surge of sorcerous power courses throug
 and you can attack it again.
 Victory has not yet been won."
 Враг разбит и рассеян!,The enemy is routed and scattered!
+Враг тоже ловит удачу (%d%%) и боевой дух (%d%%),The enemy also gets luck (%d%%) and morale (%d%%)
 Вражеский Дозор (Орда),Enemy Pickets (Horde)
 Вражеский дозор пытается перерезать дорогу!,An enemy picket tries to cut off the road!
 Вражеский отряд,Enemy stack
@@ -1309,6 +1310,7 @@ Weapon"
 ⚔️ ТАКТИЧЕСКИЙ БОЙ (ДЕМОНСТРАЦИОННАЯ АРЕНА),⚔️ TACTICAL BATTLE (DEMONSTRATION ARENA)
 ⚙️ НАСТРОЙКИ,⚙️ SETTINGS
 ⚙️ Настройки,⚙️ Settings
+⚠ На этой сложности удача (%d%%) и боевой дух (%d%%) бывают и у врага.,⚠ On this difficulty the enemy can be lucky (%d%%) and gain morale (%d%%) too.
 ⚠️ Отряд %s уже выжидал в этом раунде и обязан действовать!,⚠️ Stack %s has already waited this round and must act!
 ⚠️ Отряд %s уже ждал в этом раунде и обязан действовать!,⚠️ Stack %s has already waited this round and must act!
 ⚠️ СИЛЫ НЕРАВНЫ!,⚠️ THE ODDS ARE UNEVEN!

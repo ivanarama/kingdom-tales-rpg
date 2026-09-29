@@ -265,6 +265,11 @@ func _setup_chapter_selection_ui() -> void:
 		d_btn.text = str(ddata["title"])
 		d_btn.custom_minimum_size = Vector2(0, 40)
 		d_btn.add_theme_font_size_override("font_size", 13)
+		var dfortune := GameState.get_enemy_fortune(diff_id)
+		if float(dfortune["luck"]) > 0.0:
+			d_btn.tooltip_text = tr("Враг тоже ловит удачу (%d%%) и боевой дух (%d%%)") % [
+				int(round(float(dfortune["luck"]) * 100.0)), int(round(float(dfortune["morale"]) * 100.0))
+			]
 		var did: String = diff_id
 		d_btn.pressed.connect(func():
 			SoundManager.play_sfx("click")
