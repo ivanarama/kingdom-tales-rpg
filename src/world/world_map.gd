@@ -694,6 +694,9 @@ func _trigger_object(obj: Dictionary) -> void:
 		"fairy_dwelling", "druid_camp", "griffin_roost":
 			_open_dwelling_popup(obj_id)
 
+		"event":
+			_open_map_event(obj_id)
+
 		"forester":
 			popup_title.text = "Хижина Старого Лесника"
 			if GameState.quest_completed:
@@ -2647,6 +2650,55 @@ func _open_dwelling_popup(obj_id: String) -> void:
 				world_view.queue_redraw()
 				popup_dialog.hide()
 		)
+	_show_popup_dialog()
+
+## Сказочная встреча (data/map_events.json): история и до двух вариантов выбора.
+## Попап показывает _trigger_object.
+func _open_map_event(ev_id: String) -> void:
+	var ev := MapEventData.get_event(ev_id)
+	popup_title.text = tr(str(ev.get("title", "")))
+	popup_text.text = tr(str(ev.get("text", "")))
+	var choices: Array = ev.get("choices", [])
+	var btns := [popup_btn1, popup_btn2]
+	for i in range(2):
+		var btn: Button = btns[i]
+		for conn in btn.pressed.get_connections():
+			btn.pressed.disconnect(conn.callable)
+		btn.visible = i < choices.size()
+		if i < choices.size():
+			var choice: Dictionary = choices[i]
+			btn.text = tr(str(choice.get("label", "")))
+			btn.pressed.connect(func(): _resolve_map_event(ev_id, choice))
+	if choices.is_empty():
+		popup_btn1.visible = true
+		popup_btn1.text = tr("Продолжить путь")
+		popup_btn1.pressed.connect(func(): popup_dialog.hide())
+
+## Выбор во встрече: эффекты, флаги, итог. Встреча исчезает, если у выбора нет keep.
+func _resolve_map_event(ev_id: String, choice: Dictionary) -> void:
+	var fx: Dictionary = choice.get("effects", {})
+	var price := -int(fx.get("gold", 0))
+	_reset_popup_buttons()
+	popup_btn1.text = tr("Продолжить путь")
+	popup_btn1.pressed.connect(func(): popup_dialog.hide())
+	if price > GameState.gold:
+		SoundManager.play_sfx("click")
+		popup_text.text = tr("Кажется, в кошельке не хватает золота.")
+		_show_popup_dialog()
+		return
+	var lines := GameState.apply_event_effects(fx)
+	if not choice.get("keep", false):
+		GameState.flags[ev_id] = true
+	if str(choice.get("set_flag", "")) != "":
+		GameState.flags[str(choice["set_flag"])] = true
+	world_view.place_map_events()
+	world_view.queue_redraw()
+	SoundManager.play_sfx("coin" if int(fx.get("gold", 0)) > 0 else ("spell_cast" if lines.size() > 0 else "page_turn"))
+	popup_text.text = tr(str(choice.get("result", "")))
+	if lines.size() > 0:
+		popup_text.text += "\n\n" + "\n".join(lines)
+	_update_hud()
+	GameState.save_game()
 	_show_popup_dialog()
 
 ## Кодекс существ: все юниты с характеристиками и способностями.

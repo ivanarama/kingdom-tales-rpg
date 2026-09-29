@@ -306,6 +306,32 @@ func add_gold(amount: int) -> void:
 	if gold >= 5000:
 		unlock_feat("wealthy")
 
+## Эффекты сказочной встречи (data/map_events.json). Возвращает строки для итога.
+func apply_event_effects(fx: Dictionary) -> Array[String]:
+	var lines: Array[String] = []
+	var g := int(fx.get("gold", 0))
+	if g != 0:
+		add_gold(g)
+		lines.append(tr("Золото: %+d") % g)
+	var x := int(fx.get("xp", 0))
+	if x > 0:
+		add_xp(x)
+		lines.append(tr("Опыт: +%d") % x)
+	if fx.get("restore_mana", false):
+		restore_mana()
+		lines.append(tr("Мана полностью восполнена"))
+	var mp := int(fx.get("move_points", 0))
+	if mp != 0:
+		move_points = maxi(0, move_points + mp)
+		lines.append(tr("Очки хода: %+d") % mp)
+	for stat in ["attack", "defense", "spellpower"]:
+		var v := int(fx.get(stat, 0))
+		if v != 0:
+			set(stat, int(get(stat)) + v)
+			lines.append(tr({"attack": "+%d к Атаке", "defense": "+%d к Защите", "spellpower": "+%d к Силе Магии"}[stat]) % v)
+	state_changed.emit()
+	return lines
+
 func spend_gold(amount: int) -> bool:
 	if gold >= amount:
 		gold -= amount
