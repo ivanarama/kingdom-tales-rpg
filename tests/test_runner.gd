@@ -1536,8 +1536,43 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Swamp and volcano battles get their own mood, chapter 1 unchanged!")
 
+	# 55. Бой живее: павшие тают, у каждого удара искры, тяжёлый удар встряхивает поле
+	print("[TEST] 55. Testing Battle Juice (death fade, hit sparks, shake)...")
+	GameState.reset()
+	var juice_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(juice_arena)
+	await get_tree().process_frame
+	var juice_vp = juice_arena.arena_viewport
+	var juice_enemies: Array = []
+	var juice_hero: BattleStack = null
+	for js in juice_arena.all_stacks:
+		if js.team == 1:
+			juice_enemies.append(js)
+		elif juice_hero == null:
+			juice_hero = js
+	juice_enemies[0].count = 0
+	await get_tree().process_frame
+	assert(juice_vp.dying.has(juice_enemies[0]), "A slain stack must fade out instead of vanishing")
+	await get_tree().create_timer(juice_vp.DEATH_FADE_TIME + 0.2).timeout
+	assert(not juice_vp.dying.has(juice_enemies[0]), "The fade must end")
+	var juice_fx: int = juice_vp.special_effects.size()
+	juice_arena._resolve_attack_damage(juice_hero, juice_enemies[1], 1, false)
+	assert(juice_vp.special_effects.size() == juice_fx + 1 and juice_vp.special_effects.back()["type"] == "hit", "Every hit must spark")
+	assert(juice_vp.shake_time == 0.0, "A light hit must not shake the field")
+	juice_arena._resolve_attack_damage(juice_hero, juice_enemies[1], 100000, false)
+	assert(juice_vp.shake_time > 0.0, "A heavy hit must shake the field")
+	await get_tree().create_timer(juice_vp.SHAKE_TIME + 0.1).timeout
+	assert(juice_vp.position == juice_vp._shake_rest, "The field must settle back after the shake")
+	SettingsManager.reduced_animations = true
+	juice_vp.shake(8.0)
+	assert(juice_vp.shake_time == 0.0, "Reduced animations: no shake")
+	SettingsManager.reduced_animations = false
+	juice_arena.queue_free()
+	GameState.reset()
+	print("  -> Slain stacks fade, hits spark and heavy blows shake the field!")
+
 	print("\n==========================================")
-	print("   ALL 54 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 55 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame

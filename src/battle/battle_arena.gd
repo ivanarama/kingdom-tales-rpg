@@ -1060,6 +1060,11 @@ func _resolve_attack_damage(attacker: BattleStack, defender: BattleStack, raw_dm
 			log_combat(tr("💨 %s ловко уклоняется: урон вдвое меньше!") % tr(defender.data.name))
 
 	var res: Dictionary = defender.take_damage(dmg)
+	# Искры у цели; на тяжёлом ударе поле встряхивает
+	var heavy_hit := int(res["casualties"]) >= 5 or int(res["damage"]) >= 150
+	arena_viewport.spawn_hit_sparks(HexGrid.hex_to_pixel(defender.hex.x, defender.hex.y, HEX_SIZE, grid_origin) + Vector2(0, -HEX_SIZE * 0.6), heavy_hit)
+	if heavy_hit:
+		arena_viewport.shake(7.0)
 
 	if int(res.get("absorbed", 0)) > 0:
 		_spawn_floating_text(defender.hex, tr("🛡 ЩИТ -%d") % int(res["absorbed"]), Color(0.7, 0.85, 1.0), Vector2(0, -40))

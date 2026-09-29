@@ -9,6 +9,15 @@ var stack_flashes: Dictionary = {} # BattleStack -> float
 var projectiles: Array[Dictionary] = [] # [{pos, end_pos, progress, speed, type, on_hit}]
 var special_effects: Array[Dictionary] = [] # [{type, pos, time, max_time, on_hit}]
 var stack_anchors: Dictionary = {} # BattleStack -> Vector2: центр полоски здоровья (для оверлеев боссов)
+var dying: Dictionary = {} # BattleStack -> сколько ещё таять павшему отряду (сек)
+var _alive_last: Dictionary = {} # BattleStack -> был ли жив на прошлом кадре
+var shake_time: float = 0.0
+var shake_strength: float = 0.0
+var _shake_rest: Vector2 = Vector2.ZERO
+
+const DEATH_FADE_TIME := 0.6
+const HIT_SPARK_TIME := 0.3
+const SHAKE_TIME := 0.25
 
 var anim_timer: float = 0.0
 
@@ -25,6 +34,28 @@ func get_stack_offset(stack: BattleStack) -> Vector2:
 func _process(delta: float) -> void:
 	anim_timer += delta
 	var needs_redraw = true
+
+	# Павший отряд не исчезает сразу: DEATH_FADE_TIME секунд оседает и тает
+	for s in arena.all_stacks:
+		var alive: bool = s.is_alive()
+		if _alive_last.get(s, alive) and not alive:
+			dying[s] = DEATH_FADE_TIME
+		elif alive:
+			dying.erase(s) # поднят Исцелением
+		_alive_last[s] = alive
+	for s in dying.keys():
+		dying[s] -= delta
+		if dying[s] <= 0.0:
+			dying.erase(s)
+
+	# Встряска затухает за SHAKE_TIME
+	if shake_time > 0.0:
+		shake_time = maxf(0.0, shake_time - delta)
+		var k := shake_time / SHAKE_TIME
+		position = _shake_rest + Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * shake_strength * k
+		if shake_time == 0.0:
+			position = _shake_rest
+			shake_strength = 0.0
 	
 	# Update flash timers
 	var to_erase_flash = []
@@ -135,6 +166,27 @@ func flash_stack(stack: BattleStack) -> void:
 	stack_flashes[stack] = 0.28
 	queue_redraw()
 
+## Затухающая встряска поля после тяжёлого удара. При «Упрощённых анимациях» — нет.
+func shake(strength: float) -> void:
+	if SettingsManager.reduced_animations:
+		return
+	if shake_time <= 0.0:
+		_shake_rest = position
+	shake_strength = maxf(shake_strength, strength)
+	shake_time = SHAKE_TIME
+
+## Искры удара у цели: у тяжёлого удара лучей больше.
+func spawn_hit_sparks(target_pos: Vector2, heavy: bool = false) -> void:
+	special_effects.append({
+		"type": "hit",
+		"pos": target_pos,
+		"time": HIT_SPARK_TIME,
+		"max_time": HIT_SPARK_TIME,
+		"heavy": heavy,
+		"angle": randf() * TAU
+	})
+	queue_redraw()
+
 func _draw() -> void:
 	if arena == null:
 		return
@@ -226,15 +278,20 @@ func _draw() -> void:
 	# 3. Draw Living Stacks with Animated Sprites, Badges, and HP Bars
 	stack_anchors.clear()
 	for stack in arena.all_stacks:
+		var fade := 1.0
 		if not stack.is_alive():
-			continue
+			if not dying.has(stack):
+				continue
+			fade = dying[stack] / DEATH_FADE_TIME
 			
 		var center = HexGrid.hex_to_pixel(stack.hex.x, stack.hex.y, hex_size, origin)
 		if stack_offsets.has(stack):
 			center += stack_offsets[stack]
+		if fade < 1.0:
+			center += Vector2(0, (1.0 - fade) * 16.0) # оседает
 			
 		# Shadow under unit
-		draw_circle(center + Vector2(0, hex_size * 0.45), hex_size * 0.42, Color(0.0, 0.0, 0.0, 0.35))
+		draw_circle(center + Vector2(0, hex_size * 0.45), hex_size * 0.42, Color(0.0, 0.0, 0.0, 0.35 * fade))
 		
 		# Procedural living idle animation
 		var idle_t = anim_timer + float(stack.get_instance_id() % 100) * 0.23
@@ -277,6 +334,8 @@ func _draw() -> void:
 			sy *= (1.0 - fl_t * 0.2)
 			sx *= (1.0 + fl_t * 0.2)
 			tilt += (0.12 if stack.team == 0 else -0.12) * fl_t
+		if fade < 1.0:
+			tilt += (1.0 - fade) * (-0.4 if stack.team == 0 else 0.4) # заваливается назад
 			
 		# Directional Facing: Team 0 faces RIGHT (towards enemies), Team 1 faces LEFT (towards player)
 		var natural_faces_left = stack.data.get("natural_faces_left", (stack.unit_id in ["goblin", "wolf", "treant", "swamp_zombie", "lich"]))
@@ -304,6 +363,7 @@ func _draw() -> void:
 				if stack_flashes.has(stack):
 					var flash_t = stack_flashes[stack] / 0.28
 					mod_color = Color(1.0, 1.0, 1.0).lerp(Color(1.0, 0.2, 0.2), flash_t)
+				mod_color.a = fade
 					
 				# Draw transformed sprite
 				var spr_pivot = center + Vector2(0, hex_size * 0.45 + bob_y)
@@ -312,6 +372,8 @@ func _draw() -> void:
 				draw_texture_rect(tex, local_rect, false, mod_color)
 				draw_set_transform(Vector2.ZERO, 0.0, Vector2(1, 1))
 				
+		if not stack.is_alive():
+			continue # у павшего — ни плашки, ни полоски здоровья
 		# Stack Count Badge (Bottom golden plague)
 		var badge_pos = center + Vector2(0, hex_size * 0.4)
 		_draw_stack_badge(badge_pos, str(stack.count), stack.team)
@@ -367,11 +429,15 @@ func _draw() -> void:
 		var txt = item.text
 		# draw_string с CENTER не центрирует при width = -1 (PR #3) — центрируем вручную
 		var txt_size: Vector2 = font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 30)
-		var base: Vector2 = item.pos - Vector2(txt_size.x / 2.0, 0.0)
+		# Цифра «выпрыгивает»: первые доли секунды крупнее, затем обычного размера
+		var pop := 1.0 + 0.45 * clampf(1.0 - float(item.get("time", 1.0)) / 0.18, 0.0, 1.0)
+		draw_set_transform(item.pos, 0.0, Vector2(pop, pop))
+		var base: Vector2 = -Vector2(txt_size.x / 2.0, 0.0)
 		# High-contrast 4-way drop shadow for crisp arcade readability
 		for off in [Vector2(-2, 0), Vector2(2, 0), Vector2(0, -2), Vector2(0, 2), Vector2(2, 2)]:
 			draw_string(font, base + off, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, Color(0, 0, 0, c.a * 0.9))
 		draw_string(font, base, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, c)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1, 1))
 
 	# 7. Draw Special Effects (Lightning, Frost, Holy Halo, Stoneskin, Blind)
 	for fx in special_effects:
@@ -417,6 +483,19 @@ func _draw() -> void:
 					var ang = float(ai) * TAU / 8.0 + (1.0 - ratio) * 1.5
 					var p_ray = p + Vector2(cos(ang), sin(ang)) * (b_rad * 1.4)
 					draw_line(p, p_ray, Color(1.0, 1.0, 0.8, ratio), 2.5)
+			"hit":
+				# Искры разлетаются от точки удара и гаснут
+				var k: float = 1.0 - ratio
+				var rays := 8 if fx.get("heavy", false) else 5
+				for si in range(rays):
+					var d := Vector2.from_angle(float(fx.get("angle", 0.0)) + TAU * float(si) / float(rays))
+					var r0 := 10.0 + 40.0 * k
+					var a: Vector2 = p + d * r0
+					var b: Vector2 = p + d * (r0 + 20.0 * ratio)
+					# оранжевый контур и яркий сердечник — искру видно и на светлом спрайте
+					draw_line(a, b, Color(1.0, 0.45, 0.05, ratio), 2.0 + 4.0 * ratio, true)
+					draw_line(a, b, Color(1.0, 0.97, 0.75, ratio), 1.0 + 1.5 * ratio, true)
+				draw_circle(p, 16.0 * ratio, Color(1.0, 0.8, 0.35, 0.5 * ratio))
 
 const STATUS_PIPS_ROW_H := 12.0 # высота ряда индикаторов чар над цифрами здоровья
 
