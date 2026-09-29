@@ -314,22 +314,25 @@ func _draw() -> void:
 		var hp_bar_pos = center + Vector2(0, -target_h + hex_size * 0.45 - 8.0 + bob_y)
 		_draw_hp_bar(hp_bar_pos, stack.current_hp, stack.data.get("max_hp", 20))
 
-		# Status pips (active buffs/debuffs at a glance)
-		_draw_status_pips(center + Vector2(0, hp_bar_pos.y - 16.0), stack)
+		# Status pips (active buffs/debuffs at a glance): над цифрами здоровья.
+		# hp_bar_pos уже абсолютная — прибавлять к ней center нельзя, иначе ряд уезжал вниз от отряда.
+		_draw_status_pips(hp_bar_pos + Vector2(0, -STATUS_PIPS_ROW_H * 2.0), stack)
 		
 	# 4. Hover Forecast & Broken Arrow Indicator
 	if arena.hovered_target != null and arena.hovered_target.is_alive():
 		var tgt_c = HexGrid.hex_to_pixel(arena.hovered_target.hex.x, arena.hovered_target.hex.y, hex_size, origin)
 		var tgt_h: float = hex_size * 2.2
+		# Над полоской здоровья — ряд индикаторов чар; знак стрелы и прогноз ставим выше него
+		var above_pips := STATUS_PIPS_ROW_H
 		
 		# If Broken Arrow applies
 		if arena.hovered_is_broken:
-			var arr_pos = tgt_c + Vector2(0, -tgt_h + hex_size * 0.45 - 34.0)
+			var arr_pos = tgt_c + Vector2(0, -tgt_h + hex_size * 0.45 - 34.0 - above_pips)
 			_draw_broken_arrow(arr_pos)
 			
 		# Floating Forecast Tooltip
 		if arena.hovered_forecast.size() > 0:
-			var tip_pos = tgt_c + Vector2(0, -tgt_h + hex_size * 0.45 - (54.0 if arena.hovered_is_broken else 34.0))
+			var tip_pos = tgt_c + Vector2(0, -tgt_h + hex_size * 0.45 - (64.0 if arena.hovered_is_broken else 34.0) - above_pips) # над подписью «ШТРАФ 50%»
 			_draw_forecast_box(tip_pos, arena.hovered_forecast)
 
 	# 5. Draw Flying Projectiles (Arrows & Spells)
@@ -405,6 +408,8 @@ func _draw() -> void:
 					var p_ray = p + Vector2(cos(ang), sin(ang)) * (b_rad * 1.4)
 					draw_line(p, p_ray, Color(1.0, 1.0, 0.8, ratio), 2.5)
 
+const STATUS_PIPS_ROW_H := 12.0 # высота ряда индикаторов чар над цифрами здоровья
+
 ## Ряд цветных пипсов над стеком: активные баффы/дебаффы с одного взгляда.
 func _draw_status_pips(pos: Vector2, stack: BattleStack) -> void:
 	var pips: Array[Color] = []
@@ -441,6 +446,12 @@ func _draw_status_pips(pos: Vector2, stack: BattleStack) -> void:
 		draw_circle(p, 4.0, pips[i])
 		draw_arc(p, 4.0, 0, TAU, 12, Color(0.1, 0.08, 0.04, 0.8), 1.0)
 
+## draw_string выравнивает по центру только внутри заданной ширины: при width = -1
+## HORIZONTAL_ALIGNMENT_CENTER игнорируется, и строка начинается от точки центра.
+func _draw_centered_string(font: Font, center: Vector2, text: String, font_size: int, color: Color) -> void:
+	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	draw_string(font, center - Vector2(w / 2.0, 0.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+
 func _draw_hp_bar(pos: Vector2, cur_hp: int, max_hp: int) -> void:
 	var hp_ratio = clampf(float(cur_hp) / float(max_hp), 0.0, 1.0)
 	var hp_bar_w = 58.0
@@ -459,7 +470,7 @@ func _draw_hp_bar(pos: Vector2, cur_hp: int, max_hp: int) -> void:
 	# HP text
 	var font = ThemeDB.fallback_font
 	var hp_str = "%d/%d" % [cur_hp, max_hp]
-	draw_string(font, pos + Vector2(0, -6), hp_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 11, Color(1, 1, 0.95))
+	_draw_centered_string(font, pos + Vector2(0, -6), hp_str, 11, Color(1, 1, 0.95))
 
 func _draw_stack_badge(pos: Vector2, text: String, team: int) -> void:
 	var badge_w = 64.0
@@ -499,4 +510,4 @@ func _draw_forecast_box(pos: Vector2, forecast: Dictionary) -> void:
 	
 	draw_rect(r, Color(0.12, 0.08, 0.04, 0.92), true)
 	draw_rect(r, Color(0.95, 0.82, 0.35, 0.9), false, 1.5)
-	draw_string(font, pos + Vector2(0, 4), txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(1, 0.95, 0.75))
+	_draw_centered_string(font, pos + Vector2(0, 4), txt, 12, Color(1, 0.95, 0.75))
