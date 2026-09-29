@@ -633,6 +633,8 @@ Are you ready to march into the second chapter of the campaign?"
 Королевская Цитадель Победы,The Royal Citadel of Victory
 Королевские Грифоны,Royal Griffins
 Королевские Феи,Royal Fairies
+Кости,Bones
+Кости (−25% урона от выстрелов),Bones (−25% damage from shots)
 Костяная Стража Врат,The Bone Gate Guard
 "Костяная гвардия Некрополя заступила дорогу перед Костяными Вратами!
 Разведка доносит: [Орда (22 скелета-лучника, 14 зомби)].","The Necropolis bone guard has blocked the road before the Bone Gates!
@@ -761,6 +763,8 @@ You need the Gate Key! (Visit the Forester's Hut in the south)."
 Мистический эмбиент-пад и колокольчики,A mystical ambient pad and bells
 Могучий зверь с телом льва и крыльями орла. Отвечает на все удары без ограничений!,A mighty beast with the body of a lion and the wings of an eagle. It retaliates against every blow without limit!
 Молния,Lightning
+Молния природы,Nature's Lightning
+Молния природы (без штрафа за дальность),Nature's Lightning (no range penalty)
 Мудрецы священных дубрав. Разит молниями природы на дальнем расстоянии.,Sages of the sacred oak groves. They hurl nature's lightning from afar.
 Музыка:,Music:
 Мятежная Гвардия,The Rebel Guard
@@ -1092,6 +1096,8 @@ What will you do?"
 
 Here is the wrought Gate Key! Drive off the chieftain and carry the Crown to the Fairy Grove in the north of the valley!»"
 Статистика отряда...,Stack stats...
+Стая,Pack
+"Стая (+25% урона по отряду, уже раненому в этом раунде)",Pack (+25% damage to a stack already wounded this round)
 Стая Волков (Мельница),The Wolf Pack (Mill)
 Стая голодных лесных волков скалит клыки и идет на перехват!,A pack of hungry forest wolves bares its fangs and moves to intercept!
 "Стая свирепых серых волков окружила подходы к старой мельнице!
@@ -1120,6 +1126,8 @@ Scouts report: [A horde of 22 skeletons, 25 goblins, 14 wolves]."
 Стрелок,Shooter
 Стрелок (дальность 5 гексов),Shooter (range 5 hexes)
 Стрельба,Archery
+Стремительный налёт,Swift Strike
+Стремительный налёт (цель не отвечает на удар),Swift Strike (the target does not retaliate)
 Строгий старинный контрапункт с проведением темы во всех голосах,Strict old-style counterpoint with the theme passing through every voice
 Сундук (+1000 зол / +600 опыта),Chest (+1000 gold / +600 XP)
 Сундук в мху,The Mossy Chest
@@ -1136,6 +1144,8 @@ Scouts report: [A horde of 22 skeletons, 25 goblins, 14 wolves]."
 Торжественные медные духовые и барабаны,Solemn brass and drums
 Трупный яд,Corpse Poison
 Трупный яд (ослабляет атаку),Corpse Poison (weakens attack)
+Трусоватые,Cowardly
+"Трусоватые (−25% урона, потеряв больше половины отряда)",Cowardly (−25% damage after losing over half the stack)
 Тяжело ступающие мертвецы болот. Удары заражают врага трупным ядом (-25% к атаке)!,Heavy-treading dead of the marshes. Their blows infect the enemy with corpse poison (-25% attack)!
 "У героя еще остались очки хода (%d/%d).
 Вы действительно хотите завершить день?","The hero still has movement points left (%d/%d).

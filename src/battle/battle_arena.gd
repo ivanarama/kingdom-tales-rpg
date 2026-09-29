@@ -705,8 +705,7 @@ func _execute_attack(attacker: BattleStack, defender: BattleStack, is_melee: boo
 	
 	if not is_melee:
 		# Ranged Attack
-		var dist = HexGrid.distance(attacker.hex, defender.hex)
-		var is_broken = (dist > 5)
+		var is_broken = attacker.has_range_penalty(defender.hex)
 		SoundManager.play_sfx("bow_shot")
 		
 		# Attacker slight recoil
@@ -867,7 +866,7 @@ func _execute_attack(attacker: BattleStack, defender: BattleStack, is_melee: boo
 		return
 		
 	# Retaliation
-	if defender.is_alive() and (not defender.has_retaliated or defender.data.get("unlimited_retaliation", false)) and _has_living_enemies():
+	if defender.will_retaliate(attacker) and _has_living_enemies():
 		defender.has_retaliated = true
 		await get_tree().create_timer(0.2).timeout
 		var ret_lunge = (start_pos - end_pos).normalized() * 28.0
@@ -1687,7 +1686,7 @@ func _update_mouse_hover(pos: Vector2) -> void:
 		var is_blocked = is_shooter and current_actor.is_blocked_by_enemy(all_stacks)
 		var dist = HexGrid.distance(current_actor.hex, stack.hex)
 		var is_melee_attack = (dist == 1) or not is_shooter or is_blocked
-		var is_broken = is_shooter and not is_melee_attack and (dist > 5)
+		var is_broken = is_shooter and not is_melee_attack and current_actor.has_range_penalty(stack.hex)
 		hovered_is_broken = is_broken
 		hovered_forecast = current_actor.get_damage_range(stack, is_melee_attack, is_broken)
 		
@@ -1702,13 +1701,13 @@ func _update_mouse_hover(pos: Vector2) -> void:
 					dist, hovered_forecast.min_dmg, hovered_forecast.max_dmg, hovered_forecast.min_cas, hovered_forecast.max_cas
 				])
 		elif is_shooter and is_melee_attack:
-			var can_ret = (not stack.has_retaliated or stack.data.get("unlimited_retaliation", false))
+			var can_ret = stack.will_retaliate(current_actor)
 			log_forecast(tr("⚔ [РУКОПАШНАЯ (СТРЕЛОК В УПОР, ШТРАФ -50%%)]: Урон %d-%d (Потери: %d-%d)%s") % [
 				hovered_forecast.min_dmg, hovered_forecast.max_dmg, hovered_forecast.min_cas, hovered_forecast.max_cas,
 				" [Враг ответит!]" if can_ret else " [Без ответа]"
 			])
 		else:
-			var can_ret = (not stack.has_retaliated or stack.data.get("unlimited_retaliation", false))
+			var can_ret = stack.will_retaliate(current_actor)
 			log_forecast(tr("⚔ [РУКОПАШНАЯ АТАКА]: Урон %d-%d (Потери: %d-%d)%s") % [
 				hovered_forecast.min_dmg, hovered_forecast.max_dmg, hovered_forecast.min_cas, hovered_forecast.max_cas,
 				" [Враг ответит!]" if can_ret else " [Без ответа]"
@@ -1732,6 +1731,16 @@ func _show_unit_info(stack: BattleStack) -> void:
 	var total_pool = (stack.count - 1) * max_hp + stack.current_hp
 	
 	var traits = []
+	if stack.data.get("pack_hunter", false):
+		traits.append(tr("Стая (+25% урона по отряду, уже раненому в этом раунде)"))
+	if stack.data.get("cowardly", false):
+		traits.append(tr("Трусоватые (−25% урона, потеряв больше половины отряда)"))
+	if float(stack.data.get("ranged_resist", 0.0)) > 0.0:
+		traits.append(tr("Кости (−25% урона от выстрелов)"))
+	if stack.data.get("no_range_penalty", false):
+		traits.append(tr("Молния природы (без штрафа за дальность)"))
+	if stack.data.get("no_retaliation", false):
+		traits.append(tr("Стремительный налёт (цель не отвечает на удар)"))
 	if stack.data.get("is_ranged", false):
 		traits.append(tr("Стрелок (дальность 5 гексов)"))
 	if stack.data.get("unlimited_retaliation", false):
@@ -1791,7 +1800,7 @@ func _show_attack_forecast(target: BattleStack) -> void:
 	var is_blocked = is_shooter and current_actor.is_blocked_by_enemy(all_stacks)
 	var dist = HexGrid.distance(current_actor.hex, target.hex)
 	var is_melee_attack = (dist == 1) or not is_shooter or is_blocked
-	hovered_is_broken = is_shooter and not is_melee_attack and (dist > 5)
+	hovered_is_broken = is_shooter and not is_melee_attack and current_actor.has_range_penalty(target.hex)
 	hovered_forecast = current_actor.get_damage_range(target, is_melee_attack, hovered_is_broken)
 	arena_viewport.queue_redraw()
 

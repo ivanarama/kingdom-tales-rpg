@@ -16,6 +16,7 @@ var has_retaliated: bool = false
 var has_acted: bool = false
 var has_waited: bool = false
 var is_defending: bool = false
+var hit_this_round: bool = false # получал урон в этом раунде (для «Стаи» волков)
 var had_morale_this_round: bool = false
 var init_bonus: int = 0 # Рог Доблести и прочие боевые бонусы на весь бой
 
@@ -42,6 +43,7 @@ func setup(p_unit_id: String, p_count: int, p_team: int, p_hex: Vector2i) -> voi
 	current_hp = data.get("max_hp", 20)
 	had_morale_this_round = false
 	has_waited = false
+	hit_this_round = false
 	init_bonus = 0
 	buff_bless_turns = 0
 	buff_haste_turns = 0
@@ -64,6 +66,7 @@ func reset_round() -> void:
 	has_waited = false
 	is_defending = false
 	had_morale_this_round = false
+	hit_this_round = false
 	if buff_bless_turns > 0:
 		buff_bless_turns -= 1
 	if buff_haste_turns > 0:
@@ -152,6 +155,7 @@ func calculate_attack_damage(target: BattleStack, is_melee: bool, is_broken_arro
 		mult *= 0.5
 	elif not is_melee and is_broken_arrow:
 		mult *= 0.5
+	mult *= ability_multiplier(target, is_melee)
 		
 	var final_dmg := int(base_dmg * mult)
 	return maxi(1, final_dmg)
@@ -188,6 +192,7 @@ func get_damage_range(target: BattleStack, is_melee: bool, is_broken_arrow: bool
 		mult *= 0.5
 	elif not is_melee and is_broken_arrow:
 		mult *= 0.5
+	mult *= ability_multiplier(target, is_melee)
 		
 	var dmg_min = maxi(1, int(base_min * mult))
 	var dmg_max = maxi(1, int(base_max * mult))
@@ -226,6 +231,8 @@ func take_damage(damage: int) -> Dictionary:
 	var max_hp: int = data.get("max_hp", 20)
 	var total_pool := (count - 1) * max_hp + current_hp
 	var actual_dmg := mini(damage, total_pool)
+	if actual_dmg > 0:
+		hit_this_round = true
 	
 	var remaining_pool := total_pool - actual_dmg
 	var old_count := count
@@ -278,6 +285,30 @@ func heal(amount: int) -> Dictionary:
 		"healed": restored,
 		"current_hp": current_hp
 	}
+
+## Множитель урона от способностей: «Стая» волков (+25% по отряду, уже раненому
+## в этом раунде), «Трусоватые» гоблины (−25%, потеряв больше половины отряда),
+## «Кости» скелетов (−25% урона от выстрелов по ним).
+func ability_multiplier(target: BattleStack, is_melee: bool) -> float:
+	var m := 1.0
+	if data.get("pack_hunter", false) and target.hit_this_round:
+		m *= 1.25
+	if data.get("cowardly", false) and count * 2 < start_count:
+		m *= 0.75
+	if not is_melee:
+		m *= 1.0 - float(target.data.get("ranged_resist", 0.0))
+	return m
+
+## Штраф за дальность («сломанная стрела»): цель дальше 5 гексов.
+## «Молния природы» друидов бьёт без штрафа.
+func has_range_penalty(target_hex: Vector2i) -> bool:
+	return HexGrid.distance(hex, target_hex) > 5 and not data.get("no_range_penalty", false)
+
+## Ответит ли отряд на удар attacker: раз за раунд (с «Бесконечным отпором» — всегда),
+## но не на «Стремительный налёт» Королевских Пегасов.
+func will_retaliate(attacker: BattleStack) -> bool:
+	return is_alive() and (not has_retaliated or data.get("unlimited_retaliation", false)) \
+		and not attacker.data.get("no_retaliation", false)
 
 func is_blocked_by_enemy(all_stacks: Array) -> bool:
 	for s in all_stacks:

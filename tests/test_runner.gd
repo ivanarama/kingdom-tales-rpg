@@ -1983,8 +1983,76 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Enemy luck and morale only on hard difficulties; Inspiration really doubles morale!")
 
+	# 68. Способности существ: Стая, Трусоватые, Кости, Молния природы, Стремительный налёт
+	print("[TEST] 68. Testing Creature Abilities (wolves, goblins, skeletons, druids, pegasi)...")
+	GameState.reset()
+	var ab_wolf := BattleStack.new()
+	ab_wolf.setup("wolf", 10, 1, Vector2i(5, 3))
+	var ab_prey := BattleStack.new()
+	ab_prey.setup("griffin", 10, 0, Vector2i(4, 3))
+	assert(is_equal_approx(ab_wolf.ability_multiplier(ab_prey, true), 1.0), "Pack: no bonus against an unwounded stack")
+	var ab_calm: int = ab_wolf.get_damage_range(ab_prey, true)["max_dmg"]
+	ab_prey.take_damage(1)
+	assert(is_equal_approx(ab_wolf.ability_multiplier(ab_prey, true), 1.25), "Pack: +25% against a stack wounded this round")
+	assert(ab_wolf.get_damage_range(ab_prey, true)["max_dmg"] > ab_calm, "Pack: the forecast shows the bonus")
+	ab_prey.reset_round()
+	assert(not ab_prey.hit_this_round, "The wound mark clears at the start of a round")
+	var ab_gob := BattleStack.new()
+	ab_gob.setup("goblin", 20, 1, Vector2i(6, 3))
+	assert(is_equal_approx(ab_gob.ability_multiplier(ab_prey, true), 1.0), "Goblins fight normally at full strength")
+	ab_gob.count = 9
+	assert(is_equal_approx(ab_gob.ability_multiplier(ab_prey, true), 0.75), "Cowardly: -25% after losing over half the stack")
+	var ab_fairy := BattleStack.new()
+	ab_fairy.setup("fairy_archer", 10, 0, Vector2i(0, 3))
+	var ab_skel := BattleStack.new()
+	ab_skel.setup("skeleton_archer", 10, 1, Vector2i(10, 3))
+	assert(is_equal_approx(ab_fairy.ability_multiplier(ab_skel, false), 0.75) and is_equal_approx(ab_fairy.ability_multiplier(ab_skel, true), 1.0), "Bones: only shots are weakened")
+	var ab_arrows: int = ab_fairy.get_damage_range(ab_skel, false)["max_dmg"]
+	ab_skel.data = ab_skel.data.duplicate()
+	ab_skel.data.erase("ranged_resist")
+	assert(ab_arrows < ab_fairy.get_damage_range(ab_skel, false)["max_dmg"], "Bones: the forecast shows the reduced arrow damage")
+	var ab_druid := BattleStack.new()
+	ab_druid.setup("druid", 5, 0, Vector2i(0, 3))
+	assert(ab_fairy.has_range_penalty(Vector2i(10, 3)) and not ab_druid.has_range_penalty(Vector2i(10, 3)), "Nature's lightning: druids shoot across the field without penalty")
+	var ab_peg := BattleStack.new()
+	ab_peg.setup("royal_pegasus", 5, 0, Vector2i(3, 3))
+	assert(not ab_gob.will_retaliate(ab_peg) and ab_gob.will_retaliate(ab_prey), "Swift strike: no retaliation against pegasi")
+	for ab_uid in ["wolf", "goblin", "skeleton_archer", "druid", "royal_pegasus"]:
+		assert(UnitData.get_trait_string(ab_uid) != "Пехота ближнего боя", "%s shows its ability in the codex" % ab_uid)
+	# В бою: друиды без штрафа за дальность в прогнозе, пегасы бьют без ответа
+	GameState.player_army = [{"unit_id": "royal_pegasus", "count": 6}, {"unit_id": "druid", "count": 6}]
+	GameState.pending_battle_id = "patrol_goblins"
+	var ab_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(ab_arena)
+	await get_tree().process_frame
+	var ab_bpeg: BattleStack = ab_arena.all_stacks[0]
+	var ab_bdru: BattleStack = ab_arena.all_stacks[1]
+	var ab_bfoe: BattleStack = null
+	for ab_s in ab_arena.all_stacks:
+		if ab_s.team == 1:
+			ab_bfoe = ab_s
+			break
+	ab_arena.current_actor = ab_bdru
+	ab_bdru.hex = Vector2i(0, 3)
+	ab_bfoe.hex = Vector2i(10, 3)
+	ab_arena._show_attack_forecast(ab_bfoe)
+	assert(not ab_arena.hovered_is_broken, "The forecast shows no range penalty for druids")
+	ab_bfoe.hex = ab_bpeg.hex + Vector2i(1, 0)
+	var ab_peg_hp: int = (ab_bpeg.count - 1) * int(ab_bpeg.data["max_hp"]) + ab_bpeg.current_hp
+	ab_arena.current_actor = ab_bpeg
+	await ab_arena._execute_attack(ab_bpeg, ab_bfoe, true)
+	assert((ab_bpeg.count - 1) * int(ab_bpeg.data["max_hp"]) + ab_bpeg.current_hp == ab_peg_hp and not ab_bfoe.has_retaliated, "Pegasi strike without retaliation in battle")
+	ab_arena.victory_dialog.show()
+	ab_arena.turn_queue.clear()
+	ab_arena.current_actor = null
+	await get_tree().create_timer(0.6).timeout
+	ab_arena.queue_free()
+	await get_tree().process_frame
+	GameState.reset()
+	print("  -> Wolves hunt in packs, goblins lose heart, bones shrug off arrows, druids and pegasi shine!")
+
 	print("\n==========================================")
-	print("   ALL 67 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 68 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
