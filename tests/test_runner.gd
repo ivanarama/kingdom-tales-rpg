@@ -1394,8 +1394,119 @@ func _ready() -> void:
 	TranslationServer.set_locale(saved_locale)
 	print("  -> English locale covers main menu, map, battle and creature traits!")
 
+	# 53. Механики боссов: знамя Атамана, подъём нежити Личем, огненный шквал Дракона
+	print("[TEST] 53. Testing Boss Mechanics (banner, raise dead, firestorm)...")
+	assert(int(UnitData.get_unit("bandit_chief").get("rally_aura", 0)) > 0, "Bandit chief must carry a banner")
+	var chief_in_lair := false
+	for lair_enemy in EncounterData.get_encounter("bandit_boss")["enemies"]:
+		chief_in_lair = chief_in_lair or lair_enemy["unit_id"] == "bandit_chief"
+	assert(chief_in_lair, "Bandit chief must fight in his own lair")
+	assert(UnitData.get_unit("lich").has("raise_dead"), "Lich must raise the dead")
+	assert(int(UnitData.get_unit("red_dragon").get("firestorm", 0)) > 0, "Red dragon must have firestorm")
+	var chief_img: Image = load(str(UnitData.get_unit("bandit_chief")["sprite_path"])).get_image()
+	assert(chief_img.get_pixel(0, 0).a < 0.05, "Chief medallion corners must be transparent")
+	var cone := BossMechanics.cone_cells(Vector2i(5, 3), Vector2i(-1, 0), 3, Rect2i(0, 0, 11, 7))
+	assert(cone.size() == 7, "Firestorm cone of length 3 must cover 1 + 3 + 3 tiles")
+	for cone_hex in [Vector2i(4, 3), Vector2i(3, 3), Vector2i(3, 4), Vector2i(4, 2), Vector2i(2, 3), Vector2i(2, 4), Vector2i(3, 2)]:
+		assert(cone.has(cone_hex), "Cone west of (5, 3) must cover %s" % cone_hex)
+	assert(BossMechanics.cone_cells(Vector2i(0, 3), Vector2i(-1, 0), 3, Rect2i(0, 0, 11, 7)).is_empty(), "Cone past the field edge must be empty")
+	assert(BossMechanics.is_firestorm_round(2) and BossMechanics.is_firestorm_round(5), "Dragon inhales in rounds 2 and 5")
+	assert(not BossMechanics.is_firestorm_round(1) and not BossMechanics.is_firestorm_round(3), "No inhale in rounds 1 and 3")
+
+	# Знамя: +к атаке союзникам, пока Атаман жив; сам он прибавку не получает
+	var ba_chief = await _boss_arena("bandit_boss", 1)
+	var chief: BattleStack = _boss_find(ba_chief, "bandit_chief")
+	var goblins: BattleStack = _boss_find(ba_chief, "goblin")
+	var hero_stack: BattleStack = _boss_find(ba_chief, "griffin")
+	var aura := int(chief.data["rally_aura"])
+	ba_chief.boss.before_turn()
+	assert(goblins.aura_attack == aura and chief.aura_attack == 0 and hero_stack.aura_attack == 0, "Banner must boost only the chief's allies")
+	var with_banner: int = goblins.get_damage_range(hero_stack, true)["max_dmg"]
+	ba_chief._show_unit_info(chief)
+	assert(ba_chief.unit_info_stats.text.contains(tr("Знамя вожака (+%d к атаке союзников)") % aura), "Chief card must describe the banner")
+	ba_chief.unit_info_dialog.hide()
+	chief.count = 0
+	ba_chief.boss.before_turn()
+	assert(goblins.aura_attack == 0, "Banner must fall with the chief")
+	assert(with_banner > int(goblins.get_damage_range(hero_stack, true)["max_dmg"]), "Goblins must hit harder under the banner")
+	await _boss_free(ba_chief)
+
+	# Лич: в начале 3-го, 5-го... раунда поднимает скелетов (к живому отряду или новым рядом)
+	var ba_lich = await _boss_arena("lich_boss", 2)
+	var lich: BattleStack = _boss_find(ba_lich, "lich")
+	var lich_skel: BattleStack = _boss_find(ba_lich, "skeleton_archer")
+	var per_unit := int(lich.data["raise_dead"]["per_unit"])
+	var lich_skel_before := lich_skel.count
+	ba_lich.current_round = 2
+	ba_lich.boss.on_round_start()
+	assert(lich_skel.count == lich_skel_before and ba_lich.boss.rounds_until_raise(lich) == 1, "No raise in round 2, ritual next round")
+	ba_lich.current_round = 3
+	ba_lich.boss.on_round_start()
+	assert(lich_skel.count == lich_skel_before + lich.count * per_unit, "Lich must raise %d skeletons in round 3" % (lich.count * per_unit))
+	lich_skel.count = 0
+	lich.count = 3
+	var stacks_before: int = ba_lich.all_stacks.size()
+	ba_lich.current_round = 5
+	ba_lich.boss.on_round_start()
+	var raised: BattleStack = ba_lich.all_stacks.back()
+	assert(ba_lich.all_stacks.size() == stacks_before + 1 and raised.unit_id == "skeleton_archer" and raised.count == 3 * per_unit, "Without living skeletons the lich raises a new stack")
+	assert(HexGrid.distance(raised.hex, lich.hex) == 1 and not ba_lich.obstacles.has(raised.hex), "Raised stack must stand on a free tile next to the lich")
+	lich.count = 0
+	var raised_count := raised.count
+	ba_lich.current_round = 7
+	ba_lich.boss.on_round_start()
+	assert(raised.count == raised_count, "A slain lich raises no one")
+	await _boss_free(ba_lich)
+
+	# Дракон: вдох помечает конус без урона, выдох жжёт клетки, а не прежнюю цель
+	var ba_dragon = await _boss_arena("dragon_boss", 3)
+	var dragon: BattleStack = _boss_find(ba_dragon, "red_dragon")
+	var mine: Array = []
+	for boss_st in ba_dragon.all_stacks:
+		if boss_st.team == 0 and boss_st.is_alive():
+			mine.append(boss_st)
+	ba_dragon.obstacles.clear()
+	dragon.hex = Vector2i(6, 3)
+	mine[0].hex = Vector2i(4, 3)
+	mine[1].hex = Vector2i(0, 0)
+	ba_dragon.current_round = 1
+	assert(not ba_dragon.boss.plan_turn(dragon), "Round 1: the dragon attacks normally")
+	ba_dragon.current_round = 2
+	assert(ba_dragon.boss.plan_turn(dragon), "Round 2: the dragon draws breath")
+	var pool_target := _boss_pool(mine[0])
+	await ba_dragon.boss.take_turn(dragon)
+	var fire_cells: Array = ba_dragon.boss.charged.get(dragon, [])
+	assert(fire_cells.has(mine[0].hex) and not fire_cells.has(mine[1].hex), "Cone must aim at the stack in front of the dragon")
+	assert(_boss_pool(mine[0]) == pool_target, "Inhale deals no damage")
+	assert(ba_dragon.boss.turn_hint(mine[0]) != "" and ba_dragon.boss.turn_hint(mine[1]) == "", "Turn hint must warn only the stack in the fire")
+	mine[0].hex = Vector2i(0, 6)
+	mine[1].hex = fire_cells[0]
+	var pool_moved := _boss_pool(mine[0])
+	var pool_burned := _boss_pool(mine[1])
+	ba_dragon.current_round = 3
+	assert(ba_dragon.boss.plan_turn(dragon), "Charged dragon exhales on its next turn")
+	await ba_dragon.boss.take_turn(dragon)
+	assert(_boss_pool(mine[1]) < pool_burned and _boss_pool(mine[0]) == pool_moved, "Fire burns the marked tiles, the stack that left is safe")
+	assert(ba_dragon.boss.charged.is_empty(), "Charge must be spent after exhale")
+	# Настоящий ход ИИ в раунд шквала — вдох вместо атаки
+	var pools := {}
+	for boss_st in mine:
+		pools[boss_st] = _boss_pool(boss_st)
+	ba_dragon.current_round = 5
+	ba_dragon.victory_dialog.hide()
+	ba_dragon.current_actor = dragon
+	ba_dragon.is_ai_turn = true
+	ba_dragon._update_reachable_hexes()
+	await ba_dragon._handle_ai_turn()
+	assert(ba_dragon.boss.charged.has(dragon), "AI turn in round 5 must be an inhale")
+	for boss_st in pools:
+		assert(_boss_pool(boss_st) == pools[boss_st], "The dragon attacks no one while drawing breath")
+	await _boss_free(ba_dragon)
+	GameState.reset()
+	print("  -> Chief's banner, lich raising the dead and dragon firestorm verified!")
+
 	print("\n==========================================")
-	print("   ALL 52 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 53 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -1427,3 +1538,35 @@ func _collect_source_files(dir_path: String) -> Array[String]:
 	for d in DirAccess.get_directories_at(dir_path):
 		result.append_array(_collect_source_files(dir_path.path_join(d)))
 	return result
+
+## Арена боя с боссом с остановленным ходом боя: способности зовутся напрямую.
+## Видимое окно итогов останавливает _next_turn, пустой актёр — отложенный ход ИИ (0,5 с).
+func _boss_arena(battle_id: String, chapter: int):
+	GameState.reset()
+	GameState.current_chapter = chapter
+	GameState.pending_battle_id = battle_id
+	var ba = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(ba)
+	await _boss_freeze(ba)
+	return ba
+
+func _boss_freeze(ba) -> void:
+	ba.victory_dialog.show()
+	ba.turn_queue.clear()
+	ba.current_actor = null
+	await get_tree().create_timer(0.6).timeout
+
+func _boss_free(ba) -> void:
+	await _boss_freeze(ba)
+	ba.queue_free()
+	GameState.pending_battle_id = ""
+	await get_tree().process_frame
+
+func _boss_find(ba, unit_id: String) -> BattleStack:
+	for st in ba.all_stacks:
+		if st.unit_id == unit_id and st.is_alive():
+			return st
+	return null
+
+func _boss_pool(st: BattleStack) -> int:
+	return (st.count - 1) * int(st.data["max_hp"]) + st.current_hp

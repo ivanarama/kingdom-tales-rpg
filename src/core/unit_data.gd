@@ -216,9 +216,10 @@ static var UNITS: Dictionary = {
 		"unlimited_retaliation": false,
 		"natural_faces_left": true,
 		"is_caster": true,
+		"raise_dead": {"unit": "skeleton_archer", "per_unit": 1, "every": 2},
 		"token_path": "res://assets/art/ui/tokens/token_unit_lich.png",
 		"sprite_path": "res://assets/art/units/unit_lich.png",
-		"description": "Повелитель тлетворных топей. Колдует тёмное пламя по самым густым строям врага!"
+		"description": "Повелитель тлетворных топей. Колдует тёмное пламя по самым густым строям врага, а раз в 2 раунда поднимает из болота по скелету-лучнику за каждого лича."
 	},
 	"red_dragon": {
 		"id": "red_dragon",
@@ -235,10 +236,33 @@ static var UNITS: Dictionary = {
 		"flying": true,
 		"unlimited_retaliation": true,
 		"breath_attack": true,
+		"firestorm": 3,
 		"natural_faces_left": false,
 		"token_path": "res://assets/art/ui/tokens/token_unit_red_dragon.png",
 		"sprite_path": "res://assets/art/units/unit_red_dragon.png",
-		"description": "Легендарный владыка огнедышащих пиков. Огненное дыхание пробивает на 2 гекса сквозь строй врагов!"
+		"description": "Легендарный владыка огнедышащих пиков. Огненное дыхание пробивает на 2 гекса сквозь строй врагов, а раз в 3 раунда дракон набирает воздух и выжигает конус перед собой — отмеченные клетки видны заранее."
+	},
+	# Босс главы 1. Арт — медальон, вырезанный из жетона босса на карте мира.
+	"bandit_chief": {
+		"id": "bandit_chief",
+		"name": "Атаман Разбойников",
+		"tier": 5,
+		"max_hp": 150,
+		"attack": 10,
+		"min_dmg": 15,
+		"max_dmg": 22,
+		"defense": 12,
+		"speed": 5,
+		"initiative": 12,
+		"is_ranged": false,
+		"flying": false,
+		"unlimited_retaliation": false,
+		"rally_aura": 2,
+		"sprite_height": 1.9,
+		"natural_faces_left": true,
+		"token_path": "res://assets/art/units/medallion_bandit_chief.png",
+		"sprite_path": "res://assets/art/units/medallion_bandit_chief.png",
+		"description": "Главарь лесной вольницы. Пока над ним реет знамя, его люди бьются яростнее: +2 к атаке всем союзным отрядам. Сразите Атамана — и шайка дрогнет."
 	},
 	"royal_pegasus": {
 		"id": "royal_pegasus",
@@ -332,6 +356,12 @@ static func get_trait_string(id: String) -> String:
 		traits.append(_t("Уклонение %d%%") % int(round(100.0 * float(u["dodge"]))))
 	if u.get("is_caster", false):
 		traits.append(_t("Колдун"))
+	if int(u.get("rally_aura", 0)) > 0:
+		traits.append(_t("Знамя: +%d к атаке союзникам") % int(u["rally_aura"]))
+	if u.has("raise_dead"):
+		traits.append(_t("Подъём нежити"))
+	if int(u.get("firestorm", 0)) > 0:
+		traits.append(_t("Огненный шквал"))
 	return " • ".join(traits) if traits.size() > 0 else _t("Пехота ближнего боя")
 static func get_unit(id: String) -> Dictionary:
 	return UNITS.get(id, {})
