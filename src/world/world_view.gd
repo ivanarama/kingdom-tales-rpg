@@ -502,6 +502,25 @@ func get_path_obstacles(target: Vector2i) -> Array[Vector2i]:
 			result.append(c)
 	return result
 
+const FOG_EDGE_BAND := 0.45 # доля клетки, на которую туман «заходит» мягким краем
+
+## Стороны открытой клетки, граничащие с туманом: 4 соседа по краям и диагонали,
+## если туман только в углу. Край карты туманом не считается.
+func fog_edges(c: Vector2i) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if not revealed_cells.has(c):
+		return result
+	for side in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
+		if _is_fogged(c + side):
+			result.append(side)
+	for corner in [Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)]:
+		if _is_fogged(c + corner) and not _is_fogged(c + Vector2i(corner.x, 0)) and not _is_fogged(c + Vector2i(0, corner.y)):
+			result.append(corner)
+	return result
+
+func _is_fogged(c: Vector2i) -> bool:
+	return c.x >= 0 and c.y >= 0 and c.x < MAP_COLS and c.y < MAP_ROWS and not revealed_cells.has(c)
+
 func _reveal_fog(center: Vector2i, radius: int) -> void:
 	var bounds := Rect2i(0, 0, MAP_COLS, MAP_ROWS)
 	for dy in range(-radius, radius + 1):
@@ -916,13 +935,37 @@ func _draw() -> void:
 			draw_circle(tip, 3.0, Color(1.0, 0.95, 0.6, 0.95))
 
 	
-	# 5. Fog of War (100% Solid Opaque Shroud)
+	# 5. Fog of War (100% Solid Opaque Shroud) — с мягким краем: у открытых клеток на границе
+	# с туманом полоса затемнения уходит внутрь клетки, сам туман остаётся непроглядным
+	var fog_col := Color(0.02, 0.03, 0.05, 1.0)
+	var fog_clear := Color(fog_col, 0.0)
+	var band := TILE_SIZE * FOG_EDGE_BAND
 	for y in range(MAP_ROWS):
 		for x in range(MAP_COLS):
 			var c = Vector2i(x, y)
+			var o := Vector2(x * TILE_SIZE, y * TILE_SIZE)
 			if not revealed_cells.has(c):
-				var r = Rect2(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-				draw_rect(r, Color(0.02, 0.03, 0.05, 1.0))
+				draw_rect(Rect2(o, Vector2(TILE_SIZE, TILE_SIZE)), fog_col)
+				continue
+			for side in fog_edges(c):
+				var pts: PackedVector2Array
+				var cols: PackedColorArray
+				if side.x != 0 and side.y != 0:
+					# угол: туман только по диагонали — треугольник в углу клетки
+					var corner := o + Vector2(TILE_SIZE if side.x > 0 else 0.0, TILE_SIZE if side.y > 0 else 0.0)
+					pts = PackedVector2Array([corner, corner - Vector2(side.x * band, 0), corner - Vector2(0, side.y * band)])
+					cols = PackedColorArray([fog_col, fog_clear, fog_clear])
+				elif side.x != 0:
+					var ex := o.x + (TILE_SIZE if side.x > 0 else 0.0)
+					var ix := ex - side.x * band
+					pts = PackedVector2Array([Vector2(ex, o.y), Vector2(ex, o.y + TILE_SIZE), Vector2(ix, o.y + TILE_SIZE), Vector2(ix, o.y)])
+					cols = PackedColorArray([fog_col, fog_col, fog_clear, fog_clear])
+				else:
+					var ey := o.y + (TILE_SIZE if side.y > 0 else 0.0)
+					var iy := ey - side.y * band
+					pts = PackedVector2Array([Vector2(o.x, ey), Vector2(o.x + TILE_SIZE, ey), Vector2(o.x + TILE_SIZE, iy), Vector2(o.x, iy)])
+					cols = PackedColorArray([fog_col, fog_col, fog_clear, fog_clear])
+				draw_polygon(pts, cols)
 
 	# 6. Hover Highlight & Object Tooltip (HoMM3 Style)
 	if hovered_cell != Vector2i(-1, -1) and revealed_cells.has(hovered_cell):
