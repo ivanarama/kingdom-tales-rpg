@@ -1505,8 +1505,39 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Chief's banner, lich raising the dead and dragon firestorm verified!")
 
+	# 54. Настроение поля боя: топи и вулкан — своим видом, глава 1 — без изменений
+	print("[TEST] 54. Testing Battle Mood per Chapter...")
+	assert(BattleMood.mood_for(1, false, []) == "" and BattleMood.mood_for(2, false, []) == "swamp" and BattleMood.mood_for(3, false, []) == "volcano", "Campaign mood must follow the chapter")
+	assert(BattleMood.mood_for(1, true, ["wolf", "red_dragon"]) == "volcano" and BattleMood.mood_for(1, true, ["lich"]) == "swamp" and BattleMood.mood_for(3, true, ["goblin"]) == "", "Arena mood must follow the enemy army")
+	for mood_ch in [1, 2, 3]:
+		GameState.reset()
+		GameState.current_chapter = mood_ch
+		var mood_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+		add_child(mood_arena)
+		var mood_bg: TextureRect = mood_arena.get_node("Background")
+		if mood_ch == 1:
+			assert(mood_bg.material == null and mood_bg.get_node_or_null("MoodParticles") == null, "Chapter 1 background must stay as drawn")
+		else:
+			assert(mood_bg.material is ShaderMaterial, "Chapter %d background must be graded" % mood_ch)
+			assert(mood_bg.get_node_or_null("MoodParticles") is CPUParticles2D, "Chapter %d must have ambient particles" % mood_ch)
+		mood_arena.queue_free()
+		await get_tree().process_frame
+	# Упрощённые анимации: только неподвижная цветокоррекция, без частиц и дрожания воздуха
+	SettingsManager.reduced_animations = true
+	GameState.reset()
+	GameState.current_chapter = 3
+	var calm_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(calm_arena)
+	var calm_bg: TextureRect = calm_arena.get_node("Background")
+	assert(calm_bg.material is ShaderMaterial and calm_bg.get_node_or_null("MoodParticles") == null, "Reduced animations: grading without particles")
+	assert(float(calm_bg.material.get_shader_parameter("heat_haze")) == 0.0, "Reduced animations: no heat haze")
+	calm_arena.queue_free()
+	SettingsManager.reduced_animations = false
+	GameState.reset()
+	print("  -> Swamp and volcano battles get their own mood, chapter 1 unchanged!")
+
 	print("\n==========================================")
-	print("   ALL 53 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 54 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
