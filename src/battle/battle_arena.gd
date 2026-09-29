@@ -89,6 +89,7 @@ func _exit_tree() -> void:
 func _ready() -> void:
 	SoundManager.play_music("res://assets/audio/music/battle_theme.ogg")
 	_init_battle()
+	BattleMood.apply_for_battle($Background, all_stacks) # топи и вулкан — своим настроением
 	log_combat("🍀 Удача: 15% шанс двойного урона у вашего войска. 🌟 Боевой дух даёт доп. ход (Лидерство).")
 	defend_btn = $CanvasLayer/HeroHUD/Parchment/DefendBtn
 	wait_btn = $CanvasLayer/HeroHUD/Parchment/WaitBtn
