@@ -507,10 +507,28 @@ func _select_ai_target(actor: BattleStack, player_stacks: Array[BattleStack]) ->
 			score += 260.0
 			
 		# Kill bonus: prioritize stacks that will suffer high casualties
-		var est_dmg = actor.calculate_attack_damage(target, true)
+		# (средний урон вместо случайного броска — выбор цели не «дрожит» от хода к ходу)
+		var melee: bool = not actor.data.get("is_ranged", false) or actor.is_blocked_by_enemy(all_stacks)
+		var hit := actor.get_damage_range(target, melee, not melee and dist > 5)
+		var est_dmg: float = (hit["min_dmg"] + hit["max_dmg"]) * 0.5
 		var target_hp = target.data.get("max_hp", 20)
 		var cas = mini(target.count, int(est_dmg / target_hp))
 		score += cas * 30.0
+
+		# Ответный удар: в ближнем бою выжившие ответят — дорогая цель хуже дешёвой
+		if melee and (not target.has_retaliated or target.data.get("unlimited_retaliation", false)):
+			var survivors: int = target.count - cas
+			if survivors > 0:
+				var ret := target.get_damage_range(actor, true)
+				var ret_dmg: float = (ret["min_dmg"] + ret["max_dmg"]) * 0.5 * float(survivors) / float(target.count)
+				var my_losses := mini(actor.count, int(ret_dmg / float(actor.data.get("max_hp", 20))))
+				score -= my_losses * 25.0
+
+		# Защита своих стрелков: цель, стоящая вплотную к нашему стрелку, мешает ему стрелять
+		for ally in all_stacks:
+			if ally != actor and ally.team == actor.team and ally.is_alive() and ally.data.get("is_ranged", false) and HexGrid.distance(ally.hex, target.hex) == 1:
+				score += 120.0
+				break
 		
 		# Safe attack bonus if target already retaliated
 		if target.has_retaliated:

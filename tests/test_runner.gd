@@ -1599,8 +1599,43 @@ func _ready() -> void:
 			assert(sfx_player.pitch_scale >= 0.93 and sfx_player.pitch_scale <= 1.07, "Combat sounds vary their pitch slightly")
 	print("  -> Music crossfades, events and spell elements sound, bosses have their own themes!")
 
+	# 57. ИИ выбора цели: не лезет под тяжёлый ответный удар и выручает своих стрелков
+	print("[TEST] 57. Testing Smarter AI Target Choice...")
+	GameState.reset()
+	var ai_arena = load("res://src/battle/battle_arena.tscn").instantiate()
+	add_child(ai_arena)
+	await get_tree().process_frame
+	var ai_wolves := BattleStack.new()
+	ai_wolves.setup("wolf", 5, 1, Vector2i(5, 3))
+	# Рядом — 12 Королевских Грифонов с бесконечным отпором, в трёх клетках — одинокий гоблин
+	var ai_griffins := BattleStack.new()
+	ai_griffins.setup("royal_griffin", 12, 0, Vector2i(4, 3))
+	var ai_lone := BattleStack.new()
+	ai_lone.setup("goblin", 1, 0, Vector2i(2, 3))
+	var ai_field_a: Array[BattleStack] = [ai_wolves, ai_griffins, ai_lone]
+	ai_arena.all_stacks = ai_field_a
+	var ai_targets_a: Array[BattleStack] = [ai_griffins, ai_lone]
+	assert(ai_arena._select_ai_target(ai_wolves, ai_targets_a) == ai_lone, "AI must not charge a stack whose retaliation outweighs the gain")
+	# Свои скелеты-лучники стеснены гоблином — выручить их важнее, чем бить соседа
+	var ai_archers := BattleStack.new()
+	ai_archers.setup("skeleton_archer", 10, 1, Vector2i(8, 3))
+	var ai_blocker := BattleStack.new()
+	ai_blocker.setup("goblin", 1, 0, Vector2i(7, 3))
+	var ai_neighbour := BattleStack.new()
+	ai_neighbour.setup("goblin", 1, 0, Vector2i(4, 3))
+	var ai_field_b: Array[BattleStack] = [ai_wolves, ai_archers, ai_blocker, ai_neighbour]
+	ai_arena.all_stacks = ai_field_b
+	var ai_targets_b: Array[BattleStack] = [ai_blocker, ai_neighbour]
+	assert(ai_arena._select_ai_target(ai_wolves, ai_targets_b) == ai_blocker, "AI must free its own shooters from melee blockers")
+	# Оценка без случайного броска: один и тот же выбор при повторе
+	for ai_i in 5:
+		assert(ai_arena._select_ai_target(ai_wolves, ai_targets_b) == ai_blocker, "AI target choice must be deterministic")
+	ai_arena.queue_free()
+	GameState.reset()
+	print("  -> AI weighs retaliation and protects its shooters!")
+
 	print("\n==========================================")
-	print("   ALL 56 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 57 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
