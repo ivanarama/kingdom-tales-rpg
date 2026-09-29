@@ -1808,8 +1808,36 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Army size survives difficulty scaling, retreats keep losses, saves hold them!")
 
+	# 63. «Благодать Похода» возвращает и отряд, павший целиком; лимит — на вид, а не на слот
+	print("[TEST] 63. Testing Grace Restores Wiped-out Stacks...")
+	GameState.reset()
+	var grace_cap := 3 + GameState.get_total_spellpower()
+	GameState.player_army = [{"unit_id": "fairy_archer", "count": 12}]
+	GameState.fallen_units = [{"unit_id": "griffin", "count": 5}]
+	assert(GameState.restorable_fallen_count() == mini(5, grace_cap), "Grace must see the fallen of a stack that fell entirely")
+	GameState.restore_fallen_units()
+	var grace_griffins := 0
+	for grace_slot in GameState.player_army:
+		if grace_slot["unit_id"] == "griffin":
+			grace_griffins += int(grace_slot["count"])
+	assert(grace_griffins == mini(5, grace_cap), "Griffins that fell entirely return as a new stack")
+	GameState.player_army = [{"unit_id": "fairy_archer", "count": 6}, {"unit_id": "fairy_archer", "count": 6}]
+	GameState.fallen_units = [{"unit_id": "fairy_archer", "count": 50}]
+	GameState.restore_fallen_units()
+	var grace_fairies := 0
+	for grace_slot in GameState.player_army:
+		grace_fairies += int(grace_slot["count"])
+	assert(grace_fairies == 12 + grace_cap, "The cap is per kind, not per army slot")
+	GameState.player_army = [{"unit_id": "fairy_archer", "count": 1}, {"unit_id": "wolf", "count": 1}, {"unit_id": "goblin", "count": 1}, {"unit_id": "treant", "count": 1}, {"unit_id": "druid", "count": 1}]
+	GameState.fallen_units = [{"unit_id": "griffin", "count": 3}]
+	assert(GameState.restorable_fallen_count() == 0, "No free slot: nothing to restore yet")
+	GameState.restore_fallen_units()
+	assert(GameState.player_army.size() == 5 and int(GameState.fallen_units[0]["count"]) == 3, "Without a free slot the fallen wait for later")
+	GameState.reset()
+	print("  -> Grace brings back stacks that fell entirely, capped per kind!")
+
 	print("\n==========================================")
-	print("   ALL 62 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL 63 TEST SUITES PASSED FLAWLESSLY!  ")
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
