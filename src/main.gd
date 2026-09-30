@@ -781,14 +781,14 @@ func _setup_arena_dialog_ui() -> void:
 			var trait_l = Label.new()
 			var traits = []
 			if udata.get("is_ranged", false):
-				traits.append("Стрелок")
+				traits.append(tr("Стрелок"))
 			if udata.get("flying", false):
-				traits.append("Летун")
+				traits.append(tr("Летун"))
 			if udata.get("unlimited_retaliation", false):
-				traits.append("Бесконечный отпор")
+				traits.append(tr("Бесконечный отпор"))
 			if udata.get("double_shot", false):
-				traits.append("Двойной выстрел")
-			trait_l.text = " • ".join(traits) if traits.size() > 0 else "Пехота ближнего боя"
+				traits.append(tr("Двойной выстрел"))
+			trait_l.text = " • ".join(traits) if traits.size() > 0 else tr("Пехота ближнего боя")
 			trait_l.add_theme_font_size_override("font_size", 12)
 			trait_l.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 			vb.add_child(trait_l)
@@ -825,12 +825,12 @@ func _setup_arena_dialog_ui() -> void:
 			var trait_l = Label.new()
 			var traits = []
 			if udata.get("is_ranged", false):
-				traits.append("Стрелок")
+				traits.append(tr("Стрелок"))
 			if udata.get("flying", false):
-				traits.append("Летун")
+				traits.append(tr("Летун"))
 			if udata.get("unlimited_retaliation", false):
-				traits.append("Бесконечный отпор")
-			trait_l.text = " • ".join(traits) if traits.size() > 0 else "Пехота ближнего боя"
+				traits.append(tr("Бесконечный отпор"))
+			trait_l.text = " • ".join(traits) if traits.size() > 0 else tr("Пехота ближнего боя")
 			trait_l.add_theme_font_size_override("font_size", 12)
 			trait_l.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 			vb.add_child(trait_l)
