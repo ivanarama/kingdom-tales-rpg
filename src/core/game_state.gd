@@ -722,6 +722,31 @@ func start_chapter(chapter_num: int) -> void:
 	state_changed.emit()
 	save_game()
 
+## Старт с выбранной главы (меню «Выбор главы»): герой и войско, с которыми глава
+## задумана. Этим же пользуется проверка баланса (tools/balance/).
+func prepare_chapter_start(chapter_num: int) -> void:
+	match chapter_num:
+		2:
+			level = 3
+			next_level_xp = int(1000 * pow(1.5, 2))
+			attack = 6
+			defense = 5
+			player_army = [
+				{"unit_id": "griffin", "count": 10},
+				{"unit_id": "royal_fairy", "count": 26}
+			]
+		3:
+			level = 5
+			next_level_xp = int(1000 * pow(1.5, 4))
+			attack = 8
+			defense = 7
+			player_army = [
+				{"unit_id": "royal_griffin", "count": 12},
+				{"unit_id": "royal_fairy", "count": 32},
+				{"unit_id": "druid", "count": 10}
+			]
+	start_chapter(chapter_num)
+
 func set_hero_class(class_id: String) -> void:
 	hero_class_id = class_id
 	match class_id:
