@@ -23,6 +23,8 @@ var anim_timer: float = 0.0
 
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_PASS
+	# Спрайты отрядов (512 px с mipmaps) рисуются высотой ~136 px: без mipmaps уменьшение рябит
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 
 func set_stack_offset(stack: BattleStack, offset: Vector2) -> void:
 	stack_offsets[stack] = offset
