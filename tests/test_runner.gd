@@ -5,9 +5,19 @@ const ArtifactData = preload("res://src/core/artifact_data.gd")
 const UnitData = preload("res://src/core/unit_data.gd")
 const BattleStack = preload("res://src/battle/battle_stack.gd")
 
+## Наборы 1–76 записаны прямо в _ready(). Новые наборы — отдельными файлами в tests/suites/ (см. tests/README.md).
+const INLINE_SUITES := 76
+## Упавший assert останавливает прогон, и без сторожа Godot работал бы до --quit-after (в CI — до таймаута в 15 минут).
+## Весь прогон занимает меньше минуты, так что 240 с — с запасом для медленных машин.
+const WATCHDOG_SEC := 240.0
+## Одинаковые случайные броски в каждом прогоне: тест не должен проходить через раз.
+const TEST_SEED := 20260930
+
 func _ready() -> void:
 	print("\n==========================================")
 	print("[TEST] Running full HoMM-style verification suite...")
+	seed(TEST_SEED)
+	get_tree().create_timer(WATCHDOG_SEC, true, false, true).timeout.connect(_on_watchdog)
 	
 	# 1. Test SFX & Music
 	print("[TEST] 1. Testing Audio & Music...")
@@ -2443,40 +2453,15 @@ func _ready() -> void:
 	GameState.reset()
 	print("  -> Event popups have a picture slot that stays hidden until the art arrives!")
 
-	# 77. Английская версия: черты отрядов на карточках демо-арены и реликвии героя
-	print("[TEST] 77. Testing English Demo Arena Cards & Hero Relics...")
-	var en_saved_locale := TranslationServer.get_locale()
-	TranslationServer.set_locale("en")
-	var en_main = load("res://src/main.tscn").instantiate()
-	add_child(en_main)
-	await get_tree().process_frame
-	var en_trait_lines := 0
-	for en_l in en_main.arena_dialog.find_children("*", "Label", true, false):
-		var en_shown: String = tr(en_l.text)
-		if en_shown.contains(" • ") or en_shown == "Melee infantry":
-			en_trait_lines += 1
-		assert(not _has_cyrillic(en_shown), "Demo arena text must be translated: " + en_shown.left(60))
-	assert(en_trait_lines > 0, "Demo arena cards must list unit traits")
-	en_main.queue_free()
-	await get_tree().process_frame
-	GameState.reset()
-	GameState.has_fairy_crown = true
-	GameState.has_gate_key = true
-	GameState.flags["iron_gate_opened"] = true
-	var en_wm = load("res://src/world/world_map.tscn").instantiate()
-	add_child(en_wm)
-	await get_tree().process_frame
-	en_wm._update_hero_profile()
-	var en_relics: String = en_wm.hero_relics_lbl.text
-	assert(en_relics.contains("Crown") and not _has_cyrillic(tr(en_relics)), "Hero relics must be translated: " + en_relics.left(60))
-	en_wm.queue_free()
-	await get_tree().process_frame
-	GameState.reset()
-	TranslationServer.set_locale(en_saved_locale)
-	print("  -> Demo arena cards and hero relics read in English!")
+	# Наборы из tests/suites/: один файл — один набор, номера идут дальше по алфавиту файлов
+	var suites := _suite_files()
+	for i in suites.size():
+		var suite = load(suites[i]).new()
+		print("[TEST] %d. %s..." % [INLINE_SUITES + i + 1, suite.TITLE])
+		await suite.run(self)
 
 	print("\n==========================================")
-	print("   ALL 77 TEST SUITES PASSED FLAWLESSLY!  ")
+	print("   ALL %d TEST SUITES PASSED FLAWLESSLY!  " % (INLINE_SUITES + suites.size()))
 	print("==========================================\n")
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -2543,3 +2528,16 @@ func _boss_pool(st: BattleStack) -> int:
 
 func _fb_pool(st: BattleStack) -> int:
 	return (st.count - 1) * int(st.data["max_hp"]) + st.current_hp
+
+## Файлы наборов из tests/suites/ по алфавиту.
+func _suite_files() -> Array[String]:
+	var files: Array[String] = []
+	for f in DirAccess.get_files_at("res://tests/suites"):
+		if f.ends_with(".gd"):
+			files.append("res://tests/suites/" + f)
+	files.sort()
+	return files
+
+func _on_watchdog() -> void:
+	printerr("TEST WATCHDOG: the run did not finish in %d s. A failed assert stops the run; the failing suite is the last [TEST] line above." % int(WATCHDOG_SEC))
+	get_tree().quit(1)
