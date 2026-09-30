@@ -153,18 +153,19 @@ func _ready() -> void:
 	defend_btn = $CanvasLayer/HeroHUD/Parchment/DefendBtn
 	wait_btn = $CanvasLayer/HeroHUD/Parchment/WaitBtn
 	defend_btn.text = "🛡️ Защита"
+	# Четыре кнопки (Защита, Ждать, Авто, x2) помещаются в панель героя шириной 452 px
 	defend_btn.offset_left = 16.0
 	defend_btn.offset_right = 126.0
 
 	wait_btn.text = "⏳ Ждать"
-	wait_btn.offset_left = 136.0
-	wait_btn.offset_right = 246.0
+	wait_btn.offset_left = 134.0
+	wait_btn.offset_right = 230.0
 
 	auto_battle_btn = Button.new()
 	auto_battle_btn.name = "AutoBattleBtn"
 	auto_battle_btn.text = "⚡ Авто"
-	auto_battle_btn.offset_left = 256.0
-	auto_battle_btn.offset_right = 368.0
+	auto_battle_btn.offset_left = 238.0
+	auto_battle_btn.offset_right = 342.0
 	auto_battle_btn.offset_top = defend_btn.offset_top
 	auto_battle_btn.offset_bottom = defend_btn.offset_bottom
 	auto_battle_btn.add_theme_font_size_override("font_size", 16)
@@ -175,8 +176,8 @@ func _ready() -> void:
 	speed_btn = Button.new()
 	speed_btn.name = "SpeedBtn"
 	speed_btn.text = "⏩ x2"
-	speed_btn.offset_left = 378.0
-	speed_btn.offset_right = 466.0
+	speed_btn.offset_left = 350.0
+	speed_btn.offset_right = 434.0
 	speed_btn.offset_top = defend_btn.offset_top
 	speed_btn.offset_bottom = defend_btn.offset_bottom
 	speed_btn.add_theme_font_size_override("font_size", 16)
