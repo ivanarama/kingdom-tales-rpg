@@ -308,15 +308,7 @@ func _setup_chapter_selection_ui() -> void:
 		SoundManager.play_sfx("click")
 		GameState.reset()
 		GameState.campaign_difficulty = chapter_diff["v"]
-		GameState.level = 3
-		GameState.next_level_xp = int(1000 * pow(1.5, 2))
-		GameState.attack = 6
-		GameState.defense = 5
-		GameState.player_army = [
-			{"unit_id": "griffin", "count": 10},
-			{"unit_id": "royal_fairy", "count": 26}
-		]
-		GameState.start_chapter(2)
+		GameState.prepare_chapter_start(2)
 		get_tree().change_scene_to_file("res://src/world/world_map.tscn")
 	)
 	vbox.add_child(c2_btn)
@@ -330,16 +322,7 @@ func _setup_chapter_selection_ui() -> void:
 		SoundManager.play_sfx("click")
 		GameState.reset()
 		GameState.campaign_difficulty = chapter_diff["v"]
-		GameState.level = 5
-		GameState.next_level_xp = int(1000 * pow(1.5, 4))
-		GameState.attack = 8
-		GameState.defense = 7
-		GameState.player_army = [
-			{"unit_id": "royal_griffin", "count": 12},
-			{"unit_id": "royal_fairy", "count": 32},
-			{"unit_id": "druid", "count": 10}
-		]
-		GameState.start_chapter(3)
+		GameState.prepare_chapter_start(3)
 		get_tree().change_scene_to_file("res://src/world/world_map.tscn")
 	)
 	vbox.add_child(c3_btn)
