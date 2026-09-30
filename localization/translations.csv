@@ -120,12 +120,15 @@ Active effects: %s"
 39. Храм Света,39. Temple of Light
 40. Великая Сказка,40. The Grand Tale
 «В боях никто не пал — возвращать некому. Приходите после сражений!»,«No one has fallen in battle — there is no one to bring back. Come after a fight!»
+"«Вот спасибо! Молот тяжёлый, с рунами на рукояти — ни с чем не спутаете».",“Thank you kindly! It is a heavy hammer with runes on the handle — you cannot mistake it.”
 "«Врата открыты, паладин! Спешите на восток — разбейте атамана в его логове и верните Венец Королеве Фей!»","«The gates are open, paladin! Hasten east — crush the chieftain in his lair and return the Crown to the Fairy Queen!»"
 "«Вы ещё не нашли Белянку? Она убежала к южной чаще — прислушайтесь, не звенит ли колокольчик!»",“Haven't you found Snowdrop yet? She ran toward the southern thicket — listen for her little bell!”
 "«Да здравствует сэр Аларик, величайший защитник Королевства!»","«Long live Sir Alaric, the greatest defender of the Kingdom!»"
 "«Ждать» — сходить позже в этом раунде, «Защита» — +30% к защите до следующего хода. Удачи, полководец!","""Wait"" acts later in this round, ""Defend"" gives +30% Defense until the next turn. Good luck, commander!"
 "«Костяные Врата ждут вас, паладин! Разрушьте цитадель Лича на востоке!»","«The Bone Gates await you, paladin! Destroy the Lich's citadel in the east!»"
 «Лесные духи-лисы желают путешествовать с вами: %d шт. (по %d золота). Казна: %d.»,«The fox spirits wish to travel with you: %d available (at %d gold each). Treasury: %d.»
+"«Не нашли ещё? Он укатился за Огненные врата, к лавовым ручьям. Руны на рукояти светятся — издалека видно!»","“Not found it yet? It rolled beyond the Fire Gate, toward the lava streams. The runes on the handle glow — you can see them from afar!”"
+«Подожду. Без молота горн всё равно не разжечь».,“I will wait. The forge will not light without my hammer anyway.”
 "«Приветствую, благородный рыцарь! Мельница работает в поте лица, примите 500 золотых монет на содержание гарнизона!»","«Welcome, noble knight! The mill works from dawn to dusk — take 500 gold coins for your garrison's upkeep!»"
 "«Сказки Королевства» — ламповая сказочная RPG, вдохновленная классикой Heroes of Might and Magic 3 и King's Bounty («Легенда о рыцаре»).
 
@@ -155,7 +158,6 @@ Features:
 Авангард Разбойников,The Bandit Vanguard
 Авангард разбойников преграждает дорогу за Железными Вратами!,A bandit vanguard blocks the road beyond the Iron Gates!
 Аларик (ур. 1),Alaric (lvl 1)
-Аларик сокрушает %s Огненным Шаром! Урон: %d (Потери: %d),Alaric crushes %s with a Fireball! Damage: %d (Losses: %d)
 Алтарь Очищения Топей,Altar of the Cleansed Fens
 Алтарь Преображения Войск,Altar of Transfiguration
 "Алтарь осквернен темными чарами. Уничтожьте Лича в Цитадели на востоке (28, 11)!","The altar is defiled by dark charms. Destroy the Lich at the Citadel in the east (28, 11)!"
@@ -235,9 +237,17 @@ Take this Bone Key! Cut your way through the undead, destroy the Lich and cleans
 Болотные Зомби,Swamp Zombies
 Болотные Зомби (Северная гать),Swamp Zombies (North Causeway)
 Болотные огоньки,Will-o'-the-Wisps
+Борин машет вам вслед рукавицей.,Borin waves his mitten after you.
+Борин отсчитывает монеты с довольным кряхтением: «Честная плата за честную службу!»,Borin counts out the coins with a satisfied grunt: “Honest pay for honest service!”
+"Борин прижимает молот к груди, и горн тут же вспыхивает жаром.
+
+«Ну, сэр рыцарь, теперь моя очередь помочь!»","Borin hugs the hammer to his chest, and the forge blazes with heat at once.
+
+“Well, sir knight, now it is my turn to help!”"
 Бродячий менестрель,The Wandering Minstrel
 Бродячий торговец,The Wandering Merchant
 Бронзовые створки распахнуты. Дорога на Пик Дракона свободна!,The bronze doors swing open. The road to Dragon Peak is clear!
+Бросить в источник золотой на удачу (150 золота),Toss a gold coin into the spring for luck (150 gold)
 "Быстрый и свирепый хищник, способный молниеносно настигать стрелков.",A swift and fierce predator that can run down shooters in a flash.
 "Быстрый разведчик лесов.
 
@@ -255,7 +265,6 @@ Take this Bone Key! Cut your way through the undead, destroy the Lich and cleans
 В Главное Меню,To Main Menu
 В Королевскую Цитадель!,To the Royal Citadel!
 В Священную Рощу!,To the Sacred Grove!
-В войске нет свободных слотов. Объедините или разделите отряды в панели «Войско Героя».,No free slots in the army. Merge or split stacks in the Hero's Army panel.
 В войске нет свободных слотов. Объедините одинаковые отряды или выберите лишний в панели «Войско Героя» и распустите его (✖).,"There are no free slots in the army. Merge identical stacks, or select one in the Hero's Army panel and dismiss it (✖)."
 В глубине склепа вы находите драгоценные реликвии древних времен!,Deep in the crypt you find precious relics of ancient times!
 В наличии: %d страж(а) (по %d золота). Казна: %d.,Available: %d guardian(s) (at %d gold each). Treasury: %d.
@@ -323,6 +332,7 @@ Treasury: %d gold"
 "Веселый средневековый танец, лютня","A merry medieval dance, lute"
 Ветераны %s (+%d к атаке и защите),Veterans %s (+%d attack and defense)
 Ветераны: +%d к атаке и защите (побед: %d),Veterans: +%d attack and defense (victories: %d)
+Взять гномьим золотом,Take it in dwarven gold
 Виртуозная токката в духе Скарлатти с быстрыми репетициями нот,A virtuoso Scarlatti-style toccata with rapid repeated notes
 "Виртуозный клавесин, пасторальная флейта, хрустальные колокольчики","Virtuoso harpsichord, pastoral flute, crystal bells"
 Владыка Огня повержен,The Fire Lord Felled
@@ -371,6 +381,7 @@ They are ready for a fight!"
 
 New volunteers will arrive with the new week (Day 8)."
 Вторичные Навыки:,Secondary Skills:
+"Вы вместе конопатите щели мхом. Паромщик рассказывает все болотные тропки, какие знает.",Together you caulk the cracks with moss. The ferryman tells you every marsh path he knows.
 "Вы вставляете ключ Лесника в замковую скважину. Раздается гулкий щелчок — массивные железные створки со скрипом распахиваются!
 
 Проход в Долину Разбойников открыт!","You slide the Forester's key into the lock. A hollow click rings out — the massive iron gates groan open!
@@ -403,6 +414,7 @@ Hero experience: +%d"
 Выйти в главное меню,Exit to main menu
 Выслушать её рассказ (−3 очка хода),Listen to her tale (−3 movement points)
 Выступить в поход!,Begin the campaign!
+Вытащить молот и вернуть кузнецу,Pull out the hammer and return it to the smith
 Герой,Hero
 Герой уже сотворил заклинание в этом раунде!,The hero has already cast a spell this round!
 Герой: %s (%s),Hero: %s (%s)
@@ -431,6 +443,7 @@ Experience: +%d"
 Гнездо Владыки Огня! Красный Дракон расправляет пылающие крылья!,The Fire Lord's eyrie! The Red Dragon spreads its blazing wings!
 Гнездовье (Доступно: %d),Roost (Available: %d)
 Гнездовье Королевских Грифонов,The Royal Griffin Roost
+Гном-кузнец Борин,Borin the Dwarf Smith
 "Гномы выбираются, отряхивая бороды, и отсыпают вам горсть самоцветов из своей добычи.","The dwarves climb out, dusting off their beards, and pour you a handful of gems from their haul."
 "Гномы откапываются сами, а их старейшина дарит вашим воинам наплечники гномьей ковки.","The dwarves dig themselves out, and their elder gifts your soldiers pauldrons of dwarven make."
 Гномы-рудокопы,The Dwarf Miners
@@ -443,6 +456,7 @@ Experience: +%d"
 Available: %d griffins (at %d gold each)
 Treasury: %d gold"
 Горн тихо потрескивает. Кузнецы уже оснастили ваше войско.,The forge crackles softly. The smiths have already outfitted your army.
+Горячий источник,The Hot Spring
 Готовьтесь к бою!,Prepare for battle!
 Грифоны,Griffins
 Грифоны отвечают на все удары без устали. Отправляйте их первыми в гущу боя!,Griffins retaliate against every blow without tiring. Send them into the thick of battle first!
@@ -533,6 +547,7 @@ Experience: +%d"
 Единороги ушли в лунный туман. Новые придут с началом недели.,The unicorns have vanished into the moonlit mist. More will come at the start of the week.
 Ждать,Wait
 Железные Врата Ущелья,The Iron Gates of the Gorge
+"Жемчужина нашлась под корягой. Лягушка касается короной ваших щитов — и они крепнут, словно заговорённые.","The pearl turns up under a snag. The frog touches your shields with her crown, and they grow strong as if enchanted."
 "Жуткие личи и скелеты охраняют проклятые сокровища древнего склепа!
 Разведка доносит: [Тьма (4 лича, 20 скелетов, 12 зомби)].","Dread liches and skeletons guard the cursed treasures of the ancient crypt!
 Scouts report: [Darkness (4 liches, 20 skeletons, 12 zombies)]."
@@ -558,6 +573,7 @@ Scouts report: [Darkness (4 liches, 20 skeletons, 12 zombies)]."
 Замедление,Slow
 Запас маны: %d / %d 🔮  •  Сила Магии: %d,Mana pool: %d / %d 🔮  •  Spell Power: %d
 Запас маны: 40/40 🔮  •  Сила Магии: 3,Mana pool: 40/40 🔮  •  Spell Power: 3
+Заплатить за переправу (100 золота),Pay for the crossing (100 gold)
 Засада Разбойников (Тракт),The Bandit Ambush (Highway)
 Засада разбойников на южном тракте атакует из кустов!,A bandit ambush on the southern road attacks from the bushes!
 Затонувший Склеп,The Sunken Crypt
@@ -760,6 +776,8 @@ Scouts report: [A horde of 24 skeleton archers, 18 zombies]."
 Логово Главаря Разбойников! Атаман и его приспешники идут в атаку!,The Bandit Chieftain's lair! The Chieftain and his henchmen charge!
 Логово Дракона (Повержен),The Dragon's Lair (Slain)
 Лунная поляна Единорогов,Moonlit Glade of the Unicorns
+Лягушка в короне,The Crowned Frog
+"Лягушка довольно квакает: пуговица сияет почти как жемчуг. «Во дворце решат, что это новая мода!»",The frog croaks happily: the button shines almost like a pearl. “At the palace they will think it is the new fashion!”
 МИНИ-КАРТА,MINI-MAP
 МОЛНИЯ -%d,LIGHTNING -%d
 Магматический Источник,The Magma Spring
@@ -794,6 +812,7 @@ You need the Gate Key! (Visit the Forester's Hut in the south)."
 
 +2 Attack, +2 Defense for the paladin!"
 Медлительные великаны из остывающей лавы. Трещины на их теле затягиваются сами (+20 HP в раунд).,Slow giants of cooling lava. The cracks in their bodies close by themselves (+20 HP per round).
+"Меж тёплых камней бьёт источник, над водой клубится пар. Говорят, здесь отдыхали ещё первые рыцари королевства.","A spring bubbles up between warm stones, steam curling over the water. They say the first knights of the kingdom rested here."
 Мельница (+500 золота в неделю),Mill (+500 gold per week)
 Мельница (Посещено),Mill (Visited)
 "Мерцание огоньков успокаивает. Вы чувствуете, как к вам возвращаются силы для чар.",The flickering lights are soothing. You feel your strength for spells returning.
@@ -812,6 +831,10 @@ You need the Gate Key! (Visit the Forester's Hut in the south)."
 Молния,Lightning
 Молния природы,Nature's Lightning
 Молния природы (без штрафа за дальность),Nature's Lightning (no range penalty)
+Молот звенит до самой ночи. Клинки ваших воинов становятся острее гномьей бритвы.,The hammer rings until nightfall. Your soldiers' blades grow sharper than a dwarf's razor.
+"Молот поддаётся не сразу, но вы справляетесь. Теперь скорее к Борину!","The hammer does not give way at once, but you manage. Now hurry back to Borin!"
+Молот с рунами,The Rune Hammer
+"Монета исчезает в клубах пара, и на миг в тумане проступает светлая руна мудрости.","The coin vanishes into the steam, and for a moment a bright rune of wisdom appears in the mist."
 Мудрецы священных дубрав. Разит молниями природы на дальнем расстоянии.,Sages of the sacred oak groves. They hurl nature's lightning from afar.
 Музыка:,Music:
 Мятежная Гвардия,The Rebel Guard
@@ -830,6 +853,11 @@ You need the Gate Key! (Visit the Forester's Hut in the south)."
 [Tip: Space — search the spot beneath your horse, E — next day]"
 "На замшелом камне греется огромная черепаха. Говорят, она помнит времена, когда болота были цветущим лугом.",A huge tortoise basks on a mossy stone. They say she remembers the days when the marshes were a blooming meadow.
 На скале сидит дракончик размером с кошку и безуспешно пытается выдохнуть пламя — получается только дым.,"A cat-sized dragonling sits on a rock, trying in vain to breathe fire — only smoke comes out."
+"На широкой кувшинке сидит лягушка в крошечной золотой короне.
+
+«Сэр рыцарь, болотный туман утащил мою жемчужину на дно! Без неё меня не узнают дома, во дворце у Тихой заводи».","A frog in a tiny golden crown sits on a broad lily pad.
+
+“Sir knight, the marsh mist dragged my pearl to the bottom! Without it no one at home will know me, in the palace by the Quiet Backwater.”"
 "Наведите курсор на врага — над ним появится прогноз урона и потерь, щелчок — атака. На телефоне первое касание показывает прогноз, второе — атакует.","Hover over an enemy to see the forecast of damage and losses; click to attack. On a phone, the first tap shows the forecast and the second attacks."
 Навык 1,Skill 1
 Навык 2,Skill 2
@@ -864,12 +892,12 @@ You need the Gate Key! (Visit the Forester's Hut in the south)."
 Нет,No
 "Нисходящие минорные пассажи клавесина, пиццикато и полночный перезвон","Descending minor harpsichord runs, pizzicato and a midnight chime"
 Ностальгическая свирель и переборы струн,A nostalgic pipe and plucked strings
+Нырнуть за жемчужиной (−3 очка хода),Dive for the pearl (−3 movement points)
 О ПРОЕКТЕ,ABOUT THE PROJECT
 ОГОНЬ -%d,FIRE -%d
 ОСЛЕПЛЕНИЕ!,BLINDED!
 ОТРЯД,STACK
 Оборона,Defend
-"Обрушивает пылающую сферу на вражеский отряд, нанося 50 ед. урона (+14 за каждую Силу Магии).","Hurls a blazing sphere at an enemy stack, dealing 50 damage (+14 per point of Spell Power)."
 "Обрушивает пылающую сферу на вражеский отряд, нанося 50 ед. урона (+14 за каждую Силу Магии); соседние с ним вражеские отряды получают половину.","Hurls a blazing sphere at an enemy stack, dealing 50 damage (+14 per Spell Power); enemy stacks next to it take half."
 Обувь,Boots
 Общая громкость:,Master volume:
@@ -918,6 +946,7 @@ Scouts report: [A horde of 24 goblins, 16 wolves]."
 Оставить,Keep
 Оставить им кирки и припасы (100 золота),Leave them picks and supplies (100 gold)
 Оставь золото себе,Keep the gold
+Отдохнуть у источника (−3 очка хода),Rest by the spring (−3 movement points)
 "Откройте Костяные Врата (14, 11) с помощью ключа ведьмы.","Open the Bone Gates (14, 11) with the witch's key."
 Открыто подвигов: %d из %d,Deeds unlocked: %d of %d
 Открыть сундук!,Open the chest!
@@ -987,28 +1016,33 @@ They guard the stolen Crown of the Fairy Queen!"
 The Ancient Lich raises a legion of skeletons and swamp zombies!
 
 They guard the Archmage's Ring!"
+Перековать клинки отряда,Reforge your army's blades
 Перстень Архимага,Archmage's Ring
 Пехота ближнего боя,Melee infantry
 Пик Красного Дракона,The Red Dragon's Peak
 "Пластинчатые латы, выкованные мастерами холмов. +1 к Атаке, +3 к Защите.","Plate armor forged by the masters of the hills. +1 Attack, +3 Defense."
 Плащ Странника,Wanderer's Mantle
 Плащ из туманной пряжи странников: воины в ближнем бою 15% шансом вдвое уменьшают получаемый урон.,"A cloak woven from wanderers' mist: in melee, warriors have a 15% chance to halve the damage they take."
+"Плот неслышно скользит меж камышей, и отряд выигрывает полдня пути.","The raft glides silently through the reeds, and your army saves half a day of travel."
 Победите Красного Дракона.,Defeat the Red Dragon.
 Победные фанфары и литавры,Victorious fanfares and timpani
 "Побеждите в бою, не потеряв ни одного воина.",Win a battle without losing a single warrior.
 "Повелитель тлетворных топей. Колдует тёмное пламя по самым густым строям врага, а раз в 2 раунда поднимает из болота по скелету-лучнику за каждого лича.","The lord of the noisome fens. He casts dark flame upon the thickest enemy ranks, and every 2 rounds raises one skeleton archer from the bog for each lich."
+Подарить ей блестящую пуговицу,Give her a shiny button
 Подбодрить и поучить терпению (−2 очка хода),Encourage it and teach it patience (−2 movement points)
 Поделиться обедом,Share your lunch
 Поднять выше,Move up
 Подъём нежити,Raise Dead
 Подъём нежити (раз в %d р.),Raise Dead (every %d rounds)
 Позвать единорогов (%d за %d зол.),Call the unicorns (%d for %d gold)
+"Позже, Борин","Later, Borin"
 "Позже, Мила","Later, Mila"
 Поиск пути,Pathfinding
 Пойти за огоньками (−4 очка хода),Follow the lights (−4 movement points)
 Поклониться,Bow
 Полнозвучная симфоническая увертюра,A full-bodied symphonic overture
 Полюбоваться ими с тропы,Admire them from the path
+Помочь залатать плот (−2 очка хода),Help patch the raft (−2 movement points)
 Понятно,Understood
 "Посетите Хижину Болотной Ведьмы (6, 17), чтобы получить Костяной Ключ.","Visit the Swamp Witch's Hut (6, 17) to obtain the Bone Key."
 "Посетите Хижину Лесника (7, 18) на юге, чтобы узнать о беде и получить Ключ от Врат.","Visit the Forester's Hut (7, 18) in the south to learn of the trouble and receive the Gate Key."
@@ -1168,6 +1202,7 @@ Scouts report: [A horde of 25 goblins, 16 wolves, 4 treants]."
 "Спасибо, буду знать!","Thank you, good to know!"
 Спеть с ним у костра,Sing with him by the campfire
 "Сразитесь с Красным Драконом на вершине Пика (28, 11)!","Battle the Red Dragon at the summit of the Peak (28, 11)!"
+Среди остывших камней светится руна: из щели торчит рукоять тяжёлого гномьего молота.,A rune glows among the cooled stones: the handle of a heavy dwarven hammer sticks out of a crack.
 "Среди трав вы нашли дубовый сундук, набитый золотом и самоцветами!
 
 Что вы решите сделать?","Among the grasses you find an oak chest stuffed with gold and gemstones!
@@ -1185,6 +1220,7 @@ What will you do?"
 «Trouble, Sir Alaric! A bandit gang from the gorge has stolen the ancient Crown of the Fairy Queen! Without it all the magic of our forest is dying. The bandits sealed the gorge with the Iron Gates.
 
 Here is the wrought Gate Key! Drive off the chieftain and carry the Crown to the Fairy Grove in the north of the valley!»"
+Старый паромщик,The Old Ferryman
 Статистика отряда...,Stack stats...
 Стая,Pack
 "Стая (+25% урона по отряду, уже раненому в этом раунде)",Pack (+25% damage to a stack already wounded this round)
@@ -1237,12 +1273,23 @@ Scouts report: [A horde of 22 skeletons, 25 goblins, 14 wolves]."
 Трусоватые,Cowardly
 "Трусоватые (−25% урона, потеряв больше половины отряда)",Cowardly (−25% damage after losing over half the stack)
 Тяжело ступающие мертвецы болот. Удары заражают врага трупным ядом (-25% к атаке)!,Heavy-treading dead of the marshes. Their blows infect the enemy with corpse poison (-25% attack)!
+"Тёплая вода смывает усталость дороги. Вы поднимаетесь бодрым, и магия снова звенит в пальцах.","The warm water washes away the weariness of the road. You rise refreshed, and magic tingles in your fingers again."
 "У героя еще остались очки хода (%d/%d).
 Вы действительно хотите завершить день?","The hero still has movement points left (%d/%d).
 Do you really want to end the day?"
 "У героя еще остались очки хода (36/36).
 Вы действительно хотите завершить день?","The hero still has movement points (36/36).
 Do you really want to end the day?"
+"У заросшей протоки дремлет на плоту старик с длинным шестом.
+
+«Посуху через топь не пройти, сэр рыцарь. А я знаю тихие протоки — довезу, куда скажете».","An old man with a long pole dozes on a raft by an overgrown channel.
+
+“You cannot cross the marsh on foot, sir knight. But I know the quiet channels — I will take you wherever you say.”"
+"У остывшего горна вздыхает седобородый гном.
+
+«Беда, сэр рыцарь! Дракон чихнул на весь перевал, и мой молот укатился за Огненные врата. Без него кузня стынет…»","A grey-bearded dwarf sighs by his cold forge.
+
+“Trouble, sir knight! The dragon sneezed over the whole pass, and my hammer rolled away beyond the Fire Gate. Without it my forge is going cold…”"
 "У придорожного камня отдыхает менестрель с потёртой лютней.
 
 «Сэр рыцарь! За скромную плату я сложу балладу о ваших подвигах — её будут петь в каждой таверне королевства!»","A minstrel with a worn lute rests by a roadside stone.
@@ -1348,6 +1395,7 @@ Defeat the guards first to claim the treasure!"
 “My little sheep Snowdrop ran off toward the southern thicket! I'm too scared to go there alone…”"
 "Юркие ящерки из огненных трещин Пика. Раскалённая шкура обжигает тех, кто бьёт вблизи (20% урона возвращается).",Nimble lizards from the fiery cracks of the Peak. Their red-hot hide burns those who strike up close (20% of the damage comes back).
 Я в пути!,I'm on my way!
+Я верну ваш молот!,I will bring your hammer back!
 Я выполню долг!,I shall do my duty!
 Я найду Белянку!,I'll find Snowdrop!
 Я найду его!,I will find it!
