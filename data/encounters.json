@@ -38,17 +38,17 @@
 	"lich_boss": {
 		"log": "Цитадель Тьмы! Древний Лич поднимает нежить из болотных могил!",
 		"enemies": [
-			{"unit": "skeleton_archer", "count": 32, "hex": [10, 1]},
-			{"unit": "swamp_zombie", "count": 22, "hex": [10, 3]},
+			{"unit": "skeleton_archer", "count": 54, "hex": [10, 1]},
+			{"unit": "swamp_zombie", "count": 37, "hex": [10, 3]},
 			{"unit": "lich", "count": 8, "hex": [10, 5]}
 		]
 	},
 	"dragon_boss": {
 		"log": "Гнездо Владыки Огня! Красный Дракон расправляет пылающие крылья!",
 		"enemies": [
-			{"unit": "lava_salamander", "count": 19, "hex": [10, 1]},
+			{"unit": "lava_salamander", "count": 61, "hex": [10, 1]},
 			{"unit": "red_dragon", "count": 3, "hex": [10, 3]},
-			{"unit": "magma_golem", "count": 7, "hex": [10, 5]}
+			{"unit": "magma_golem", "count": 22, "hex": [10, 5]}
 		]
 	},
 	"patrol_1": {
@@ -103,42 +103,42 @@
 	"swamp_patrol_road": {
 		"log": "Орда болотных зомби медленно поднимается из тины!",
 		"enemies": [
-			{"unit": "swamp_zombie", "count": 18, "hex": [10, 3]}
+			{"unit": "swamp_zombie", "count": 36, "hex": [10, 3]}
 		]
 	},
 	"swamp_patrol_fens": {
 		"log": "Скелеты-лучники натягивают тетиву среди камышей!",
 		"enemies": [
-			{"unit": "skeleton_archer", "count": 20, "hex": [10, 2]}
+			{"unit": "skeleton_archer", "count": 40, "hex": [10, 2]}
 		]
 	},
 	"swamp_patrol_gate": {
 		"log": "Костяная стража охраняет подступы к Некрополю!",
 		"enemies": [
-			{"unit": "skeleton_archer", "count": 22, "hex": [10, 1]},
-			{"unit": "swamp_zombie", "count": 14, "hex": [10, 4]}
+			{"unit": "skeleton_archer", "count": 44, "hex": [10, 1]},
+			{"unit": "swamp_zombie", "count": 28, "hex": [10, 4]}
 		]
 	},
 	"swamp_patrol_east": {
 		"log": "Легион Смерти преграждает дорогу к Алтарю Друидов!",
 		"enemies": [
-			{"unit": "skeleton_archer", "count": 24, "hex": [10, 2]},
-			{"unit": "swamp_zombie", "count": 18, "hex": [10, 4]}
+			{"unit": "skeleton_archer", "count": 48, "hex": [10, 2]},
+			{"unit": "swamp_zombie", "count": 36, "hex": [10, 4]}
 		]
 	},
 	"swamp_patrol_ruins": {
 		"log": "Осквернители древних гробниц обрушивают темную магию!",
 		"enemies": [
 			{"unit": "lich", "count": 4, "hex": [10, 1]},
-			{"unit": "skeleton_archer", "count": 20, "hex": [10, 3]},
-			{"unit": "swamp_zombie", "count": 12, "hex": [10, 5]}
+			{"unit": "skeleton_archer", "count": 40, "hex": [10, 3]},
+			{"unit": "swamp_zombie", "count": 24, "hex": [10, 5]}
 		]
 	},
 	"dragon_patrol_pass": {
 		"log": "Огненная стража перевала атакует!",
 		"enemies": [
-			{"unit": "skeleton_archer", "count": 20, "hex": [10, 1]},
-			{"unit": "lava_salamander", "count": 11, "hex": [10, 4]}
+			{"unit": "skeleton_archer", "count": 60, "hex": [10, 1]},
+			{"unit": "lava_salamander", "count": 33, "hex": [10, 4]}
 		]
 	},
 	"dragon_patrol": {
@@ -158,24 +158,24 @@
 	"dragon_patrol_gate": {
 		"log": "Стража Огненных Врат идет на таран!",
 		"enemies": [
-			{"unit": "skeleton_archer", "count": 22, "hex": [10, 1]},
-			{"unit": "lava_salamander", "count": 13, "hex": [10, 3]},
-			{"unit": "wolf", "count": 14, "hex": [10, 5]}
+			{"unit": "skeleton_archer", "count": 66, "hex": [10, 1]},
+			{"unit": "lava_salamander", "count": 39, "hex": [10, 3]},
+			{"unit": "wolf", "count": 42, "hex": [10, 5]}
 		]
 	},
 	"dragon_patrol_caldera": {
 		"log": "Слуги дракона перекрывают путь к жерлу вулкана!",
 		"enemies": [
-			{"unit": "lava_salamander", "count": 13, "hex": [10, 1]},
-			{"unit": "wolf", "count": 16, "hex": [10, 3]},
-			{"unit": "magma_golem", "count": 4, "hex": [10, 5]}
+			{"unit": "lava_salamander", "count": 39, "hex": [10, 1]},
+			{"unit": "wolf", "count": 48, "hex": [10, 3]},
+			{"unit": "magma_golem", "count": 12, "hex": [10, 5]}
 		]
 	},
 	"dragon_patrol_citadel": {
 		"log": "Лавовые хищники бросаются на защиту цитадели!",
 		"enemies": [
-			{"unit": "magma_golem", "count": 5, "hex": [10, 2]},
-			{"unit": "lava_salamander", "count": 12, "hex": [10, 4]}
+			{"unit": "magma_golem", "count": 15, "hex": [10, 2]},
+			{"unit": "lava_salamander", "count": 36, "hex": [10, 4]}
 		]
 	},
 	"swamp_patrol": {
