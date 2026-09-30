@@ -547,8 +547,20 @@ func _trigger_guarded_chest(guard: Dictionary, chest: Dictionary) -> void:
 	)
 	_show_popup_dialog()
 
+## Игру сворачивают на телефоне или закрывают окно — сохраняем карту. Иначе
+## пропадут ходы с последнего сохранения (начало дня, бой, сундук): Android
+## выгружает свёрнутую игру без предупреждения. В браузере вкладку просто
+## закрывают, поэтому там сохраняем и при потере фокуса.
+func _notification(what: int) -> void:
+	var leaving := what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_WM_CLOSE_REQUEST \
+		or (what == NOTIFICATION_APPLICATION_FOCUS_OUT and OS.has_feature("web"))
+	if leaving and is_inside_tree():
+		GameState.save_game()
+
 ## Запуск тактического боя: точка возврата всегда — карта кампании (PR #2).
 func _start_battle(battle_id: String) -> void:
+	# Сначала сохраняем карту: если телефон выгрузит игру посреди боя, ходы до боя не пропадут
+	GameState.save_game()
 	GameState.pending_battle_id = battle_id
 	GameState.battle_return_scene = "res://src/world/world_map.tscn"
 	get_tree().change_scene_to_file("res://src/battle/battle_arena.tscn")
