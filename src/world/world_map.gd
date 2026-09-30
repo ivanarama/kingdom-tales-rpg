@@ -1851,14 +1851,14 @@ func _update_hero_profile() -> void:
 	# Relics & Story Keys
 	var relics: Array[String] = []
 	if GameState.has_fairy_crown:
-		relics.append("👑 Венец Королевы Фей")
+		relics.append(tr("👑 Венец Королевы Фей"))
 	if GameState.has_gate_key:
-		relics.append("🗝 Ключ от Врат")
+		relics.append(tr("🗝 Ключ от Врат"))
 	if GameState.flags.get("iron_gate_opened", false) or GameState.flags.get("bone_gate_opened", false):
-		relics.append("⚔ Перевал открыт")
+		relics.append(tr("⚔ Перевал открыт"))
 		
 	if relics.is_empty():
-		hero_relics_lbl.text = "• Нет сюжетных реликвий"
+		hero_relics_lbl.text = tr("• Нет сюжетных реликвий")
 	else:
 		hero_relics_lbl.text = "• " + "\n• ".join(relics)
 		
