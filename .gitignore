@@ -20,3 +20,7 @@ tools/ffmpeg/
 
 # python-кэш инструментов
 tools/__pycache__/
+
+# Скомпилированные переводы: Godot собирает их из localization/*.csv при импорте,
+# как и всё в .godot/. В git они только давали бинарные конфликты в каждом PR со строками.
+localization/*.translation
